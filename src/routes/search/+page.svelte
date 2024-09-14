@@ -28,12 +28,14 @@
 		{/if}
         <Label for="newtab-switch">Open results in new tab</Label>
     </div>
-    <div class="flex max-w-2xl flex-col gap-4 px-4">
+    <div class="flex max-w-2xl w-full flex-col gap-4 px-4">
 		{#each data.results as result}
-			<a href={result.url} class="group" target={openInNewTab ? "_blank" : "_self"}>
+			<a href={result.url} class="group max-w-full" target={openInNewTab ? "_blank" : "_self"}>
 				<Card.Root class="flex flex-col gap-2 p-4">
 					<div class="group-hover:underline">
-						{result.url}
+						{#each result.url.split("/") as urlSegment}
+							{urlSegment}/<wbr>
+						{/each}
 						<span class="italic">—found via {result.source}</span>
 					</div>
 					<Card.Title class="font-medium">

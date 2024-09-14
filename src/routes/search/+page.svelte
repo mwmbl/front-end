@@ -32,7 +32,7 @@
 		{#each data.results as result}
 			<a href={result.url} class="group max-w-full" target={openInNewTab ? '_blank' : '_self'}>
 				<Card.Root class="flex flex-col gap-2 p-4">
-					<div class="group-hover:underline leading-snug">
+					<div class="leading-snug group-hover:underline">
 						{#each result.url
 							.split('/')
 							// add slashes, but not at the end

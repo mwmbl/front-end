@@ -1,1 +1,0 @@
-import{b as c,h as r,a as i,c as s,p as h,d as p}from"./runtime.DgZE306K.js";function m(t,f,o){r&&i();var n=t,a,e;c(()=>{a!==(a=f())&&(e&&(h(e),e=null),a&&(e=s(()=>o(n,a))))}),r&&(n=p)}export{m as c};

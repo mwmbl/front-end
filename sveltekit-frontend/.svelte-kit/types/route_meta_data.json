@@ -1,8 +1,0 @@
-{
-	"/": [
-		"src/routes/+page.ts"
-	],
-	"/search": [
-		"src/routes/search/+page.ts"
-	]
-}

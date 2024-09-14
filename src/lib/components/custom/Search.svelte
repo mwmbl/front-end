@@ -9,6 +9,9 @@
 
 	let { query }: { query?: string } = $props();
 
+	// svelte-ignore non_reactive_update
+	let input: HTMLInputElement;
+
 	let searchCompletions: string[] = $state([]);
 	async function fetchSearchCompletions(query: string | undefined) {
 		if (query != undefined) {
@@ -32,12 +35,31 @@
 		name="q"
 		placeholder="Search with Mwmbl..."
 		class={'rounded-lg p-6 text-lg' + (completionsExist ? ' rounded-b-none border-b-0' : '')}
+		bind:inputEl={input}
 		bind:value={query}
 		on:input={() => fetchSearchCompletions(query)}
 	/>
-	<Button tabindex={-1} type="submit" class="absolute right-6 h-8 w-8 rounded-full bg-pink-300">
-		<PhMagnifyingGlass class="min-h-5 min-w-5 text-black" />
-	</Button>
+	{#if query == undefined || completionsExist}
+		<Button
+			tabindex={-1}
+			type="submit"
+			class="absolute right-6 h-8 w-8 rounded-full bg-pink-300 disabled:pointer-events-auto disabled:cursor-default disabled:opacity-100"
+			disabled={query == undefined}
+		>
+			<PhMagnifyingGlass class="min-h-5 min-w-5 text-black" />
+		</Button>
+	{:else}
+		<Button
+			on:click={() => {
+				query = undefined;
+				input.focus();
+			}}
+			class="absolute right-6 h-8 w-8 rounded-full bg-pink-300"
+		>
+			<MaterialSymbolsCloseRounded class="min-h-5 min-w-5 text-black" />
+		</Button>
+	{/if}
+
 	<Card.Root
 		class={'absolute top-12 flex w-[calc(100%-2rem)] rounded-t-none border-t-0' +
 			(completionsExist ? ' px-4 pb-4 pt-2' : '')}

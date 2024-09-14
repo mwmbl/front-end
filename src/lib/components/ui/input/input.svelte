@@ -3,12 +3,16 @@
 	import type { InputEvents } from './index.js';
 	import { cn } from '$lib/utils.js';
 
-	type $$Props = HTMLInputAttributes;
+	type $$Props = HTMLInputAttributes & {
+		inputEl: HTMLInputElement;
+	};
 	type $$Events = InputEvents;
 
 	let className: $$Props['class'] = undefined;
 	export let value: $$Props['value'] = undefined;
 	export { className as class };
+
+	export let inputEl: HTMLInputElement;
 
 	// Workaround for https://github.com/sveltejs/svelte/issues/9305
 	// Fixed in Svelte 5, but not backported to 4.x.
@@ -21,6 +25,7 @@
 		className
 	)}
 	bind:value
+	bind:this={inputEl}
 	{readonly}
 	on:blur
 	on:change

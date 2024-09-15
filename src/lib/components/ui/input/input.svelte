@@ -12,7 +12,7 @@
 	export let value: $$Props['value'] = undefined;
 	export { className as class };
 
-	export let inputEl: HTMLInputElement;
+	export let inputEl: HTMLInputElement | undefined = undefined;
 
 	// Workaround for https://github.com/sveltejs/svelte/issues/9305
 	// Fixed in Svelte 5, but not backported to 4.x.

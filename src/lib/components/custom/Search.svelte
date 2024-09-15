@@ -85,7 +85,7 @@
 					{:else if completion.startsWith('go: ')}
 						<Button variant="outline" href={'https://' + completion.replace(/^go: /, '')}>
 							<span>Open website: {completion.replace(/^go: /, '')}</span>
-							<PhArrowSquareOutFill class="ml-1 min-h-5 min-w-5 text-black" />
+							<PhArrowSquareOutFill class="ml-1 min-h-5 min-w-5 text-black dark:text-white" />
 						</Button>
 					{/if}
 				{/each}
@@ -98,7 +98,7 @@
 				class="ml-auto"
 				on:click={() => (searchCompletions = [])}
 			>
-				<MaterialSymbolsCloseRounded class="min-h-5 min-w-5 text-black" />
+				<MaterialSymbolsCloseRounded class="min-h-5 min-w-5 text-black dark:text-white" />
 			</Button>
 		{/if}
 	</Card.Root>

@@ -4,33 +4,22 @@
 	import { Switch } from '$lib/components/ui/switch';
 	import { Label } from '$lib/components/ui/label';
 	import { Skeleton } from '@/components/ui/skeleton';
+	import { localStoragePreferences } from '@/localStoragePreferences.svelte';
 
 	let { data } = $props();
 
-	let openInNewTab: boolean | undefined = $state(undefined);
-	$effect(() => {
-		const value = window.localStorage.getItem('openInNewTab');
-		if (value) openInNewTab = JSON.parse(value);
-		else openInNewTab = false;
-	});
-	$effect(() => {
-		window.localStorage.setItem('openInNewTab', JSON.stringify(openInNewTab));
-	});
+	let preferences = localStoragePreferences();
 </script>
 
 <main class="flex flex-col items-center gap-8">
 	<Search query={data.query} />
-	<div class="flex w-full max-w-2xl flex-row items-center justify-start gap-3 px-4">
-		{#if openInNewTab === undefined}
-			<Skeleton class="h-[24px] w-[44px] rounded-full bg-input" />
-		{:else}
-			<Switch id="newtab-switch" class="switch-fade" bind:checked={openInNewTab} />
-		{/if}
-		<Label for="newtab-switch">Open results in new tab</Label>
-	</div>
 	<div class="flex w-full max-w-2xl flex-col gap-4 px-4">
 		{#each data.results as result}
-			<a href={result.url} class="group max-w-full" target={openInNewTab ? '_blank' : '_self'}>
+			<a
+				href={result.url}
+				class="group max-w-full"
+				target={preferences.openInNewTab ? '_blank' : '_self'}
+			>
 				<Card.Root class="flex flex-col gap-2 p-4">
 					<div class="leading-snug group-hover:underline">
 						{#each result.url
@@ -64,17 +53,3 @@
 		{/each}
 	</div>
 </main>
-
-<style>
-	@keyframes switch-fade {
-		0% {
-			opacity: 0;
-		}
-		100% {
-			opacity: 1;
-		}
-	}
-	:global(.switch-fade) {
-		animation: switch-fade 0.2s ease-in-out;
-	}
-</style>

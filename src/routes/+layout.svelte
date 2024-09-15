@@ -1,11 +1,16 @@
 <script>
 	import '../app.css';
 
+	import { ModeWatcher } from 'mode-watcher';
+
 	import { Button } from '@/components/ui/button';
 	import * as Sheet from '@/components/ui/sheet';
+
 	import CiHamburgerMd from '~icons/ci/hamburger-md';
+	import RiSettings4Fill from '~icons/ri/settings-4-fill';
 </script>
 
+<ModeWatcher />
 <div class="flex min-h-screen flex-col">
 	<div class="border-t-8 border-pink-400"></div>
 	<header
@@ -17,6 +22,9 @@
 			<Button variant="link" href="/" class="px-2">Our Mission</Button>
 			<Button variant="link" href="/" class="px-2">The Team</Button>
 			<Button variant="link" href="https://opencollective.com/mwmbl" class="px-2">Donate</Button>
+			<Button variant="link" href="/preferences" class="px-2">
+				<RiSettings4Fill class="min-h-5 min-w-5 text-black dark:text-white" />
+			</Button>
 		</div>
 		<div class="contents md:hidden">
 			<Sheet.Root>
@@ -33,9 +41,10 @@
 						<Button variant="link" href="/" class="px-2">Home</Button>
 						<Button variant="link" href="/" class="px-2">Our Mission</Button>
 						<Button variant="link" href="/" class="px-2">The Team</Button>
-						<Button variant="link" href="https://opencollective.com/mwmbl" class="px-2"
-							>Donate</Button
-						>
+						<Button variant="link" href="https://opencollective.com/mwmbl" class="px-2">
+							Donate
+						</Button>
+						<Button variant="link" href="/preferences" class="px-2">Preferences</Button>
 					</ol>
 				</Sheet.Content>
 			</Sheet.Root>

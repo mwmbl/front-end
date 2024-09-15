@@ -22,7 +22,13 @@
 			<Button variant="link" href="/" class="px-2">Our Mission</Button>
 			<Button variant="link" href="/" class="px-2">The Team</Button>
 			<Button variant="link" href="https://opencollective.com/mwmbl" class="px-2">Donate</Button>
-			<Button variant="link" href="/preferences" class="px-2">
+			<Button
+				variant="link"
+				href="/preferences"
+				class="px-2"
+				title="Prefrences"
+				aria-label="Preferences"
+			>
 				<RiSettings4Fill class="min-h-5 min-w-5 text-black dark:text-white" />
 			</Button>
 		</div>

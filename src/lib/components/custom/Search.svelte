@@ -45,6 +45,8 @@
 			type="submit"
 			class="absolute right-6 h-8 w-8 rounded-full bg-pink-300 disabled:pointer-events-auto disabled:cursor-default disabled:opacity-100"
 			disabled={query == undefined}
+			title="Search Mwmbl"
+			aria-label="Search Mwmbl"
 		>
 			<PhMagnifyingGlass class="min-h-5 min-w-5 text-black" />
 		</Button>
@@ -55,6 +57,8 @@
 				input.focus();
 			}}
 			class="absolute right-6 h-8 w-8 rounded-full bg-pink-300"
+			title="Clear query and search again"
+			aria-label="Clear query and search again"
 		>
 			<MaterialSymbolsCloseRounded class="min-h-5 min-w-5 text-black" />
 		</Button>
@@ -97,6 +101,8 @@
 				size="icon"
 				class="ml-auto"
 				on:click={() => (searchCompletions = [])}
+				title="Close search completions"
+				aria-label="Close search completions"
 			>
 				<MaterialSymbolsCloseRounded class="min-h-5 min-w-5 text-black dark:text-white" />
 			</Button>

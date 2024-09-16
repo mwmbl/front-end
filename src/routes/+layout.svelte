@@ -8,6 +8,7 @@
 
 	import CiHamburgerMd from '~icons/ci/hamburger-md';
 	import RiSettings4Fill from '~icons/ri/settings-4-fill';
+	import RiAccountCircleFill from '~icons/ri/account-circle-fill';
 </script>
 
 <ModeWatcher />
@@ -19,17 +20,26 @@
 		<a href="/" class="mr-auto"><h1>mwmbl</h1></a>
 		<div class="hidden md:contents">
 			<Button variant="link" href="/" class="px-2">Home</Button>
-			<Button variant="link" href="/" class="px-2">Our Mission</Button>
-			<Button variant="link" href="/" class="px-2">The Team</Button>
 			<Button variant="link" href="https://opencollective.com/mwmbl" class="px-2">Donate</Button>
 			<Button
-				variant="link"
+				variant="outline"
+				size="icon"
 				href="/preferences"
 				class="px-2"
 				title="Prefrences"
 				aria-label="Preferences"
 			>
-				<RiSettings4Fill class="min-h-5 min-w-5 text-black dark:text-white" />
+				<RiSettings4Fill class="min-h-6 min-w-6 text-black dark:text-white" />
+			</Button>
+			<Button
+				variant="outline"
+				size="icon"
+				href="/account"
+				class="px-2"
+				title="Prefrences"
+				aria-label="Preferences"
+			>
+				<RiAccountCircleFill class="min-h-6 min-w-6 text-black dark:text-white" />
 			</Button>
 		</div>
 		<div class="contents md:hidden">
@@ -45,12 +55,17 @@
 					</Sheet.Header>
 					<ol class="flex flex-col items-start">
 						<Button variant="link" href="/" class="px-2">Home</Button>
-						<Button variant="link" href="/" class="px-2">Our Mission</Button>
-						<Button variant="link" href="/" class="px-2">The Team</Button>
 						<Button variant="link" href="https://opencollective.com/mwmbl" class="px-2">
 							Donate
 						</Button>
-						<Button variant="link" href="/preferences" class="px-2">Preferences</Button>
+						<Button variant="outline" href="/preferences" class="mb-3 px-2">
+							<RiSettings4Fill class="mr-2 min-h-6 min-w-6 text-black dark:text-white" />
+							Preferences
+						</Button>
+						<Button variant="outline" href="/account" class="px-2">
+							<RiAccountCircleFill class="mr-2 min-h-6 min-w-6 text-black dark:text-white" />
+							Account
+						</Button>
 					</ol>
 				</Sheet.Content>
 			</Sheet.Root>

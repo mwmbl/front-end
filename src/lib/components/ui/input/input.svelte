@@ -4,7 +4,7 @@
 	import { cn } from '$lib/utils.js';
 
 	type $$Props = HTMLInputAttributes & {
-		inputEl: HTMLInputElement;
+		inputEl?: HTMLInputElement;
 	};
 	type $$Events = InputEvents;
 

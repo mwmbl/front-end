@@ -55,6 +55,5 @@ export async function handle({ event, resolve }) {
 	} else {
 		setAssumeLoggedIn(false);
 	}
-	console.log(event.cookies.get('assumeLoggedIn'));
 	return await resolve(event);
 }

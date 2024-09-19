@@ -47,7 +47,12 @@ const config: Config = {
 				card: {
 					DEFAULT: 'hsl(var(--card) / <alpha-value>)',
 					foreground: 'hsl(var(--card-foreground) / <alpha-value>)'
-				}
+				},
+				unemphasized: {
+					'1': 'hsl(220 8 50 / <alpha-value>)',
+					'2': 'hsl(220 8 35 / <alpha-value>)'
+				},
+				'accent-text': 'hsl(220 77 59 / <alpha-value>)'
 			},
 			borderRadius: {
 				lg: 'var(--radius)',

@@ -7,6 +7,7 @@
 	import RiUserLine from '~icons/ri/user-line';
 
 	import MobileMenu from '@/components/custom/MobileMenu.svelte';
+	import SignInButton from '@/components/custom/SignInButton.svelte';
 </script>
 
 <header
@@ -18,9 +19,7 @@
 	</a>
 	<div class="hidden md:contents">
 		<Button variant="link" href="https://opencollective.com/mwmbl" class="px-2">Donate</Button>
-		<Button href="/account">
-			<RiUserLine class="mr-2 min-h-5 min-w-5 text-white dark:text-black" /> Sign In
-		</Button>
+		<SignInButton />
 	</div>
 	<div class="contents md:hidden">
 		<MobileMenu />

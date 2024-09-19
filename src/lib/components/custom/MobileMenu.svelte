@@ -3,10 +3,13 @@
 	import * as Sheet from '@/components/ui/sheet';
 
 	import RiMenu3Fill from '~icons/ri/menu-3-fill';
-	import RiUserLine from '~icons/ri/user-line';
 	import RiMoneyDollarCircleFill from '~icons/ri/money-dollar-circle-fill';
 
 	import Options from '@/components/custom/Options.svelte';
+	import SignInButton from '@/components/custom/SignInButton.svelte';
+
+	import { getCookies } from '@/cookies.svelte';
+	let cookies = getCookies();
 </script>
 
 <Sheet.Root>
@@ -29,10 +32,16 @@
 		<hr class="absolute left-0 top-[4.5rem] w-full" />
 		<div class="flex flex-col gap-4">
 			<div class="grid grid-cols-2 gap-4">
-				Sign in to start curating
-				<Button href="/account" class="max-w-min justify-self-end px-6">
-					<RiUserLine class="mr-2 min-h-5 min-w-5 text-white dark:text-black" /> Sign In
-				</Button>
+				<span>
+					{#if !cookies.assumeLoggedIn}
+						Sign in to start curating
+					{:else}
+						Logged in as <em>{cookies.username}</em>
+					{/if}
+				</span>
+				<div class="justify-self-end">
+					<SignInButton />
+				</div>
 			</div>
 			<div class="grid grid-cols-2 gap-4">
 				Donate to keep Mwmbl running

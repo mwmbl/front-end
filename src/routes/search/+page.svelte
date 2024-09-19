@@ -13,6 +13,7 @@
 	import SearchResult from '@/components/custom/SearchResult.svelte';
 	import Options from '@/components/custom/Options.svelte';
 	import MobileMenu from '@/components/custom/MobileMenu.svelte';
+	import SignInButton from '@/components/custom/SignInButton.svelte';
 
 	let { data } = $props();
 </script>
@@ -34,9 +35,9 @@
 			<Search query={data.query} />
 		</div>
 		<div class="justify-self-end max-lg:col-start-1 max-lg:row-start-1">
-			<Button href="/account" class="max-lg:hidden">
-				<RiUserLine class="mr-2 min-h-5 min-w-5 text-white dark:text-black" /> Sign In
-			</Button>
+			<div class="hidden lg:contents">
+				<SignInButton />
+			</div>
 			<MobileMenu />
 		</div>
 		<div class="mb-0 flex flex-row gap-4 max-lg:row-start-3 lg:col-start-2 lg:col-end-2">

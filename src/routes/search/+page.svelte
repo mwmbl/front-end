@@ -17,6 +17,10 @@
 	let { data } = $props();
 </script>
 
+<svelte:head>
+	<title>{data.query} - MWMBL</title>
+</svelte:head>
+
 <div class="header-grid mx-auto w-full max-w-screen-xl justify-center gap-4 p-5">
 	<header class="contents">
 		<a

@@ -55,7 +55,10 @@ const config: Config = {
 				sm: 'calc(var(--radius) - 4px)'
 			},
 			fontFamily: {
-				sans: [...fontFamily.sans]
+				sans: ['Hind Vadodara', 'sans-serif']
+			},
+			backgroundImage: {
+				'brand-gradient': 'linear-gradient(in oklab 130deg, #FFD83A, #DD8AFF, #74C3FF)'
 			}
 		}
 	}

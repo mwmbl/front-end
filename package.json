@@ -38,6 +38,7 @@
 	},
 	"type": "module",
 	"dependencies": {
+		"@fontsource/hind-vadodara": "^5.1.0",
 		"@sveltejs/adapter-node": "^5.2.2",
 		"bits-ui": "^0.21.13",
 		"clsx": "^2.1.1",

@@ -3,7 +3,7 @@
 	import { Button } from '@/components/ui/button';
 	import * as Card from '$lib/components/ui/card';
 
-	import PhMagnifyingGlass from '~icons/ph/magnifying-glass';
+	import RiSearchLine from '~icons/ri/search-line';
 	import PhArrowSquareOutFill from '~icons/ph/arrow-square-out-fill';
 	import MaterialSymbolsCloseRounded from '~icons/material-symbols/close-rounded';
 
@@ -25,7 +25,7 @@
 </script>
 
 <form
-	class="relative flex w-full max-w-[46rem] flex-row items-center px-4"
+	class="relative flex w-full max-w-[46rem] flex-row items-center"
 	action="/search"
 	method="get"
 	onsubmit={() => (searchCompletions = [])}
@@ -34,7 +34,8 @@
 		type="search"
 		name="q"
 		placeholder="Search with Mwmbl..."
-		class={'rounded-lg p-6 text-lg' + (completionsExist ? ' rounded-b-none border-b-0' : '')}
+		class={'text-l2 h-12 rounded-2xl border-none bg-card p-6 text-lg text-black ' +
+			(completionsExist ? ' rounded-b-none ' : '')}
 		bind:inputEl={input}
 		bind:value={query}
 		on:input={() => fetchSearchCompletions(query)}
@@ -43,12 +44,12 @@
 		<Button
 			tabindex={-1}
 			type="submit"
-			class="absolute right-6 h-8 w-8 rounded-full bg-pink-300 disabled:pointer-events-auto disabled:cursor-default disabled:opacity-100"
+			class="bg-brand-gradient absolute right-3 h-8 w-8 rounded-full disabled:pointer-events-auto disabled:cursor-default disabled:opacity-100"
 			disabled={query == undefined}
 			title="Search Mwmbl"
 			aria-label="Search Mwmbl"
 		>
-			<PhMagnifyingGlass class="min-h-5 min-w-5 text-black" />
+			<RiSearchLine class="min-h-5 min-w-5 text-black" />
 		</Button>
 	{:else}
 		<Button
@@ -56,7 +57,7 @@
 				query = undefined;
 				input.focus();
 			}}
-			class="absolute right-6 h-8 w-8 rounded-full bg-pink-300"
+			class="bg-brand-gradient absolute right-3 h-8 w-8 rounded-full"
 			title="Clear query and search again"
 			aria-label="Clear query and search again"
 		>
@@ -65,7 +66,7 @@
 	{/if}
 
 	<Card.Root
-		class={'absolute top-12 flex w-[calc(100%-2rem)] rounded-t-none border-t-0' +
+		class={'absolute top-12 flex w-[calc(100%)] rounded-b-2xl rounded-t-none border-none' +
 			(completionsExist ? ' px-4 pb-4 pt-2' : '')}
 	>
 		<ol>
@@ -79,15 +80,18 @@
 						>
 					{:else if completion.startsWith('search: google.com ')}
 						<Button
-							variant="outline"
 							target="_blank"
 							href="https://google.com/search?q={completion.replace(/^search: google\.com/, '')}"
 						>
 							<span>Search on Google: {completion.replace(/^search: google\.com/, '')}</span>
-							<PhMagnifyingGlass class="ml-1 min-h-5 min-w-5 text-black" />
+							<RiSearchLine class="ml-1 min-h-5 min-w-5 text-black" />
 						</Button>
 					{:else if completion.startsWith('go: ')}
-						<Button variant="outline" href={'https://' + completion.replace(/^go: /, '')}>
+						<Button
+							variant="secondary"
+							target="_blank"
+							href={'https://' + completion.replace(/^go: /, '')}
+						>
 							<span>Open website: {completion.replace(/^go: /, '')}</span>
 							<PhArrowSquareOutFill class="ml-1 min-h-5 min-w-5 text-black dark:text-white" />
 						</Button>
@@ -97,9 +101,9 @@
 		</ol>
 		{#if completionsExist}
 			<Button
-				variant="outline"
 				size="icon"
-				class="ml-auto"
+				class="absolute bottom-3 right-3 ml-auto h-8 w-8 rounded-full"
+				variant="secondary"
 				on:click={() => (searchCompletions = [])}
 				title="Close search completions"
 				aria-label="Close search completions"

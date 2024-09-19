@@ -34,7 +34,7 @@
 		type="search"
 		name="q"
 		placeholder="Search with Mwmbl..."
-		class={'text-l2 h-12 rounded-2xl border-none bg-card p-6 text-lg text-black ' +
+		class={'text-l2 h-12 rounded-2xl border-none bg-card p-6 text-lg ' +
 			(completionsExist ? ' rounded-b-none ' : '')}
 		bind:inputEl={input}
 		bind:value={query}

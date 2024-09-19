@@ -12,15 +12,11 @@
 		};
 	} = $props();
 
-	import { localStoragePreferences } from '@/localStoragePreferences.svelte';
-	let preferences = localStoragePreferences();
+	import { localStorageOptions } from '@/localStorageOptions.svelte';
+	let options = localStorageOptions();
 </script>
 
-<a
-	href={result.url}
-	class="group max-w-full"
-	target={preferences.openInNewTab ? '_blank' : '_self'}
->
+<a href={result.url} class="group max-w-full" target={options.openInNewTab ? '_blank' : '_self'}>
 	<Card.Root class="flex w-full flex-col gap-2 p-4">
 		<div class="leading-snug group-hover:underline">
 			{#each result.url

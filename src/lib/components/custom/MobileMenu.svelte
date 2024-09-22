@@ -25,29 +25,29 @@
 			<RiMenu3Fill class="h-6 w-6 text-black dark:text-white" />
 		</Button>
 	</Sheet.Trigger>
-	<Sheet.Content side="right">
-		<Sheet.Header class="mb-12">
+	<Sheet.Content side="right" class="max-w-[75%]">
+		<Sheet.Header class="mb-12 max-[340px]:text-left">
 			<Sheet.Title>Options</Sheet.Title>
 		</Sheet.Header>
 		<hr class="absolute left-0 top-[4.5rem] w-full" />
 		<div class="flex flex-col gap-4">
-			<div class="grid grid-cols-2 gap-4">
+			<div class="grid gap-4 min-[400px]:grid-cols-2">
 				<span>
-					{#if !cookies.assumeLoggedIn}
+					{#if cookies.assumeLoggedIn !== 'true'}
 						Sign in to start curating
 					{:else}
 						Logged in as <em>{cookies.username}</em>
 					{/if}
 				</span>
-				<div class="justify-self-end">
+				<div class="min-[400px]:justify-self-end">
 					<SignInButton />
 				</div>
 			</div>
-			<div class="grid grid-cols-2 gap-4">
-				Donate to keep Mwmbl running
+			<div class="grid gap-4 min-[400px]:grid-cols-2">
+				<span> Donate to keep Mwmbl running </span>
 				<Button
 					href="https://opencollective.com/mwmbl"
-					class="max-w-min justify-self-end px-6"
+					class="max-w-min px-6 min-[400px]:justify-self-end"
 					variant="secondary"
 				>
 					<RiMoneyDollarCircleFill class="mr-2 min-h-5 min-w-5 text-black dark:text-white" /> Donate

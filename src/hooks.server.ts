@@ -1,8 +1,8 @@
 import { dev } from '$app/environment';
 
 export async function handle({ event, resolve }) {
-	function setAssumeLoggedIn(value: boolean) {
-		event.cookies.set('assumeLoggedIn', value.toString(), {
+	function setStatus(value: string) {
+		event.cookies.set('status', value, {
 			path: '/',
 			httpOnly: false,
 			sameSite: 'strict',
@@ -20,7 +20,7 @@ export async function handle({ event, resolve }) {
 			})
 		});
 		if (res.ok) {
-			setAssumeLoggedIn(true);
+			setStatus('assumeLoggedIn');
 		} else {
 			const refreshToken = event.cookies.get('refreshToken');
 			if (refreshToken) {
@@ -46,14 +46,14 @@ export async function handle({ event, resolve }) {
 						secure: !dev,
 						maxAge: 60 * 60 * 24 * 30 // 30 days
 					});
-					setAssumeLoggedIn(true);
+					setStatus('assumeLoggedIn');
 				} else {
-					setAssumeLoggedIn(false);
+					setStatus('assumeLoggedOut');
 				}
 			}
 		}
 	} else {
-		setAssumeLoggedIn(false);
+		setStatus('assumeLoggedOut');
 	}
 	return await resolve(event);
 }

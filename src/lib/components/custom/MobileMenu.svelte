@@ -33,7 +33,7 @@
 		<div class="flex flex-col gap-4">
 			<div class="grid gap-4 min-[400px]:grid-cols-2">
 				<span>
-					{#if cookies.assumeLoggedIn !== 'true'}
+					{#if cookies.status !== 'assumeLoggedIn'}
 						Sign in to start curating
 					{:else}
 						Logged in as <em>{cookies.username}</em>

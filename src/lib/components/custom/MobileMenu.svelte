@@ -10,9 +10,16 @@
 
 	import { getCookies } from '@/cookies.svelte';
 	let cookies = getCookies();
+
+	let open = false;
+
+	import { onNavigate } from '$app/navigation';
+	onNavigate(() => {
+		open = false;
+	});
 </script>
 
-<Sheet.Root>
+<Sheet.Root bind:open>
 	<Sheet.Trigger asChild let:builder>
 		<Button
 			builders={[builder]}

@@ -43,7 +43,7 @@
 					{#if cookies.status !== 'assumeLoggedIn'}
 						Sign in to start curating
 					{:else}
-						Logged in as <em>{cookies.username}</em>
+						Logged in as <em class="whitespace-nowrap">{cookies.username}</em>
 					{/if}
 				</span>
 				<div class="min-[400px]:justify-self-end">

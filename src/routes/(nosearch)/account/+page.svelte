@@ -3,6 +3,7 @@
 	import * as Card from '@/components/ui/card';
 	import { Input } from '@/components/ui/input';
 	import * as Tabs from '@/components/ui/tabs';
+	import * as AlertDialog from '$lib/components/ui/alert-dialog';
 
 	import { getCookies } from '@/cookies.svelte';
 	const cookies = getCookies();
@@ -19,16 +20,20 @@
 		{/if}
 	</h2>
 	<hr class="my-2" />
+	{#if cookies.status === 'accountError'}
+		<Card.Root class="p-4 outline outline-red-100 dark:outline-red-900">
+			{cookies.accountMessage.replaceAll('%20', ' ')}
+		</Card.Root>
+	{:else if cookies.status === 'accountCreated'}
+		<Card.Root class="p-4 outline outline-green-100 dark:outline-green-900">
+			{cookies.accountMessage.replaceAll('%20', ' ')}
+		</Card.Root>
+	{:else if cookies.status === 'accountDeleted'}
+		<Card.Root class="p-4 outline outline-green-100 dark:outline-green-900">
+			{cookies.accountMessage.replaceAll('%20', ' ')}
+		</Card.Root>
+	{/if}
 	{#if cookies.status !== 'assumeLoggedIn'}
-		{#if cookies.status === 'accountCreated'}
-			<Card.Root class="p-4 outline outline-green-100 dark:outline-green-900">
-				{cookies.registrationMessage.replaceAll('%20', ' ')}
-			</Card.Root>
-		{:else if cookies.status === 'accountCreationError'}
-			<Card.Root class="p-4 outline outline-red-100 dark:outline-red-900">
-				{cookies.registrationMessage.replaceAll('%20', ' ')}
-			</Card.Root>
-		{/if}
 		<Tabs.Root value="Log in" class="Log in">
 			<Tabs.List class="w-full rounded-2xl">
 				<Tabs.Trigger value="Log in" class="w-full rounded-xl">Log in</Tabs.Trigger>
@@ -89,5 +94,29 @@
 		<form method="post" action="?/logout">
 			<Button class="max-w-32" type="submit">Log out</Button>
 		</form>
+		<AlertDialog.Root>
+			<AlertDialog.Trigger asChild let:builder>
+				<Button builders={[builder]} class="max-w-32" type="submit" variant="destructive">
+					Delete account
+				</Button>
+			</AlertDialog.Trigger>
+			<AlertDialog.Content>
+				<AlertDialog.Header>
+					<AlertDialog.Title>Are you sure you want to delete your account?</AlertDialog.Title>
+					<AlertDialog.Description>
+						This action cannot be undone. This will permanently delete your account and remove your
+						data from our servers.
+					</AlertDialog.Description>
+				</AlertDialog.Header>
+				<AlertDialog.Footer>
+					<AlertDialog.Cancel>Cancel</AlertDialog.Cancel>
+					<form method="post" action="?/deleteUser" class="max-sm:w-full">
+						<AlertDialog.Action class="bg-red-600 max-sm:w-full" type="submit">
+							Delete account
+						</AlertDialog.Action>
+					</form>
+				</AlertDialog.Footer>
+			</AlertDialog.Content>
+		</AlertDialog.Root>
 	{/if}
 </main>

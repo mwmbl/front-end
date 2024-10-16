@@ -12,34 +12,51 @@ export const actions: Actions = {
 			})
 		});
 		const json = await res.json();
-		cookies.set('refreshToken', json.refresh, {
-			path: '/',
-			httpOnly: true,
-			sameSite: 'strict',
-			secure: !dev,
-			maxAge: 60 * 60 * 24 * 30 // 30 days
-		});
-		cookies.set('accessToken', json.access, {
-			path: '/',
-			httpOnly: false,
-			sameSite: 'strict',
-			secure: !dev,
-			maxAge: 60 * 60 * 24 // 1 day
-		});
-		cookies.set('username', json.username, {
-			path: '/',
-			httpOnly: false,
-			sameSite: 'strict',
-			secure: !dev,
-			maxAge: 60 * 60 * 24 // 30 days
-		});
-		cookies.set('status', 'assumeLoggedIn', {
-			path: '/',
-			httpOnly: false,
-			sameSite: 'strict',
-			secure: !dev,
-			maxAge: 60 * 60 * 24 // 1 day
-		});
+		if (res.ok) {
+			cookies.set('refreshToken', json.refresh, {
+				path: '/',
+				httpOnly: true,
+				sameSite: 'strict',
+				secure: !dev,
+				maxAge: 60 * 60 * 24 * 30 // 30 days
+			});
+			cookies.set('accessToken', json.access, {
+				path: '/',
+				httpOnly: false,
+				sameSite: 'strict',
+				secure: !dev,
+				maxAge: 60 * 60 * 24 // 1 day
+			});
+			cookies.set('username', json.username, {
+				path: '/',
+				httpOnly: false,
+				sameSite: 'strict',
+				secure: !dev,
+				maxAge: 60 * 60 * 24 // 30 days
+			});
+			cookies.set('status', 'assumeLoggedIn', {
+				path: '/',
+				httpOnly: false,
+				sameSite: 'strict',
+				secure: !dev,
+				maxAge: 60 * 60 * 24 // 1 day
+			});
+		} else {
+			cookies.set('status', 'accountError', {
+				path: '/',
+				httpOnly: false,
+				sameSite: 'strict',
+				secure: !dev,
+				maxAge: 60 * 60 * 24 // 1 day
+			});
+			cookies.set('accountMessage', json.detail, {
+				path: '/',
+				httpOnly: false,
+				sameSite: 'strict',
+				secure: !dev,
+				maxAge: 60 * 60 * 24 // 1 day
+			});
+		}
 	},
 	register: async ({ request, cookies }) => {
 		const data = await request.formData();
@@ -60,7 +77,7 @@ export const actions: Actions = {
 				secure: !dev,
 				maxAge: 60 * 60 * 24 // 1 day
 			});
-			cookies.set('registrationMessage', json.message, {
+			cookies.set('accountMessage', json.message, {
 				path: '/',
 				httpOnly: false,
 				sameSite: 'strict',
@@ -68,14 +85,14 @@ export const actions: Actions = {
 				maxAge: 60 * 60 * 24 // 1 day
 			});
 		} else {
-			cookies.set('status', 'accountCreationError', {
+			cookies.set('status', 'accountError', {
 				path: '/',
 				httpOnly: false,
 				sameSite: 'strict',
 				secure: !dev,
 				maxAge: 60 * 60 * 24 // 1 day
 			});
-			cookies.set('registrationMessage', json.message, {
+			cookies.set('accountMessage', json.message, {
 				path: '/',
 				httpOnly: false,
 				sameSite: 'strict',
@@ -89,6 +106,38 @@ export const actions: Actions = {
 		cookies.delete('accessToken', { path: '/' });
 		cookies.delete('username', { path: '/' });
 		cookies.delete('status', { path: '/' });
+	},
+	deleteUser: async ({ cookies }) => {
+		const res = await fetch(
+			`https://api.mwmbl.org/api/v1/platform/users/${cookies.get('username')}`,
+			{
+				method: 'DELETE',
+				headers: {
+					Authorization: 'Bearer ' + cookies.get('accessToken')
+				}
+			}
+		);
+		if (res.ok) {
+			cookies.delete('refreshToken', { path: '/' });
+			cookies.delete('accessToken', { path: '/' });
+			cookies.delete('username', { path: '/' });
+			cookies.delete('status', { path: '/' });
+
+			cookies.set('status', 'accountDeleted', {
+				path: '/',
+				httpOnly: false,
+				sameSite: 'strict',
+				secure: !dev,
+				maxAge: 60 * 60 * 24 // 1 day
+			});
+			cookies.set('accountMessage', 'Your account has been deleted.', {
+				path: '/',
+				httpOnly: false,
+				sameSite: 'strict',
+				secure: !dev,
+				maxAge: 60 * 60 * 24 // 1 day
+			});
+		}
 	}
 };
 

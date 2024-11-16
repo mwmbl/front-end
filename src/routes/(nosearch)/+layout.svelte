@@ -8,6 +8,8 @@
 
 	import MobileMenu from '@/components/custom/MobileMenu.svelte';
 	import SignInButton from '@/components/custom/SignInButton.svelte';
+
+	let { data } = $props();
 </script>
 
 <header
@@ -19,10 +21,10 @@
 	</a>
 	<div class="hidden md:contents">
 		<Button variant="link" href="https://opencollective.com/mwmbl" class="px-2">Donate</Button>
-		<SignInButton />
+		<SignInButton status={data.status} />
 	</div>
 	<div class="contents md:hidden">
-		<MobileMenu />
+		<MobileMenu status={data.status} />
 	</div>
 </header>
 

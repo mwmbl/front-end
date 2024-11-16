@@ -13,27 +13,27 @@
 
 <main class="flex w-full max-w-2xl flex-col gap-2 self-center px-6">
 	<h2 class="-mx-2 text-3xl">
-		{#if cookies.status !== 'assumeLoggedIn'}
+		{#if data.status !== 'assumeLoggedIn'}
 			Sign in
 		{:else}
-			Logged in as {cookies.username}
+			Logged in as {data.username}
 		{/if}
 	</h2>
 	<hr class="my-2" />
-	{#if cookies.status === 'accountError'}
+	{#if data.status === 'accountError'}
 		<Card.Root class="p-4 outline outline-red-100 dark:outline-red-900">
-			{cookies.accountMessage.replaceAll('%20', ' ')}
+			{data.accountMessage.replaceAll('%20', ' ')}
 		</Card.Root>
-	{:else if cookies.status === 'accountCreated'}
+	{:else if data.status === 'accountCreated'}
 		<Card.Root class="p-4 outline outline-green-100 dark:outline-green-900">
-			{cookies.accountMessage.replaceAll('%20', ' ')}
+			{data.accountMessage.replaceAll('%20', ' ')}
 		</Card.Root>
-	{:else if cookies.status === 'accountDeleted'}
+	{:else if data.status === 'accountDeleted'}
 		<Card.Root class="p-4 outline outline-green-100 dark:outline-green-900">
-			{cookies.accountMessage.replaceAll('%20', ' ')}
+			{data.accountMessage.replaceAll('%20', ' ')}
 		</Card.Root>
 	{/if}
-	{#if cookies.status !== 'assumeLoggedIn'}
+	{#if data.status !== 'assumeLoggedIn'}
 		<Tabs.Root value="Log in" class="Log in">
 			<Tabs.List class="w-full rounded-2xl">
 				<Tabs.Trigger value="Log in" class="w-full rounded-xl">Log in</Tabs.Trigger>

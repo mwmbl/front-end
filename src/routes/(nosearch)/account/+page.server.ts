@@ -2,7 +2,7 @@ import type { Actions } from './$types';
 import { dev } from '$app/environment';
 
 export const actions: Actions = {
-	login: async ({ request, cookies }) => {
+	login: async ({ request, cookies, locals }) => {
 		const data = await request.formData();
 		const res = await fetch('https://api.mwmbl.org/api/v1/platform/token/pair', {
 			method: 'POST',
@@ -32,33 +32,16 @@ export const actions: Actions = {
 				httpOnly: false,
 				sameSite: 'strict',
 				secure: !dev,
-				maxAge: 60 * 60 * 24 // 30 days
+				maxAge: 60 * 60 * 24 * 30 // 30 days
 			});
-			cookies.set('status', 'assumeLoggedIn', {
-				path: '/',
-				httpOnly: false,
-				sameSite: 'strict',
-				secure: !dev,
-				maxAge: 60 * 60 * 24 // 1 day
-			});
+
+			locals.status = 'assumeLoggedIn';
 		} else {
-			cookies.set('status', 'accountError', {
-				path: '/',
-				httpOnly: false,
-				sameSite: 'strict',
-				secure: !dev,
-				maxAge: 60 * 60 * 24 // 1 day
-			});
-			cookies.set('accountMessage', json.detail, {
-				path: '/',
-				httpOnly: false,
-				sameSite: 'strict',
-				secure: !dev,
-				maxAge: 60 * 60 * 24 // 1 day
-			});
+			locals.status = 'accountError';
+			locals.accountMessage = 'Error logging in.';
 		}
 	},
-	register: async ({ request, cookies }) => {
+	register: async ({ request, locals }) => {
 		const data = await request.formData();
 		const res = await fetch('https://api.mwmbl.org/api/v1/platform/register', {
 			method: 'POST',
@@ -69,45 +52,21 @@ export const actions: Actions = {
 			})
 		});
 		const json = await res.json();
-		if (json.status === 'success') {
-			cookies.set('status', 'accountCreated', {
-				path: '/',
-				httpOnly: false,
-				sameSite: 'strict',
-				secure: !dev,
-				maxAge: 60 * 60 * 24 // 1 day
-			});
-			cookies.set('accountMessage', json.message, {
-				path: '/',
-				httpOnly: false,
-				sameSite: 'strict',
-				secure: !dev,
-				maxAge: 60 * 60 * 24 // 1 day
-			});
+		if (res.ok) {
+			locals.status = 'accountCreated';
+			locals.accountMessage = json.message;
 		} else {
-			cookies.set('status', 'accountError', {
-				path: '/',
-				httpOnly: false,
-				sameSite: 'strict',
-				secure: !dev,
-				maxAge: 60 * 60 * 24 // 1 day
-			});
-			cookies.set('accountMessage', json.message, {
-				path: '/',
-				httpOnly: false,
-				sameSite: 'strict',
-				secure: !dev,
-				maxAge: 60 * 60 * 24 // 1 day
-			});
+			locals.status = 'accountError';
+			locals.accountMessage = json.message;
 		}
 	},
-	logout: async ({ cookies }) => {
+	logout: async ({ cookies, locals }) => {
 		cookies.delete('refreshToken', { path: '/' });
 		cookies.delete('accessToken', { path: '/' });
-		cookies.delete('username', { path: '/' });
-		cookies.delete('status', { path: '/' });
+		locals.status = 'assumeLoggedOut';
+		locals.accountMessage = 'Logged out.';
 	},
-	deleteUser: async ({ cookies }) => {
+	deleteUser: async ({ cookies, locals }) => {
 		const res = await fetch(
 			`https://api.mwmbl.org/api/v1/platform/users/${cookies.get('username')}`,
 			{
@@ -120,28 +79,17 @@ export const actions: Actions = {
 		if (res.ok) {
 			cookies.delete('refreshToken', { path: '/' });
 			cookies.delete('accessToken', { path: '/' });
-			cookies.delete('username', { path: '/' });
-			cookies.delete('status', { path: '/' });
 
-			cookies.set('status', 'accountDeleted', {
-				path: '/',
-				httpOnly: false,
-				sameSite: 'strict',
-				secure: !dev,
-				maxAge: 60 * 60 * 24 // 1 day
-			});
-			cookies.set('accountMessage', 'Your account has been deleted.', {
-				path: '/',
-				httpOnly: false,
-				sameSite: 'strict',
-				secure: !dev,
-				maxAge: 60 * 60 * 24 // 1 day
-			});
+			locals.status = 'accountDeleted';
+			locals.accountMessage = 'Your account has been deleted.';
+		} else {
+			locals.status = 'accountError';
+			locals.accountMessage = res.statusText;
 		}
 	}
 };
 
-export async function load({ cookies }) {
+export async function load({ cookies, locals }) {
 	const res = await fetch('https://api.mwmbl.org/api/v1/platform/protected', {
 		method: 'GET',
 		headers: {
@@ -154,11 +102,15 @@ export async function load({ cookies }) {
 	// so we have to resort to doing this...
 	if (json.status === 'error') {
 		return {
-			awaitingEmailConfirmation: true
+			awaitingEmailConfirmation: true,
+			accountMessage: locals.accountMessage,
+			username: cookies.get('username')
 		};
 	} else {
 		return {
-			awaitingEmailConfirmation: false
+			awaitingEmailConfirmation: false,
+			accountMessage: locals.accountMessage,
+			username: cookies.get('username')
 		};
 	}
 }

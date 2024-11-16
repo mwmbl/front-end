@@ -3,11 +3,10 @@
 
 	import RiUserLine from '~icons/ri/user-line';
 
-	import { getCookies } from '@/cookies.svelte';
-	let cookies = getCookies();
+	let { status } = $props();
 </script>
 
-{#if cookies.status !== 'assumeLoggedIn'}
+{#if status !== 'assumeLoggedIn'}
 	<Button href="/account" class="max-w-min px-6">
 		<RiUserLine class="mr-2 min-h-5 min-w-5 text-white dark:text-black" /> Sign In
 	</Button>

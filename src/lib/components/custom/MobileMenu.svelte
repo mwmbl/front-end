@@ -17,6 +17,8 @@
 	onNavigate(() => {
 		open = false;
 	});
+
+	let { status } = $props();
 </script>
 
 <Sheet.Root bind:open>
@@ -40,14 +42,14 @@
 		<div class="flex flex-col gap-4">
 			<div class="grid gap-4 min-[400px]:grid-cols-2">
 				<span>
-					{#if cookies.status !== 'assumeLoggedIn'}
+					{#if status !== 'assumeLoggedIn'}
 						Sign in to start curating
 					{:else}
 						Logged in as <em class="whitespace-nowrap">{cookies.username}</em>
 					{/if}
 				</span>
 				<div class="min-[400px]:justify-self-end">
-					<SignInButton />
+					<SignInButton {status} />
 				</div>
 			</div>
 			<div class="grid gap-4 min-[400px]:grid-cols-2">

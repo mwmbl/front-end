@@ -3,7 +3,15 @@
 declare global {
 	namespace App {
 		// interface Error {}
-		// interface Locals {}
+		interface Locals {
+			status:
+				| 'assumeLoggedIn'
+				| 'assumeLoggedOut'
+				| 'accountError'
+				| 'accountCreated'
+				| 'accountDeleted';
+			accountMessage: string;
+		}
 		// interface PageData {}
 		// interface PageState {}
 		// interface Platform {}

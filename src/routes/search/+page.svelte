@@ -26,8 +26,10 @@
 			href="/"
 			class="col-start-1 flex flex-row items-center gap-4 max-lg:row-start-1 lg:justify-self-end"
 		>
-			<img src="/logo.svg" alt="mwmbl" class="h-12" />
-			<img src="/mwmbl-text.svg" alt="" class="h-6 dark:invert lg:hidden" />
+			<h1 class="contents">
+				<img src="/logo.svg" alt="mwmbl" class="h-12" />
+				<img src="/mwmbl-text.svg" alt="" class="h-6 dark:invert lg:hidden" />
+			</h1>
 		</a>
 		<div class="max-lg:row-start-2">
 			<Search query={data.query} />

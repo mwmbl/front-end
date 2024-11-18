@@ -34,6 +34,7 @@
 		type="search"
 		name="q"
 		placeholder="Search with Mwmbl..."
+		aria-label="Search with Mwmbl"
 		class={'text-l2 h-12 rounded-2xl border-none bg-card p-6 text-lg ' +
 			(completionsExist ? ' rounded-b-none ' : '')}
 		bind:inputEl={input}
@@ -44,7 +45,7 @@
 		<Button
 			tabindex={-1}
 			type="submit"
-			class="bg-brand-gradient absolute right-3 h-8 w-8 rounded-full disabled:pointer-events-auto disabled:cursor-default disabled:opacity-100"
+			class="absolute right-3 h-8 w-8 rounded-full bg-brand-gradient disabled:pointer-events-auto disabled:cursor-default disabled:opacity-100"
 			disabled={query == undefined}
 			title="Search Mwmbl"
 			aria-label="Search Mwmbl"
@@ -57,7 +58,7 @@
 				query = undefined;
 				input.focus();
 			}}
-			class="bg-brand-gradient absolute right-3 h-8 w-8 rounded-full"
+			class="absolute right-3 h-8 w-8 rounded-full bg-brand-gradient"
 			title="Clear query and search again"
 			aria-label="Clear query and search again"
 		>

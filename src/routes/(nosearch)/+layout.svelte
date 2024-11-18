@@ -9,7 +9,7 @@
 	import MobileMenu from '@/components/custom/MobileMenu.svelte';
 	import SignInButton from '@/components/custom/SignInButton.svelte';
 
-	let { data } = $props();
+	let { children, data } = $props();
 </script>
 
 <header
@@ -28,4 +28,4 @@
 	</div>
 </header>
 
-<slot></slot>
+{@render children()}

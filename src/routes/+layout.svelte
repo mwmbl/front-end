@@ -8,6 +8,8 @@
 	import '@fontsource-variable/nunito';
 
 	import { ModeWatcher } from 'mode-watcher';
+
+	let { children } = $props();
 </script>
 
 <svelte:head>
@@ -24,5 +26,5 @@
 
 <ModeWatcher />
 <div class="flex min-h-screen flex-col">
-	<slot></slot>
+	{@render children()}
 </div>

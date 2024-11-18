@@ -49,10 +49,10 @@ const config: Config = {
 					foreground: 'hsl(var(--card-foreground) / <alpha-value>)'
 				},
 				unemphasized: {
-					'1': 'hsl(220 8 50 / <alpha-value>)',
-					'2': 'hsl(220 8 35 / <alpha-value>)'
+					'1': 'hsl(var(--unemphasized-1) / <alpha-value>)',
+					'2': 'hsl(var(--unemphasized-2) / <alpha-value>)'
 				},
-				'accent-text': 'hsl(220 77 59 / <alpha-value>)'
+				'accent-text': 'hsl(var(--accent-text) / <alpha-value>)'
 			},
 			borderRadius: {
 				lg: 'var(--radius)',

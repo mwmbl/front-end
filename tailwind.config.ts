@@ -1,4 +1,3 @@
-import { fontFamily } from 'tailwindcss/defaultTheme';
 import type { Config } from 'tailwindcss';
 
 const config: Config = {
@@ -60,10 +59,12 @@ const config: Config = {
 				sm: 'calc(var(--radius) - 4px)'
 			},
 			fontFamily: {
-				sans: ['Hind Vadodara', 'sans-serif']
+				sans: ['Hind Vadodara', 'sans-serif'],
+				display: ['Nunito Variable', 'sans-serif']
 			},
 			backgroundImage: {
-				'brand-gradient': 'linear-gradient(in oklab 130deg, #FFD83A, #DD8AFF, #74C3FF)'
+				'brand-gradient':
+					'linear-gradient(in oklab 130deg, hsla(48, 100%, 61%, var(--tw-bg-opacity)), hsla(283, 100%, 77%, var(--tw-bg-opacity)), hsla(206, 100%, 73%, var(--tw-bg-opacity)))'
 			}
 		}
 	}

@@ -5,6 +5,7 @@
 	import '@fontsource/hind-vadodara/500.css';
 	import '@fontsource/hind-vadodara/600.css';
 	import '@fontsource/hind-vadodara/700.css';
+	import '@fontsource-variable/nunito';
 
 	import { ModeWatcher } from 'mode-watcher';
 </script>

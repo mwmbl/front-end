@@ -8,6 +8,9 @@ importers:
 
   .:
     dependencies:
+      '@fontsource-variable/nunito':
+        specifier: ^5.1.0
+        version: 5.1.0
       '@fontsource/hind-vadodara':
         specifier: ^5.1.0
         version: 5.1.0
@@ -289,6 +292,9 @@ packages:
 
   '@floating-ui/utils@0.2.7':
     resolution: {integrity: sha512-X8R8Oj771YRl/w+c1HqAC1szL8zWQRwFvgDwT129k9ACdBoud/+/rX9V0qiMl6LWUdP9voC2nDVZYPMQQsb6eA==}
+
+  '@fontsource-variable/nunito@5.1.0':
+    resolution: {integrity: sha512-58KMaWHfR+cci4ZMPvoa2hVF9PV0g1gV8jilgFWDxToh3UrpOtrAiGluDZ8eqK5jDZX7v1GbMAKohvjJRBmgfg==}
 
   '@fontsource/hind-vadodara@5.1.0':
     resolution: {integrity: sha512-ldYMMWoCkR24zWBJvfsFggb2bfjEbVEYW9zPti3qDbmYyoGMmgpNlO8FBO6pwxM/7ej0Nyp7iGY9JHDUOFRlJw==}
@@ -1823,6 +1829,8 @@ snapshots:
       '@floating-ui/utils': 0.2.7
 
   '@floating-ui/utils@0.2.7': {}
+
+  '@fontsource-variable/nunito@5.1.0': {}
 
   '@fontsource/hind-vadodara@5.1.0': {}
 

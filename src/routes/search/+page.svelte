@@ -1,12 +1,8 @@
 <script lang="ts">
 	import { Button } from '@/components/ui/button';
 	import * as Popover from '@/components/ui/popover';
-	import * as Sheet from '@/components/ui/sheet';
 
 	import RiEqualizer2Line from '~icons/ri/equalizer-2-line';
-	import RiUserLine from '~icons/ri/user-line';
-	import RiSearchLine from '~icons/ri/search-line';
-	import RiImage2Line from '~icons/ri/image-2-line';
 	import RiLinksLine from '~icons/ri/links-line';
 
 	import Search from '@/components/custom/Search.svelte';
@@ -14,6 +10,8 @@
 	import Options from '@/components/custom/Options.svelte';
 	import MobileMenu from '@/components/custom/MobileMenu.svelte';
 	import SignInButton from '@/components/custom/SignInButton.svelte';
+	import Cta from '@/components/custom/CTA.svelte';
+	import BottomLinks from '@/components/custom/BottomLinks.svelte';
 
 	let { data } = $props();
 </script>
@@ -64,13 +62,17 @@
 	</header>
 	<hr class="lg:col-span-3 lg:row-start-3" />
 
-	<main class="contents">
-		<div class="flex w-full flex-col gap-4 lg:col-start-2 lg:col-end-2">
-			{#each data.results as result}
-				<SearchResult {result} />
-			{/each}
-		</div>
+	<main class="flex w-full flex-col gap-4 lg:col-start-2 lg:col-end-2">
+		{#each data.results as result}
+			<SearchResult {result} />
+		{/each}
 	</main>
+
+	<section class="lg:col-start-3 lg:col-end-3">
+		<hr class="mb-6 mt-3 lg:hidden" />
+		<Cta />
+		<BottomLinks class="lg:justify-end" />
+	</section>
 </div>
 
 <style>

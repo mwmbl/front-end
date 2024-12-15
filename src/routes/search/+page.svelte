@@ -41,9 +41,17 @@
 			<MobileMenu status={data.status} />
 		</div>
 		<div class="mb-0 flex flex-row gap-4 max-lg:row-start-3 lg:col-start-2 lg:col-end-2">
-			<Button href="/" variant="secondary" class="flex flex-row items-center gap-2 dark:bg-muted">
+			<!-- <Button href="/" variant="secondary" class="flex flex-row items-center gap-2 dark:bg-muted">
 				<RiLinksLine class="min-h-5 min-w-5 text-black dark:text-white" />
 				Submit URL
+			</Button> -->
+			<Button
+				href="/domain-submissions"
+				variant="secondary"
+				class="flex flex-row items-center gap-2 dark:bg-muted"
+			>
+				<RiLinksLine class="min-h-5 min-w-5 text-black dark:text-white" />
+				Submit Domain
 			</Button>
 			<Popover.Root>
 				<Popover.Trigger asChild let:builder>

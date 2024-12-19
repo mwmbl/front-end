@@ -34,7 +34,7 @@
 		<div class="max-lg:row-start-2">
 			<Search query={data.query} />
 		</div>
-		<div class="gap- flex flex-row gap-6 justify-self-end max-lg:col-start-1 max-lg:row-start-1">
+		<div class="flex flex-row gap-6 justify-self-end max-lg:col-start-1 max-lg:row-start-1">
 			<div class="hidden lg:contents">
 				<SignInButton loginStatus={data.loginStatus} />
 			</div>
@@ -67,18 +67,17 @@
 				<Popover.Content class="mt-2"><Options /></Popover.Content>
 			</Popover.Root>
 		</div>
-
-		<div class="contents md:hidden"></div>
 	</header>
-	<hr class="lg:col-span-3 lg:row-start-3" />
 
-	<main class="flex w-full flex-col gap-4 lg:col-start-2 lg:col-end-2">
+	<hr class="absolute left-0 top-52 w-screen lg:top-36" />
+
+	<main class="mt-4 flex w-full flex-col gap-4 lg:col-start-2 lg:col-end-2">
 		{#each data.results as result}
 			<SearchResult {result} />
 		{/each}
 	</main>
 
-	<section class="lg:col-start-3 lg:col-end-3">
+	<section class="lg:col-start-3 lg:col-end-3 lg:mt-4">
 		<hr class="mb-6 mt-3 lg:hidden" />
 		<Cta />
 		<BottomLinks class="lg:justify-end" />

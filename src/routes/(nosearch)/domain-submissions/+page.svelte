@@ -45,7 +45,7 @@
 			<li class="contents">
 				<div class="grid grid-cols-[7rem,1fr] gap-x-2">
 					<div
-						class={`col-span-2 flex flex-col justify-center rounded-2xl p-2 px-4 ${item.status == 'APPROVED' ? ' bg-green-300' : item.status == 'REJECTED' ? ' !col-span-1 bg-red-300' : ' bg-gray-300'}`}
+						class={`col-span-2 flex flex-col justify-center rounded-2xl p-2 px-4 text-black ${item.status == 'APPROVED' ? ' bg-green-300' : item.status == 'REJECTED' ? ' !col-span-1 bg-red-300' : ' bg-gray-300'}`}
 					>
 						{item.status}
 					</div>
@@ -82,7 +82,7 @@
 			Domain submitted successfully!
 		</Card.Root>
 	{/if}
-	<div class="w-full rounded-2xl bg-white p-4">
+	<div class="w-full rounded-2xl bg-card p-4">
 		<h3 class="text-2xl">Submit domain</h3>
 		<hr class="my-2" />
 		<Input

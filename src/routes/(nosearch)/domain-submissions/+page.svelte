@@ -171,9 +171,11 @@
 		>
 			<RiArrowDropLeftLine class="h-4 w-4" /> Previous
 		</Button>
-		<Button variant="outline" size="icon" href="?page=0">0</Button>
-		...
-		<Button variant="outline" size="icon" href="?page={data.maxPage}">{data.maxPage}</Button>
+		{#each Array.from({ length: data.maxPage + 1 }, (_, i) => i) as page}
+			<Button variant={data.page == page ? 'default' : 'outline'} size="icon" href="?page={page}">
+				{page}
+			</Button>
+		{/each}
 		<Button
 			href={data.page == data.maxPage ? '' : `?page=${data.page + 1}`}
 			variant="ghost"

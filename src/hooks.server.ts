@@ -35,22 +35,22 @@ export async function handle({ event, resolve }) {
 						secure: !dev,
 						maxAge: 60 * 60 * 24 * 30 // 30 days
 					});
-					event.locals.status = 'assumeLoggedIn';
+					event.locals.loginStatus = 'assumeLoggedIn';
 				} else {
-					event.locals.status = 'assumeLoggedOut';
+					event.locals.loginStatus = 'assumeLoggedOut';
 				}
 			} else {
-				event.locals.status = 'assumeLoggedOut';
+				event.locals.loginStatus = 'assumeLoggedOut';
 			}
 		} else {
-			event.locals.status = 'assumeLoggedIn';
+			event.locals.loginStatus = 'assumeLoggedIn';
 		}
 	} else {
-		event.locals.status = 'assumeLoggedOut';
+		event.locals.loginStatus = 'assumeLoggedOut';
 	}
 
 	// Delete cookies if logged out
-	if (event.locals.status === 'assumeLoggedOut') {
+	if (event.locals.loginStatus === 'assumeLoggedOut') {
 		event.cookies.delete('refreshToken', { path: '/' });
 		event.cookies.delete('accessToken', { path: '/' });
 	}

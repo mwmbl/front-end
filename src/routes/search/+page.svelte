@@ -34,7 +34,7 @@
 		<div class="max-lg:row-start-2">
 			<Search query={data.query} />
 		</div>
-		<div class="justify-self-end max-lg:col-start-1 max-lg:row-start-1">
+		<div class="gap- flex flex-row gap-6 justify-self-end max-lg:col-start-1 max-lg:row-start-1">
 			<div class="hidden lg:contents">
 				<SignInButton loginStatus={data.loginStatus} />
 			</div>

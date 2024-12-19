@@ -23,7 +23,7 @@
 		<Button variant="link" href="https://opencollective.com/mwmbl" class="px-2">Donate</Button>
 		<SignInButton loginStatus={data.loginStatus} />
 	</div>
-	<div class="contents md:hidden">
+	<div class="contents">
 		<MobileMenu loginStatus={data.loginStatus} />
 	</div>
 </header>

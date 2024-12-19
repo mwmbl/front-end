@@ -23,14 +23,7 @@
 
 <Sheet.Root bind:open>
 	<Sheet.Trigger asChild let:builder>
-		<Button
-			builders={[builder]}
-			class="lg:hidden"
-			size="icon"
-			variant="secondary"
-			title="Menu"
-			aria-label="Menu"
-		>
+		<Button builders={[builder]} size="icon" variant="secondary" title="Menu" aria-label="Menu">
 			<RiMenu3Fill class="h-6 w-6 text-black dark:text-white" />
 		</Button>
 	</Sheet.Trigger>

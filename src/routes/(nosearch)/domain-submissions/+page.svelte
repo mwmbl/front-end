@@ -6,7 +6,9 @@
 	import RiArrowDropRightLine from '~icons/ri/arrow-drop-right-line';
 	import RiLinksLine from '~icons/ri/links-line';
 	import RiLoader2Line from '~icons/ri/loader-2-line';
-	import type { SubmissionsResult } from './+page.js';
+	import type { SubmissionsResult } from './+page.server.js';
+	import SignInButton from '@/components/custom/SignInButton.svelte';
+	import * as Card from '@/components/ui/card';
 
 	let { data } = $props();
 
@@ -35,9 +37,6 @@
 		clearTimeout(debounceTimer);
 		debounceTimer = setTimeout(callback, ms);
 	}
-
-	// TODO implement domain submission (server actions)
-	function submitDomain() {}
 </script>
 
 {#snippet submissions(submissions: SubmissionsResult)}
@@ -74,6 +73,15 @@
 <main class="flex w-full max-w-4xl flex-col gap-2 self-center px-6">
 	<h2 class="-mx-2 text-3xl">Domain submissions</h2>
 	<hr class="my-2" />
+	{#if data.status === 'domainSubmissionError'}
+		<Card.Root class="p-4 outline outline-red-100 dark:outline-red-900">
+			Error submitting domain. Please try again and file an issue if it does not work.
+		</Card.Root>
+	{:else if data.status === 'domainSubmitted'}
+		<Card.Root class="p-4 outline outline-green-100 dark:outline-green-900">
+			Domain submitted successfully!
+		</Card.Root>
+	{/if}
 	<div class="w-full rounded-2xl bg-white p-4">
 		<h3 class="text-2xl">Submit domain</h3>
 		<hr class="my-2" />
@@ -91,31 +99,34 @@
 			{#await submissionsForInput}
 				<RiLoader2Line class="h-8 w-8 animate-spin" />
 			{:then submissionsForInput}
-				{#if submissionsForInput.count > 0}
-					<div class="mb-4">Found {submissionsForInput.count} pre-existing submission(s)</div>
-					{@render submissions(submissionsForInput)}
-					{#if domainInput.length > 0}
-						<Button
-							title="unimplemented"
-							variant="secondary"
-							class="mt-6 flex w-full flex-row items-center gap-2 dark:bg-muted"
-						>
-							<RiLinksLine class="min-h-5 min-w-5 text-black dark:text-white" />
-							Resubmit Domain
-						</Button>
+				{#if domainInput.length > 0}
+					{#if submissionsForInput.count > 0}
+						<div class="mb-4">Found {submissionsForInput.count} pre-existing submission(s)</div>
+						{@render submissions(submissionsForInput)}
+					{:else}
+						Found no pre-existing submission(s)
 					{/if}
-				{:else}
-					Found no pre-existing submission(s)
-					{#if domainInput.length > 0}
-						<Button
-							title="unimplemented"
-							variant="secondary"
-							class="mt-6 flex w-full flex-row items-center gap-2 dark:bg-muted"
-						>
-							<RiLinksLine class="min-h-5 min-w-5 text-black dark:text-white" />
-							Submit Domain
-						</Button>
-					{/if}
+					<form method="POST" action="?/submitDomain">
+						{#if data.loginStatus == 'assumeLoggedIn'}
+							<Button
+								variant="secondary"
+								class="mt-6 flex w-full flex-row items-center gap-2 dark:bg-muted"
+								type="submit"
+							>
+								<RiLinksLine class="min-h-5 min-w-5 text-black dark:text-white" />
+								{#if submissionsForInput.count > 0}
+									Resubmit Domain
+								{:else}
+									Submit Domain
+								{/if}
+							</Button>
+						{:else}
+							<div class="mt-6 flex w-full flex-row items-center gap-2 dark:bg-muted">
+								Authenticate to submit
+								<SignInButton loginStatus={data.loginStatus} />
+							</div>
+						{/if}
+					</form>
 				{/if}
 			{/await}
 		</div>

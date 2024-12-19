@@ -18,7 +18,7 @@
 		open = false;
 	});
 
-	let { status } = $props();
+	let { loginStatus: status } = $props();
 </script>
 
 <Sheet.Root bind:open>
@@ -49,7 +49,7 @@
 					{/if}
 				</span>
 				<div class="min-[400px]:justify-self-end">
-					<SignInButton {status} />
+					<SignInButton loginStatus={status} />
 				</div>
 			</div>
 			<div class="grid gap-4 min-[400px]:grid-cols-2">

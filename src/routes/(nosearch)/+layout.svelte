@@ -21,10 +21,10 @@
 	</a>
 	<div class="hidden md:contents">
 		<Button variant="link" href="https://opencollective.com/mwmbl" class="px-2">Donate</Button>
-		<SignInButton status={data.status} />
+		<SignInButton loginStatus={data.loginStatus} />
 	</div>
 	<div class="contents md:hidden">
-		<MobileMenu status={data.status} />
+		<MobileMenu loginStatus={data.loginStatus} />
 	</div>
 </header>
 

@@ -1,5 +1,5 @@
 export async function load({ locals }) {
 	return {
-		status: locals.status
+		loginStatus: locals.loginStatus
 	};
 }

@@ -4,13 +4,15 @@ declare global {
 	namespace App {
 		// interface Error {}
 		interface Locals {
-			status:
+			loginStatus:
 				| 'assumeLoggedIn'
 				| 'assumeLoggedOut'
 				| 'accountError'
 				| 'accountCreated'
 				| 'accountDeleted';
 			accountMessage: string;
+
+			actionResult: string;
 		}
 		// interface PageData {}
 		// interface PageState {}

@@ -13,27 +13,27 @@
 
 <main class="flex w-full max-w-2xl flex-col gap-2 self-center px-6">
 	<h2 class="-mx-2 text-3xl">
-		{#if data.status !== 'assumeLoggedIn'}
+		{#if data.loginStatus !== 'assumeLoggedIn'}
 			Sign in
 		{:else}
 			Logged in as {data.username}
 		{/if}
 	</h2>
 	<hr class="my-2" />
-	{#if data.status === 'accountError'}
+	{#if data.loginStatus === 'accountError'}
 		<Card.Root class="p-4 outline outline-red-100 dark:outline-red-900">
 			{data.accountMessage.replaceAll('%20', ' ')}
 		</Card.Root>
-	{:else if data.status === 'accountCreated'}
+	{:else if data.loginStatus === 'accountCreated'}
 		<Card.Root class="p-4 outline outline-green-100 dark:outline-green-900">
 			{data.accountMessage.replaceAll('%20', ' ')}
 		</Card.Root>
-	{:else if data.status === 'accountDeleted'}
+	{:else if data.loginStatus === 'accountDeleted'}
 		<Card.Root class="p-4 outline outline-green-100 dark:outline-green-900">
 			{data.accountMessage.replaceAll('%20', ' ')}
 		</Card.Root>
 	{/if}
-	{#if data.status !== 'assumeLoggedIn'}
+	{#if data.loginStatus !== 'assumeLoggedIn'}
 		<Tabs.Root value="Log in" class="Log in">
 			<Tabs.List class="w-full rounded-2xl">
 				<Tabs.Trigger value="Log in" class="w-full rounded-xl">Log in</Tabs.Trigger>

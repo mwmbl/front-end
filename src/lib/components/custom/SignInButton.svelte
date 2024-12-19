@@ -3,7 +3,7 @@
 
 	import RiUserLine from '~icons/ri/user-line';
 
-	let { status } = $props();
+	let { loginStatus: status } = $props();
 </script>
 
 {#if status !== 'assumeLoggedIn'}

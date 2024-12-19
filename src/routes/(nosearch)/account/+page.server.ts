@@ -35,9 +35,9 @@ export const actions: Actions = {
 				maxAge: 60 * 60 * 24 * 30 // 30 days
 			});
 
-			locals.status = 'assumeLoggedIn';
+			locals.loginStatus = 'assumeLoggedIn';
 		} else {
-			locals.status = 'accountError';
+			locals.loginStatus = 'accountError';
 			locals.accountMessage = 'Error logging in.';
 		}
 	},
@@ -53,17 +53,17 @@ export const actions: Actions = {
 		});
 		const json = await res.json();
 		if (res.ok) {
-			locals.status = 'accountCreated';
+			locals.loginStatus = 'accountCreated';
 			locals.accountMessage = json.message;
 		} else {
-			locals.status = 'accountError';
+			locals.loginStatus = 'accountError';
 			locals.accountMessage = json.message;
 		}
 	},
 	logout: async ({ cookies, locals }) => {
 		cookies.delete('refreshToken', { path: '/' });
 		cookies.delete('accessToken', { path: '/' });
-		locals.status = 'assumeLoggedOut';
+		locals.loginStatus = 'assumeLoggedOut';
 		locals.accountMessage = 'Logged out.';
 	},
 	deleteUser: async ({ cookies, locals }) => {
@@ -80,10 +80,10 @@ export const actions: Actions = {
 			cookies.delete('refreshToken', { path: '/' });
 			cookies.delete('accessToken', { path: '/' });
 
-			locals.status = 'accountDeleted';
+			locals.loginStatus = 'accountDeleted';
 			locals.accountMessage = 'Your account has been deleted.';
 		} else {
-			locals.status = 'accountError';
+			locals.loginStatus = 'accountError';
 			locals.accountMessage = res.statusText;
 		}
 	}

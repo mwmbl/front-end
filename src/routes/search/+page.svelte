@@ -36,9 +36,9 @@
 		</div>
 		<div class="justify-self-end max-lg:col-start-1 max-lg:row-start-1">
 			<div class="hidden lg:contents">
-				<SignInButton status={data.status} />
+				<SignInButton loginStatus={data.loginStatus} />
 			</div>
-			<MobileMenu status={data.status} />
+			<MobileMenu loginStatus={data.loginStatus} />
 		</div>
 		<div class="mb-0 flex flex-row gap-4 max-lg:row-start-3 lg:col-start-2 lg:col-end-2">
 			<!-- <Button href="/" variant="secondary" class="flex flex-row items-center gap-2 dark:bg-muted">

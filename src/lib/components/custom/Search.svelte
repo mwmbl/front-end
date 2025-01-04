@@ -13,22 +13,37 @@
 	let input: HTMLInputElement;
 
 	let searchCompletions: string[] = $state([]);
-	async function fetchSearchCompletions(query: string | undefined) {
-		if (query != undefined) {
-			const res = await fetch('https://mwmbl.org/api/v1/search/complete?q=' + query);
-			searchCompletions = (await res.json())[1];
-		}
-	}
 	let completionsExist = $derived(
 		searchCompletions.length > 0 && searchCompletions[0] !== 'search: google.com '
 	);
+
+	// AbortControllers are used to cancel fetches when the user searchers for something
+	// This is to prevent the page being stuck loading completions after the user has already searched
+	let abortControllers: AbortController[] = [];
+	function fetchSearchCompletions(query: string | undefined) {
+		if (query != undefined) {
+			const controller = new AbortController();
+			const signal = controller.signal;
+			abortControllers.push(controller);
+			fetch('https://mwmbl.org/api/v1/search/complete?q=' + query, { signal }).then((res) => {
+				res.json().then((json) => {
+					searchCompletions = json[1];
+				});
+			});
+		}
+	}
+	function resetCompletions() {
+		abortControllers.forEach((controller) => controller.abort());
+		abortControllers = [];
+		searchCompletions = [];
+	}
 </script>
 
 <form
 	class="relative flex w-full max-w-[46rem] flex-row items-center"
 	action="/search"
 	method="get"
-	onsubmit={() => (searchCompletions = [])}
+	onsubmit={resetCompletions}
 >
 	<Input
 		type="search"
@@ -74,10 +89,8 @@
 			{#if completionsExist}
 				{#each searchCompletions as completion}
 					{#if !completion.match(/^.*: /)}
-						<Button
-							variant="link"
-							on:click={() => (searchCompletions = [])}
-							href="/search?q={completion}">{completion}</Button
+						<Button variant="link" on:click={resetCompletions} href="/search?q={completion}"
+							>{completion}</Button
 						>
 					{:else if completion.startsWith('search: google.com ')}
 						<Button
@@ -105,7 +118,7 @@
 				size="icon"
 				class="absolute bottom-3 right-3 ml-auto h-8 w-8 rounded-full"
 				variant="secondary"
-				on:click={() => (searchCompletions = [])}
+				on:click={resetCompletions}
 				title="Close search completions"
 				aria-label="Close search completions"
 			>

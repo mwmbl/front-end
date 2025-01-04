@@ -5,8 +5,8 @@
 	import RiMenu3Fill from '~icons/ri/menu-3-fill';
 	import RiMoneyDollarCircleFill from '~icons/ri/money-dollar-circle-fill';
 
-	import Options from '@/components/custom/Options.svelte';
-	import SignInButton from '@/components/custom/SignInButton.svelte';
+	import Options from '@/components/custom/menu/Options.svelte';
+	import SignInButton from '@/components/custom/menu/SignInButton.svelte';
 
 	import { getCookies } from '@/cookies.svelte';
 	let cookies = getCookies();

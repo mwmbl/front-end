@@ -5,14 +5,14 @@
 	import RiEqualizer2Line from '~icons/ri/equalizer-2-line';
 	import RiLinksLine from '~icons/ri/links-line';
 
-	import Search from '@/components/custom/Search.svelte';
-	import SearchResult from '@/components/custom/SearchResult.svelte';
-	import Options from '@/components/custom/Options.svelte';
-	import MobileMenu from '@/components/custom/MobileMenu.svelte';
-	import SignInButton from '@/components/custom/SignInButton.svelte';
-	import Cta from '@/components/custom/CTA.svelte';
-	import BottomLinks from '@/components/custom/BottomLinks.svelte';
-	import WikipediaCard from '@/components/custom/WikipediaCard.svelte';
+	import Search from '@/components/custom/search/SearchBar.svelte';
+	import SearchResult from '@/components/custom/search/SearchResult.svelte';
+	import Options from '@/components/custom/menu/Options.svelte';
+	import MobileMenu from '@/components/custom/menu/MobileMenu.svelte';
+	import SignInButton from '@/components/custom/menu/SignInButton.svelte';
+	import Cta from '@/components/custom/brand/CTA.svelte';
+	import BottomLinks from '@/components/custom/brand/BottomLinks.svelte';
+	import WikipediaCard from '@/components/custom/search/WikipediaCard.svelte';
 
 	let { data } = $props();
 

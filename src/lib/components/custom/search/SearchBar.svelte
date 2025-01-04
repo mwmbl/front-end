@@ -82,7 +82,7 @@
 	{/if}
 
 	<Card.Root
-		class={'absolute top-12 flex w-[calc(100%)] rounded-b-2xl rounded-t-none border-none' +
+		class={'absolute top-12 z-10 flex w-[calc(100%)] rounded-b-2xl rounded-t-none border-none shadow' +
 			(completionsExist ? ' px-4 pb-4 pt-2' : '')}
 	>
 		<ol>

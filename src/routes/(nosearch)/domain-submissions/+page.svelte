@@ -8,7 +8,7 @@
 	import RiLoader2Line from '~icons/ri/loader-2-line';
 
 	import type { SubmissionsResult } from './+page.server.js';
-	import SignInButton from '@/components/custom/SignInButton.svelte';
+	import SignInButton from '@/components/custom/menu/SignInButton.svelte';
 
 	import * as Card from '@/components/ui/card';
 	import * as Select from '$lib/components/ui/select';

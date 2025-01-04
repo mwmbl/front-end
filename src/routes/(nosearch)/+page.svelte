@@ -1,5 +1,5 @@
 <script>
-	import Search from '@/components/custom/Search.svelte';
+	import Search from '@/components/custom/search/SearchBar.svelte';
 	import EmojioneMagnifyingGlassTiltedRight from '~icons/emojione/magnifying-glass-tilted-right';
 </script>
 
@@ -8,7 +8,7 @@
 		class="justify-self-center px-8 text-center text-4xl font-semibold !leading-snug md:text-5xl lg:text-6xl"
 	>
 		The first
-		<strong class="bg-brand-gradient rounded-2xl px-5 py-0 text-black">truly</strong>
+		<strong class="rounded-2xl bg-brand-gradient px-5 py-0 text-black">truly</strong>
 		open&nbsp;source<br />
 		search
 		<span class="whitespace-nowrap"

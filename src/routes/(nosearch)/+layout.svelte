@@ -6,8 +6,8 @@
 	import RiSettings4Fill from '~icons/ri/settings-4-fill';
 	import RiUserLine from '~icons/ri/user-line';
 
-	import MobileMenu from '@/components/custom/MobileMenu.svelte';
-	import SignInButton from '@/components/custom/SignInButton.svelte';
+	import MobileMenu from '@/components/custom/menu/MobileMenu.svelte';
+	import SignInButton from '@/components/custom/menu/SignInButton.svelte';
 
 	let { children, data } = $props();
 </script>

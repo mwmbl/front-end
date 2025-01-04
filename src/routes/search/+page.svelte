@@ -5,15 +5,20 @@
 	import RiEqualizer2Line from '~icons/ri/equalizer-2-line';
 	import RiLinksLine from '~icons/ri/links-line';
 
-	import Search from '@/components/custom/Search.svelte';
-	import SearchResult from '@/components/custom/SearchResult.svelte';
-	import Options from '@/components/custom/Options.svelte';
-	import MobileMenu from '@/components/custom/MobileMenu.svelte';
-	import SignInButton from '@/components/custom/SignInButton.svelte';
-	import Cta from '@/components/custom/CTA.svelte';
-	import BottomLinks from '@/components/custom/BottomLinks.svelte';
+	import Search from '@/components/custom/search/SearchBar.svelte';
+	import SearchResult from '@/components/custom/search/SearchResult.svelte';
+	import Options from '@/components/custom/menu/Options.svelte';
+	import MobileMenu from '@/components/custom/menu/MobileMenu.svelte';
+	import SignInButton from '@/components/custom/menu/SignInButton.svelte';
+	import Cta from '@/components/custom/brand/CTA.svelte';
+	import BottomLinks from '@/components/custom/brand/BottomLinks.svelte';
+	import WikipediaCard from '@/components/custom/search/WikipediaCard.svelte';
 
 	let { data } = $props();
+
+	const wikipediaCard = $derived(data.results[0].url.startsWith('https://en.wikipedia.org/wiki/'));
+
+	const results = $derived(!wikipediaCard ? data.results : data.results.slice(1));
 </script>
 
 <svelte:head>
@@ -72,7 +77,10 @@
 	<hr class="absolute left-0 top-52 w-screen lg:top-36" />
 
 	<main class="mt-4 flex w-full flex-col gap-4 lg:col-start-2 lg:col-end-2">
-		{#each data.results as result}
+		{#if wikipediaCard}
+			<WikipediaCard result={data.results[0]} />
+		{/if}
+		{#each results as result}
 			<SearchResult {result} />
 		{/each}
 	</main>

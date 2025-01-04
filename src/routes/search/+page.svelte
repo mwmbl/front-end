@@ -12,8 +12,13 @@
 	import SignInButton from '@/components/custom/SignInButton.svelte';
 	import Cta from '@/components/custom/CTA.svelte';
 	import BottomLinks from '@/components/custom/BottomLinks.svelte';
+	import WikipediaCard from '@/components/custom/WikipediaCard.svelte';
 
 	let { data } = $props();
+
+	const wikipediaCard = $derived(data.results[0].url.startsWith('https://en.wikipedia.org/wiki/'));
+
+	const results = $derived(!wikipediaCard ? data.results : data.results.slice(1));
 </script>
 
 <svelte:head>
@@ -72,7 +77,10 @@
 	<hr class="absolute left-0 top-52 w-screen lg:top-36" />
 
 	<main class="mt-4 flex w-full flex-col gap-4 lg:col-start-2 lg:col-end-2">
-		{#each data.results as result}
+		{#if wikipediaCard}
+			<WikipediaCard result={data.results[0]} />
+		{/if}
+		{#each results as result}
 			<SearchResult {result} />
 		{/each}
 	</main>

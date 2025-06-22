@@ -27,7 +27,7 @@
 </svelte:head>
 
 <ModeWatcher />
-<div class="flex min-h-screen flex-col">
+<div class="flex min-h-screen flex-col overflow-x-hidden">
 	{#if navigating?.to !== null}
 		<div class="loading-animation absolute top-0 right-0 left-0 h-2 w-[200vw] opacity-50"></div>
 		<div

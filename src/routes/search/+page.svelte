@@ -87,6 +87,21 @@
 		{#each results as result}
 			<SearchResult {result} />
 		{/each}
+		{#if results.length == 0}
+			<div class="flex flex-col justify-center gap-4 p-4">
+				<h2 class="text-2xl font-semibold">No results found</h2>
+				<p class="text-muted-foreground text-sm">
+					Try searching for something else or use <a
+						href="https://mwmbl.org/?q={data.query}"
+						class="underline transition-[text-underline-offset] hover:underline-offset-4"
+					>
+						the old frontend
+					</a>
+					to add a result. <br />
+					(feature coming to the new site soon)
+				</p>
+			</div>
+		{/if}
 	</main>
 
 	<section class="lg:col-start-3 lg:col-end-3 lg:mt-4">

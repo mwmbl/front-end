@@ -7,7 +7,7 @@
 	<h2
 		class="justify-self-center px-8 text-center text-4xl font-semibold leading-snug! md:text-5xl lg:text-6xl"
 	>
-		The first
+		The
 		<strong class="rounded-2xl bg-brand-gradient px-5 py-0 text-black">truly</strong>
 		open&nbsp;source<br />
 		search

@@ -16,7 +16,7 @@
 
 <svelte:head>
 	<title>MWMBL</title>
-	<meta property="og:title" content="The first truly open source search engine" />
+	<meta property="og:title" content="The truly open source search engine" />
 	<meta property="og:site_name" content="MWMBL Search Engine" />
 	<meta property="og:type" content="website" />
 	<meta

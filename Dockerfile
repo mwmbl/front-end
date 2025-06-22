@@ -1,6 +1,6 @@
 # Adapted from https://pnpm.io/docker#example-1-build-a-bundle-in-a-docker-container
 
-FROM node:22-slim as base
+FROM node:22.16.0-slim as base
 
 ENV PNPM_HOME="/pnpm"
 ENV PATH="$PNPM_HOME:$PATH"

@@ -29,7 +29,7 @@
 <a href={result.url} class="group max-w-full" target={options.openInNewTab ? '_blank' : '_self'}>
 	<Card.Root class="flex w-full flex-col gap-2 p-4">
 		<div
-			class="grid grid-cols-[2rem,1fr] items-center gap-2 font-medium leading-snug text-unemphasized-2 group-hover:underline"
+			class="grid grid-cols-[2rem_1fr] items-center gap-2 font-medium leading-snug text-unemphasized-2 group-hover:underline"
 		>
 			<div class="mr-3 min-h-8 min-w-8 rounded-xl bg-secondary p-2">
 				<img src={faviconUrl} alt="" class="h-4 w-4" />

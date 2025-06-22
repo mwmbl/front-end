@@ -48,12 +48,12 @@
 
 {#snippet submissions(items: SubmissionsResult['items'])}
 	{#if items.length > 0}
-		<ul class="grid w-fit grid-cols-[16rem,1fr,1fr] gap-2 pr-16">
+		<ul class="grid w-fit grid-cols-[16rem_1fr_1fr] gap-2 pr-16">
 			{#each items as item}
 				<li class="contents">
-					<div class="grid grid-cols-[7rem,1fr] gap-x-2">
+					<div class="grid grid-cols-[7rem_1fr] gap-x-2">
 						<div
-							class={`col-span-2 flex flex-col justify-center rounded-2xl p-2 px-4 text-black ${item.status == 'APPROVED' ? ' bg-green-300' : item.status == 'REJECTED' ? ' !col-span-1 bg-red-300' : ' bg-gray-300'}`}
+							class={`col-span-2 flex flex-col justify-center rounded-2xl p-2 px-4 text-black ${item.status == 'APPROVED' ? ' bg-green-300' : item.status == 'REJECTED' ? ' col-span-1! bg-red-300' : ' bg-gray-300'}`}
 						>
 							{item.status}
 						</div>
@@ -85,11 +85,11 @@
 	<h2 class="-mx-2 text-3xl">Domain submissions</h2>
 	<hr class="my-2" />
 	{#if data.status === 'domainSubmissionError'}
-		<Card.Root class="p-4 outline outline-red-100 dark:outline-red-900">
+		<Card.Root class="p-4 outline-solid outline-red-100 dark:outline-red-900">
 			Error submitting domain. Please try again and file an issue if it does not work.
 		</Card.Root>
 	{:else if data.status === 'domainSubmitted'}
-		<Card.Root class="p-4 outline outline-green-100 dark:outline-green-900">
+		<Card.Root class="p-4 outline-solid outline-green-100 dark:outline-green-900">
 			Domain submitted successfully!
 		</Card.Root>
 	{/if}
@@ -172,7 +172,7 @@
 			<RiArrowDropLeftLine class="h-4 w-4" /> Previous
 		</Button>
 		{#each Array.from({ length: data.maxPage + 1 }, (_, i) => i) as page}
-			<Button variant={data.page == page ? 'default' : 'outline'} size="icon" href="?page={page}">
+			<Button variant={data.page == page ? 'default' : 'outline-solid'} size="icon" href="?page={page}">
 				{page}
 			</Button>
 		{/each}

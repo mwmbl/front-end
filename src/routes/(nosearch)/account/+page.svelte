@@ -21,15 +21,15 @@
 	</h2>
 	<hr class="my-2" />
 	{#if data.loginStatus === 'accountError'}
-		<Card.Root class="p-4 outline outline-red-100 dark:outline-red-900">
+		<Card.Root class="p-4 outline-solid outline-red-100 dark:outline-red-900">
 			{data.accountMessage.replaceAll('%20', ' ')}
 		</Card.Root>
 	{:else if data.loginStatus === 'accountCreated'}
-		<Card.Root class="p-4 outline outline-green-100 dark:outline-green-900">
+		<Card.Root class="p-4 outline-solid outline-green-100 dark:outline-green-900">
 			{data.accountMessage.replaceAll('%20', ' ')}
 		</Card.Root>
 	{:else if data.loginStatus === 'accountDeleted'}
-		<Card.Root class="p-4 outline outline-green-100 dark:outline-green-900">
+		<Card.Root class="p-4 outline-solid outline-green-100 dark:outline-green-900">
 			{data.accountMessage.replaceAll('%20', ' ')}
 		</Card.Root>
 	{/if}
@@ -83,11 +83,11 @@
 		</Tabs.Root>
 	{:else}
 		{#if data.awaitingEmailConfirmation}
-			<Card.Root class="p-4 outline outline-red-100 dark:outline-red-900">
+			<Card.Root class="p-4 outline-solid outline-red-100 dark:outline-red-900">
 				Awaiting email confirmation, please check your email address.
 			</Card.Root>
 		{:else}
-			<Card.Root class="p-4 outline outline-green-100 dark:outline-green-900">
+			<Card.Root class="p-4 outline-solid outline-green-100 dark:outline-green-900">
 				Your email address has been confirmed. Nice!
 			</Card.Root>
 		{/if}

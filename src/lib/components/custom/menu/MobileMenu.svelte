@@ -31,7 +31,7 @@
 		<Sheet.Header class="mb-12 max-[340px]:text-left">
 			<Sheet.Title>Options</Sheet.Title>
 		</Sheet.Header>
-		<hr class="absolute left-0 top-[4.5rem] w-full" />
+		<hr class="absolute left-0 top-18 w-full" />
 		<div class="flex flex-col gap-4">
 			<div class="grid gap-4 min-[400px]:grid-cols-2">
 				<span>

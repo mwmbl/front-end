@@ -40,7 +40,7 @@
 </script>
 
 <form
-	class="relative flex w-full max-w-[46rem] flex-row items-center"
+	class="relative flex w-full max-w-184 flex-row items-center"
 	action="/search"
 	method="get"
 	onsubmit={resetCompletions}
@@ -82,7 +82,7 @@
 	{/if}
 
 	<Card.Root
-		class={'absolute top-12 z-10 flex w-[calc(100%)] rounded-b-2xl rounded-t-none border-none shadow' +
+		class={'absolute top-12 z-10 flex w-[calc(100%)] rounded-b-2xl rounded-t-none border-none shadow-sm' +
 			(completionsExist ? ' px-4 pb-4 pt-2' : '')}
 	>
 		<ol>

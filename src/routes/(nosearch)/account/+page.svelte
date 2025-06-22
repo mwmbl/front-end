@@ -21,15 +21,15 @@
 	</h2>
 	<hr class="my-2" />
 	{#if data.loginStatus === 'accountError'}
-		<Card.Root class="p-4 outline outline-red-100 dark:outline-red-900">
+		<Card.Root class="p-4 outline-red-100 outline-solid dark:outline-red-900">
 			{data.accountMessage.replaceAll('%20', ' ')}
 		</Card.Root>
 	{:else if data.loginStatus === 'accountCreated'}
-		<Card.Root class="p-4 outline outline-green-100 dark:outline-green-900">
+		<Card.Root class="p-4 outline-green-100 outline-solid dark:outline-green-900">
 			{data.accountMessage.replaceAll('%20', ' ')}
 		</Card.Root>
 	{:else if data.loginStatus === 'accountDeleted'}
-		<Card.Root class="p-4 outline outline-green-100 dark:outline-green-900">
+		<Card.Root class="p-4 outline-green-100 outline-solid dark:outline-green-900">
 			{data.accountMessage.replaceAll('%20', ' ')}
 		</Card.Root>
 	{/if}
@@ -40,7 +40,7 @@
 				<Tabs.Trigger value="Register" class="w-full rounded-xl">Register</Tabs.Trigger>
 			</Tabs.List>
 			<Tabs.Content value="Log in">
-				<div class="mb-2 text-unemphasized-2">Log in to an existing account.</div>
+				<div class="text-unemphasized-2 mb-2">Log in to an existing account.</div>
 				<form method="post" action="?/login" class="flex flex-col gap-2">
 					<Input
 						required
@@ -54,13 +54,13 @@
 						type="password"
 						name="password"
 						placeholder="Password"
-						autocomplete="password"
+						autocomplete="current-password"
 					/>
 					<Button class="max-w-32" type="submit">Log in</Button>
 				</form>
 			</Tabs.Content>
 			<Tabs.Content value="Register">
-				<div class="mb-2 text-unemphasized-2">Create a new account.</div>
+				<div class="text-unemphasized-2 mb-2">Create a new account.</div>
 				<form method="post" action="?/register" class="flex flex-col gap-2">
 					<Input
 						required
@@ -75,7 +75,7 @@
 						type="password"
 						name="password"
 						placeholder="Password"
-						autocomplete="password"
+						autocomplete="new-password"
 					/>
 					<Button class="max-w-32" type="submit">Register</Button>
 				</form>
@@ -83,11 +83,11 @@
 		</Tabs.Root>
 	{:else}
 		{#if data.awaitingEmailConfirmation}
-			<Card.Root class="p-4 outline outline-red-100 dark:outline-red-900">
+			<Card.Root class="p-4 outline-red-100 outline-solid dark:outline-red-900">
 				Awaiting email confirmation, please check your email address.
 			</Card.Root>
 		{:else}
-			<Card.Root class="p-4 outline outline-green-100 dark:outline-green-900">
+			<Card.Root class="p-4 outline-green-100 outline-solid dark:outline-green-900">
 				Your email address has been confirmed. Nice!
 			</Card.Root>
 		{/if}
@@ -95,10 +95,12 @@
 			<Button class="max-w-32" type="submit">Log out</Button>
 		</form>
 		<AlertDialog.Root>
-			<AlertDialog.Trigger asChild let:builder>
-				<Button builders={[builder]} class="max-w-32" type="submit" variant="destructive">
-					Delete account
-				</Button>
+			<AlertDialog.Trigger>
+				{#snippet child({ props })}
+					<Button {...props} class="max-w-32" type="submit" variant="destructive">
+						Delete account
+					</Button>
+				{/snippet}
 			</AlertDialog.Trigger>
 			<AlertDialog.Content>
 				<AlertDialog.Header>

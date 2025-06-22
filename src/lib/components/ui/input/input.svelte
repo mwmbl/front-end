@@ -1,47 +1,51 @@
 <script lang="ts">
-	import type { HTMLInputAttributes } from 'svelte/elements';
-	import type { InputEvents } from './index.js';
-	import { cn } from '$lib/utils.js';
+	import type { HTMLInputAttributes, HTMLInputTypeAttribute } from 'svelte/elements';
+	import { cn, type WithElementRef } from '$lib/utils.js';
 
-	type $$Props = HTMLInputAttributes & {
-		inputEl?: HTMLInputElement;
-	};
-	type $$Events = InputEvents;
+	type InputType = Exclude<HTMLInputTypeAttribute, 'file'>;
 
-	let className: $$Props['class'] = undefined;
-	export let value: $$Props['value'] = undefined;
-	export { className as class };
+	type Props = WithElementRef<
+		Omit<HTMLInputAttributes, 'type'> &
+			({ type: 'file'; files?: FileList } | { type?: InputType; files?: undefined })
+	>;
 
-	export let inputEl: HTMLInputElement | undefined = undefined;
-
-	// Workaround for https://github.com/sveltejs/svelte/issues/9305
-	// Fixed in Svelte 5, but not backported to 4.x.
-	export let readonly: $$Props['readonly'] = undefined;
+	let {
+		ref = $bindable(null),
+		value = $bindable(),
+		type,
+		files = $bindable(),
+		class: className,
+		...restProps
+	}: Props = $props();
 </script>
 
-<input
-	class={cn(
-		'flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50',
-		className
-	)}
-	bind:value
-	bind:this={inputEl}
-	{readonly}
-	on:blur
-	on:change
-	on:click
-	on:focus
-	on:focusin
-	on:focusout
-	on:keydown
-	on:keypress
-	on:keyup
-	on:mouseover
-	on:mouseenter
-	on:mouseleave
-	on:mousemove
-	on:paste
-	on:input
-	on:wheel|passive
-	{...$$restProps}
-/>
+{#if type === 'file'}
+	<input
+		bind:this={ref}
+		data-slot="input"
+		class={cn(
+			'selection:bg-primary dark:bg-input/30 selection:text-primary-foreground border-input ring-offset-background placeholder:text-muted-foreground flex h-10 w-full min-w-0 rounded-md border bg-transparent px-3 pt-1.5 text-sm font-medium shadow-xs transition-[color,box-shadow] outline-none disabled:cursor-not-allowed disabled:opacity-50 md:text-sm',
+			'focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px]',
+			'aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive',
+			className
+		)}
+		type="file"
+		bind:files
+		bind:value
+		{...restProps}
+	/>
+{:else}
+	<input
+		bind:this={ref}
+		data-slot="input"
+		class={cn(
+			'border-input bg-card selection:bg-primary dark:bg-input/30 selection:text-primary-foreground ring-offset-background placeholder:text-muted-foreground transition-color flex h-10 w-full min-w-0 rounded-md border px-3 py-1 text-sm outline-none disabled:cursor-not-allowed disabled:opacity-50',
+			'focus-visible:border-ring focus-visible:ring-ring focus-visible:ring-2 focus-visible:ring-offset-2',
+			'aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive',
+			className
+		)}
+		{type}
+		bind:value
+		{...restProps}
+	/>
+{/if}

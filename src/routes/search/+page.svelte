@@ -33,7 +33,7 @@
 		>
 			<h1 class="contents">
 				<img src="/logo.svg" alt="mwmbl" class="h-12" />
-				<img src="/mwmbl-text.svg" alt="" class="h-6 dark:invert lg:hidden" />
+				<img src="/mwmbl-text.svg" alt="" class="h-6 lg:hidden dark:invert" />
 			</h1>
 		</a>
 		<div class="max-lg:row-start-2">
@@ -53,28 +53,30 @@
 			<Button
 				href="/domain-submissions"
 				variant="secondary"
-				class="flex flex-row items-center gap-2 dark:bg-muted"
+				class="dark:bg-muted flex flex-row items-center gap-2"
 			>
 				<RiLinksLine class="min-h-5 min-w-5 text-black dark:text-white" />
 				Submit Domain
 			</Button>
 			<Popover.Root>
-				<Popover.Trigger asChild let:builder>
-					<Button
-						builders={[builder]}
-						variant="secondary"
-						class="max-lg:hidde ml-auto flex flex-row items-center gap-2 dark:bg-muted"
-					>
-						<RiEqualizer2Line class="min-h-5 min-w-5 text-black dark:text-white" />
-						Options
-					</Button>
+				<Popover.Trigger>
+					{#snippet child({ props })}
+						<Button
+							{...props}
+							variant="secondary"
+							class="max-lg:hidde dark:bg-muted ml-auto flex flex-row items-center gap-2"
+						>
+							<RiEqualizer2Line class="min-h-5 min-w-5 text-black dark:text-white" />
+							Options
+						</Button>
+					{/snippet}
 				</Popover.Trigger>
 				<Popover.Content class="mt-2"><Options /></Popover.Content>
 			</Popover.Root>
 		</div>
 	</header>
 
-	<hr class="absolute left-0 top-52 w-screen lg:top-36" />
+	<hr class="absolute top-52 left-0 w-screen lg:top-36" />
 
 	<main class="mt-4 flex w-full flex-col gap-4 lg:col-start-2 lg:col-end-2">
 		{#if wikipediaCard}
@@ -86,7 +88,7 @@
 	</main>
 
 	<section class="lg:col-start-3 lg:col-end-3 lg:mt-4">
-		<hr class="mb-6 mt-3 lg:hidden" />
+		<hr class="mt-3 mb-6 lg:hidden" />
 		<Cta />
 		<BottomLinks class="lg:justify-end" />
 	</section>

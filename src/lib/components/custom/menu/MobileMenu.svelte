@@ -11,7 +11,7 @@
 	import { getCookies } from '@/cookies.svelte';
 	let cookies = getCookies();
 
-	let open = false;
+	let open = $state(false);
 
 	import { onNavigate } from '$app/navigation';
 	onNavigate(() => {
@@ -22,16 +22,18 @@
 </script>
 
 <Sheet.Root bind:open>
-	<Sheet.Trigger asChild let:builder>
-		<Button builders={[builder]} size="icon" variant="secondary" title="Menu" aria-label="Menu">
-			<RiMenu3Fill class="h-6 w-6 text-black dark:text-white" />
-		</Button>
+	<Sheet.Trigger>
+		{#snippet child({ props })}
+			<Button {...props} size="icon" variant="secondary" title="Menu" aria-label="Menu">
+				<RiMenu3Fill class="h-6 w-6 text-black dark:text-white" />
+			</Button>
+		{/snippet}
 	</Sheet.Trigger>
-	<Sheet.Content side="right" class="max-w-[75%]">
-		<Sheet.Header class="mb-12 max-[340px]:text-left">
+	<Sheet.Content side="right" class="max-w-[75%] p-6">
+		<Sheet.Header class="mb-8 p-0 max-[340px]:text-left">
 			<Sheet.Title>Options</Sheet.Title>
 		</Sheet.Header>
-		<hr class="absolute left-0 top-18 w-full" />
+		<hr class="absolute top-18 left-0 w-full" />
 		<div class="flex flex-col gap-4">
 			<div class="grid gap-4 min-[400px]:grid-cols-2">
 				<span>

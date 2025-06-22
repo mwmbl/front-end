@@ -9,8 +9,7 @@
 
 	let { query }: { query?: string } = $props();
 
-	// svelte-ignore non_reactive_update
-	let input: HTMLInputElement;
+	let input: HTMLInputElement | null = $state(null);
 
 	let searchCompletions: string[] = $state([]);
 	let completionsExist = $derived(
@@ -36,6 +35,7 @@
 		abortControllers.forEach((controller) => controller.abort());
 		abortControllers = [];
 		searchCompletions = [];
+		input?.focus();
 	}
 </script>
 
@@ -50,17 +50,17 @@
 		name="q"
 		placeholder="Search with Mwmbl..."
 		aria-label="Search with Mwmbl"
-		class={'text-l2 h-12 rounded-2xl border-none bg-card p-6 text-lg ' +
+		class={'bg-card z-20 h-12 rounded-2xl border-none p-6 text-lg ' +
 			(completionsExist ? ' rounded-b-none ' : '')}
-		bind:inputEl={input}
+		bind:ref={input}
 		bind:value={query}
-		on:input={() => fetchSearchCompletions(query)}
+		oninput={() => fetchSearchCompletions(query)}
 	/>
 	{#if query == undefined || completionsExist}
 		<Button
 			tabindex={-1}
 			type="submit"
-			class="absolute right-3 h-8 w-8 rounded-full bg-brand-gradient disabled:pointer-events-auto disabled:cursor-default disabled:opacity-100"
+			class="bg-brand-gradient absolute right-3 z-30 h-8 w-8 rounded-full disabled:pointer-events-auto disabled:cursor-default disabled:opacity-100"
 			disabled={query == undefined}
 			title="Search Mwmbl"
 			aria-label="Search Mwmbl"
@@ -69,11 +69,11 @@
 		</Button>
 	{:else}
 		<Button
-			on:click={() => {
+			onclick={() => {
 				query = undefined;
-				input.focus();
+				input?.focus();
 			}}
-			class="absolute right-3 h-8 w-8 rounded-full bg-brand-gradient"
+			class="bg-brand-gradient absolute right-3 z-30 h-8 w-8 rounded-full"
 			title="Clear query and search again"
 			aria-label="Clear query and search again"
 		>
@@ -82,14 +82,14 @@
 	{/if}
 
 	<Card.Root
-		class={'absolute top-12 z-10 flex w-[calc(100%)] rounded-b-2xl rounded-t-none border-none shadow-sm' +
-			(completionsExist ? ' px-4 pb-4 pt-2' : '')}
+		class={'absolute top-12 z-10 flex w-[calc(100%)] rounded-t-none rounded-b-2xl border-none shadow-sm' +
+			(completionsExist ? ' px-4 pt-4 pb-4' : ' p-0')}
 	>
 		<ol>
 			{#if completionsExist}
 				{#each searchCompletions as completion}
 					{#if !completion.match(/^.*: /)}
-						<Button variant="link" on:click={resetCompletions} href="/search?q={completion}"
+						<Button variant="link" onclick={resetCompletions} href="/search?q={completion}"
 							>{completion}</Button
 						>
 					{:else if completion.startsWith('search: google.com ')}
@@ -116,9 +116,9 @@
 		{#if completionsExist}
 			<Button
 				size="icon"
-				class="absolute bottom-3 right-3 ml-auto h-8 w-8 rounded-full"
+				class="absolute right-3 bottom-3 ml-auto h-8 w-8 rounded-full"
 				variant="secondary"
-				on:click={resetCompletions}
+				onclick={resetCompletions}
 				title="Close search completions"
 				aria-label="Close search completions"
 			>

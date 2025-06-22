@@ -20,7 +20,7 @@
 <div class="flex flex-col gap-3">
 	<div class="flex w-full max-w-2xl flex-row items-center justify-start gap-3">
 		{#if !loaded}
-			<Skeleton class="h-[24px] w-[44px] rounded-full bg-input" />
+			<Skeleton class="bg-input h-[24px] w-[44px] rounded-full" />
 		{:else}
 			<Switch id="newtab-switch" class="switch-fade" bind:checked={options.openInNewTab} />
 		{/if}
@@ -28,7 +28,7 @@
 	</div>
 	<div class="flex w-full max-w-2xl flex-row items-center justify-start gap-3">
 		<Button
-			on:click={toggleMode}
+			onclick={toggleMode}
 			variant="secondary"
 			class="relative"
 			id="dark-toggle"
@@ -36,10 +36,10 @@
 			aria-label="Toggle theme"
 		>
 			<PhSunFill
-				class="absolute left-3.5 top-[0.66rem] h-[1.2rem] w-[1.2rem] rotate-0 scale-100 transition-all dark:-rotate-90 dark:scale-0"
+				class="absolute top-[0.66rem] left-3.5 h-[1.2rem] w-[1.2rem] scale-100 rotate-0 transition-all dark:scale-0 dark:-rotate-90"
 			/>
 			<PhMoonFill
-				class="absolute left-3.5 top-[0.66rem] h-[1.2rem] w-[1.2rem] rotate-90 scale-0 transition-all dark:rotate-0 dark:scale-100"
+				class="absolute top-[0.66rem] left-3.5 h-[1.2rem] w-[1.2rem] scale-0 rotate-90 transition-all dark:scale-100 dark:rotate-0"
 			/>
 			<span class="ml-6 hidden dark:inline">Dark</span>
 			<span class="ml-6 inline dark:hidden">Light</span>

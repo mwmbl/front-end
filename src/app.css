@@ -13,7 +13,7 @@
 	--popover: hsl(0 0% 100%);
 	--popover-foreground: hsl(0 0% 0%);
 
-	--card: hsl(220 8% 95%);
+	--card: hsl(210, 8%, 100%);
 	--card-foreground: hsl(0 0% 3.9%);
 
 	--border: hsl(0 0% 89.8%);
@@ -134,6 +134,9 @@
 
 	--color-destructive: var(--destructive);
 	--color-destructive-foreground: var(--destructive-foreground);
+
+	--color-unemphasized-1: var(--unemphasized-1);
+	--color-unemphasized-2: var(--unemphasized-2);
 
 	--color-ring: var(--ring);
 

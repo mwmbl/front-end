@@ -24,11 +24,18 @@
 			const controller = new AbortController();
 			const signal = controller.signal;
 			abortControllers.push(controller);
-			fetch('https://mwmbl.org/api/v1/search/complete?q=' + query, { signal }).then((res) => {
-				res.json().then((json) => {
-					searchCompletions = json[1];
+			fetch('https://mwmbl.org/api/v1/search/complete?q=' + query, { signal })
+				.then((res) => {
+					res.json().then((json) => {
+						searchCompletions = json[1];
+					});
+				})
+				.catch((e: Error) => {
+					if (e.name === 'AbortError') {
+						return; // Don't litter the console with abort errors, aborting is intentional
+					}
+					throw e;
 				});
-			});
 		}
 	}
 	function resetCompletions() {

@@ -16,7 +16,9 @@
 
 	let { data } = $props();
 
-	const wikipediaCard = $derived(data.results[0].url.startsWith('https://en.wikipedia.org/wiki/'));
+	const wikipediaCard = $derived(
+		data.results.length > 0 && data.results[0].url.startsWith('https://en.wikipedia.org/wiki/')
+	);
 
 	const results = $derived(!wikipediaCard ? data.results : data.results.slice(1));
 </script>

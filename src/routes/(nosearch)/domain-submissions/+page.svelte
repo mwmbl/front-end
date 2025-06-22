@@ -96,28 +96,35 @@
 	<div class="bg-card w-full rounded-2xl p-4">
 		<h3 class="text-2xl">Submit domain</h3>
 		<hr class="my-2" />
-		<Input
-			class="mt-4"
-			type="text"
-			placeholder="example.org"
-			bind:value={domainInput}
-			onkeyup={() => {
-				submissionsForInput = new Promise(() => {});
-				debounce(() => (submissionsForInput = fetchSubmissionsForInput()), 500);
-			}}
-		/>
-		<div class="mt-2 p-2">
-			{#await submissionsForInput}
-				<RiLoader2Line class="h-8 w-8 animate-spin" />
-			{:then submissionsForInput}
-				{#if domainInput.length > 0}
-					{#if submissionsForInput.count > 0}
-						<div class="mb-4">Found {submissionsForInput.count} pre-existing submission(s)</div>
-						{@render submissions(submissionsForInput.items)}
-					{:else}
-						Found no pre-existing submission(s)
-					{/if}
-					<form method="POST" action="?/submitDomain">
+		<form method="POST" action="?/submitDomain">
+			<Input
+				class="mt-4"
+				type="text"
+				placeholder="example.org"
+				bind:value={domainInput}
+				name="domain"
+				onkeyup={() => {
+					submissionsForInput = new Promise(() => {});
+					debounce(() => (submissionsForInput = fetchSubmissionsForInput()), 500);
+				}}
+				onkeydown={(e) => {
+					if (e.key === 'Enter') {
+						e.preventDefault();
+						e.stopPropagation();
+					}
+				}}
+			/>
+			<div class="mt-2 p-2">
+				{#await submissionsForInput}
+					<RiLoader2Line class="h-8 w-8 animate-spin" />
+				{:then submissionsForInput}
+					{#if domainInput.length > 0}
+						{#if submissionsForInput.count > 0}
+							<div class="mb-4">Found {submissionsForInput.count} pre-existing submission(s)</div>
+							{@render submissions(submissionsForInput.items)}
+						{:else}
+							Found no pre-existing submission(s)
+						{/if}
 						{#if data.loginStatus == 'assumeLoggedIn'}
 							<Button
 								variant="secondary"
@@ -137,10 +144,10 @@
 								<SignInButton loginStatus={data.loginStatus} />
 							</div>
 						{/if}
-					</form>
-				{/if}
-			{/await}
-		</div>
+					{/if}
+				{/await}
+			</div>
+		</form>
 	</div>
 	<form class="mt-3 p-2">
 		<h3 class="text-lg">Filter</h3>

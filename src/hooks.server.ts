@@ -1,6 +1,11 @@
 import { dev } from '$app/environment';
+import type { Handle } from '@sveltejs/kit';
+import { error } from '@sveltejs/kit';
 
-export async function handle({ event, resolve }) {
+const MWMBL_API_BASE_URL = 'https://api.mwmbl.org';
+const PROXY_PATH = '/api';
+
+export const handle: Handle = async ({ event, resolve }) => {
 	const accessToken = event.cookies.get('accessToken');
 
 	if (accessToken) {
@@ -55,5 +60,32 @@ export async function handle({ event, resolve }) {
 		event.cookies.delete('accessToken', { path: '/' });
 	}
 
+	// intercept requests to `/api/` and handle them with `handleApiProxy`
+	if (event.url.pathname.startsWith(PROXY_PATH)) {
+		return await handleApiProxy({ event, resolve });
+	}
+
 	return await resolve(event);
-}
+};
+
+// Proxies request through SvelteKit server to MWMBL API, with authentication
+// Adapted from https://sami.website/blog/sveltekit-api-reverse-proxy
+const handleApiProxy: Handle = async ({ event }) => {
+	// build the new URL path with your API base URL, the path, and the query string
+	const urlPath = `${MWMBL_API_BASE_URL}${event.url.pathname}${event.url.search}`;
+	const apiURL = new URL(urlPath);
+
+	event.request.headers.set('Authorization', `Bearer ${event.cookies.get('accessToken')}`);
+
+	return fetch(apiURL.toString(), {
+		// propagate the request method and body
+		body: event.request.body,
+		method: event.request.method,
+		headers: event.request.headers,
+		// @ts-ignore this is a real property, and without it requests with bodies do not work
+		duplex: 'half'
+	}).catch((err) => {
+		console.log('Could not proxy API request: ', err);
+		throw err;
+	});
+};

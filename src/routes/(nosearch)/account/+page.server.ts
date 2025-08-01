@@ -22,7 +22,7 @@ export const actions: Actions = {
 			});
 			cookies.set('accessToken', json.access, {
 				path: '/',
-				httpOnly: false,
+				httpOnly: true,
 				sameSite: 'strict',
 				secure: !dev,
 				maxAge: 60 * 60 * 24 // 1 day

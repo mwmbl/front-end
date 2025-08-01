@@ -7,13 +7,21 @@
 
 	let {
 		url,
-		query
+		query,
+		votes
 	}: {
 		url: string;
 		query?: string;
+		votes:
+			| { upvotes: number; downvotes: number; user_vote: null | 'upvote' | 'downvote' }
+			| undefined;
 	} = $props();
 
-	let currentVote: null | 'upvote' | 'downvote' = $state(null);
+	if (votes === undefined) {
+		// issue with API: URL's with the , character are misinterpreted
+		console.log(url);
+	}
+	let currentVote: null | 'upvote' | 'downvote' = $state(votes?.user_vote ?? null);
 
 	async function vote(type: 'upvote' | 'downvote') {
 		if (!query) return; // it should always exist, but let's not make bad api calls

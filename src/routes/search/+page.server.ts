@@ -3,11 +3,11 @@
 // uncomment to use wasm ranker
 // export const ssr = false;
 
-export async function load({ url }) {
+export async function load({ url, cookies, locals }) {
 	// const useWasmRanker = url.searchParams.get('useWasmRanker') === 'true';
 
 	// if (!useWasmRanker) {
-	const response = await fetch(
+	const resultsRes = await fetch(
 		'https://api.mwmbl.org/api/v1/search/?s=' + url.searchParams.get('q')
 	);
 	const results: Array<{
@@ -15,11 +15,40 @@ export async function load({ url }) {
 		extract: Array<{ value: string; is_bold: boolean }>;
 		url: string;
 		source: string;
-	}> = await response.json();
+		votes: undefined;
+	}> = await resultsRes.json();
+
+	if (locals.loginStatus !== 'assumeLoggedIn') {
+		return {
+			query: url.searchParams.get('q') as string | undefined,
+			results: results
+		};
+	}
+	const urls = results.map((r) => r.url.replaceAll(',', '%2C')).join(',');
+	const votesRes = await fetch(
+		`https://api.mwmbl.org/api/v1/platform/search-results/votes?query=${url.searchParams.get('q')}&urls=${urls}`,
+		{
+			headers: {
+				Authorization: `Bearer ${cookies.get('accessToken')}`
+			}
+		}
+	);
+	const votes = await votesRes.json();
+
+	const resultsWithVotes: Array<{
+		title: Array<{ value: string; is_bold: boolean }>;
+		extract: Array<{ value: string; is_bold: boolean }>;
+		url: string;
+		source: string;
+		votes: { upvotes: number; downvotes: number; user_vote: null | 'upvote' | 'downvote' };
+	}> = results.map((result) => ({
+		...result,
+		votes: votes.votes[result.url]
+	}));
 
 	return {
 		query: url.searchParams.get('q') as string | undefined,
-		results: results
+		results: resultsWithVotes
 	};
 	// }
 	// else {

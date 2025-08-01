@@ -16,6 +16,9 @@
 			extract: Array<{ value: string; is_bold: boolean }>;
 			url: string;
 			source: string;
+			votes:
+				| { upvotes: number; downvotes: number; user_vote: null | 'upvote' | 'downvote' }
+				| undefined;
 		};
 		query?: string;
 	} = $props();
@@ -72,6 +75,6 @@
 				{/each}
 			</Card.Description>
 		</div>
-		<VoteButtons url={result.url} {query} />
+		<VoteButtons url={result.url} {query} votes={result.votes} />
 	</Card.Root>
 </a>

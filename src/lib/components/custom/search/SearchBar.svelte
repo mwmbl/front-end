@@ -24,7 +24,7 @@
 			const controller = new AbortController();
 			const signal = controller.signal;
 			abortControllers.push(controller);
-			fetch('https://mwmbl.org/api/v1/search/complete?q=' + query, { signal })
+			fetch('https://api.mwmbl.org/api/v1/search/complete?q=' + query, { signal })
 				.then((res) => {
 					res.json().then((json) => {
 						searchCompletions = json[1];

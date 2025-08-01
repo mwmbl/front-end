@@ -7,7 +7,9 @@ export async function load({ url }) {
 	// const useWasmRanker = url.searchParams.get('useWasmRanker') === 'true';
 
 	// if (!useWasmRanker) {
-	const response = await fetch('https://mwmbl.org/search/?s=' + url.searchParams.get('q'));
+	const response = await fetch(
+		'https://api.mwmbl.org/api/v1/search/?s=' + url.searchParams.get('q')
+	);
 	const results: Array<{
 		title: Array<{ value: string; is_bold: boolean }>;
 		extract: Array<{ value: string; is_bold: boolean }>;

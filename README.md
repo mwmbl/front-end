@@ -1,6 +1,6 @@
 # SvelteKit Frontend for Mwmbl
 
-[SvelteKit](https://kit.svelte.dev/) (With [Svelte 5 preview](https://svelte-5-preview.vercel.app/)) + [Pnpm](https://pnpm.io/) + [Tailwind](https://tailwindcss.com/) + [shadcn-svelte](https://shadcn-svelte.com/)
+[SvelteKit](https://kit.svelte.dev/) (With Svelte 5) + [Pnpm](https://pnpm.io/) + [Tailwind](https://tailwindcss.com/) + [shadcn-svelte](https://shadcn-svelte.com/)
 
 ## Developing
 

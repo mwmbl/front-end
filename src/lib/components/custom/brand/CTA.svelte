@@ -4,9 +4,11 @@
 	import PhMatrixLogoBold from '~icons/ph/matrix-logo-bold';
 </script>
 
-<div
-	class="bg-brand-gradient bg-background/75 rounded-2xl border-2 border-black/25 p-5 bg-blend-lighten"
->
+<div class="relative overflow-hidden rounded-2xl border-2 border-black/10 p-5">
+	<div
+		class="bg-brand-gradient absolute top-0 left-0 -z-10 size-full opacity-50 dark:opacity-25"
+	></div>
+
 	<h2 class="font-display mb-3 text-xl font-extrabold">Join the Mwmbl community</h2>
 	<p class="text-unemphasized-2 dark:text-white/70">
 		Mwmbl is powered by you — our community. We're a friendly bunch and you can find us on Matrix

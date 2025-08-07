@@ -17,7 +17,7 @@
 	});
 </script>
 
-<div class="flex flex-col gap-3">
+<div class="flex flex-col gap-4">
 	<div class="flex w-full max-w-2xl flex-row items-center justify-start gap-3">
 		{#if !loaded}
 			<Skeleton class="bg-input h-[24px] w-[44px] rounded-full" />

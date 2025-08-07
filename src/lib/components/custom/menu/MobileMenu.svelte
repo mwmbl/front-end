@@ -51,7 +51,7 @@
 				<span> Donate to keep Mwmbl running </span>
 				<Button
 					href="https://opencollective.com/mwmbl"
-					class="max-w-min px-6 min-[400px]:justify-self-end"
+					class="max-w-min min-[400px]:justify-self-end"
 					variant="secondary"
 				>
 					<RiMoneyDollarCircleFill class="mr-2 min-h-5 min-w-5 text-black dark:text-white" /> Donate

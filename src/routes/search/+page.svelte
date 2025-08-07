@@ -41,7 +41,7 @@
 		<div class="max-lg:row-start-2">
 			<Search query={data.query} />
 		</div>
-		<div class="flex flex-row gap-6 justify-self-end max-lg:col-start-1 max-lg:row-start-1">
+		<div class="flex flex-row gap-3 justify-self-end max-lg:col-start-1 max-lg:row-start-1">
 			<div class="hidden lg:contents">
 				<SignInButton loginStatus={data.loginStatus} />
 			</div>

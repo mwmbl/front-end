@@ -27,7 +27,7 @@
 	<title>{data.query} - MWMBL</title>
 </svelte:head>
 
-<div class="header-grid mx-auto w-full max-w-(--breakpoint-xl) justify-center gap-4 p-5">
+<div class="page-grid mx-auto w-full max-w-(--breakpoint-xl) justify-center gap-4 p-5 xl:pr-16">
 	<header class="contents">
 		<a
 			href="/"
@@ -112,15 +112,15 @@
 </div>
 
 <style>
-	.header-grid {
+	.page-grid {
 		display: grid;
 		grid-template-columns: minmax(16rem, 46rem);
 		grid-template-rows: repeat(3, 1fr);
 	}
 	@media (min-width: 1024px) {
-		.header-grid {
+		.page-grid {
 			display: grid;
-			grid-template-columns: minmax(3rem, 8rem) minmax(32rem, 46rem) 1fr;
+			grid-template-columns: 3rem minmax(32rem, 46rem) 1fr;
 			grid-template-rows: repeat(2, 1fr);
 		}
 	}

@@ -68,7 +68,7 @@ export const handle: Handle = async ({ event, resolve }) => {
 	return await resolve(event);
 };
 
-// Proxies request through SvelteKit server to MWMBL API, with authentication
+// Proxies request through SvelteKit server to Mwmbl API, with authentication
 // Adapted from https://sami.website/blog/sveltekit-api-reverse-proxy
 const handleApiProxy: Handle = async ({ event }) => {
 	// build the new URL path with your API base URL, the path, and the query string

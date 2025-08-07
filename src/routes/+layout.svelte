@@ -15,9 +15,9 @@
 </script>
 
 <svelte:head>
-	<title>MWMBL</title>
+	<title>Mwmbl</title>
 	<meta property="og:title" content="The truly open source search engine" />
-	<meta property="og:site_name" content="MWMBL Search Engine" />
+	<meta property="og:site_name" content="Mwmbl Search Engine" />
 	<meta property="og:type" content="website" />
 	<meta
 		property="og:description"

@@ -82,10 +82,10 @@
 
 	<main class="mt-4 flex w-full flex-col gap-4 lg:col-start-2 lg:col-end-2">
 		{#if wikipediaCard}
-			<WikipediaCard result={data.results[0]} />
+			<WikipediaCard result={data.results[0]} query={data.query} />
 		{/if}
 		{#each results as result}
-			<SearchResult {result} />
+			<SearchResult {result} query={data.query} />
 		{/each}
 		{#if results.length == 0}
 			<div class="flex flex-col justify-center gap-4 p-4">

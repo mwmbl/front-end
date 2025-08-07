@@ -75,6 +75,8 @@
 				{/each}
 			</Card.Description>
 		</div>
-		<VoteButtons url={result.url} {query} votes={result.votes} />
+		{#if result.votes !== undefined}
+			<VoteButtons url={result.url} {query} votes={result.votes} />
+		{/if}
 	</Card.Root>
 </a>

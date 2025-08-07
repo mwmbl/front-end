@@ -57,7 +57,7 @@
 		name="q"
 		placeholder="Search with Mwmbl..."
 		aria-label="Search with Mwmbl"
-		class={'bg-card z-20 h-12 rounded-2xl border-none p-6 text-lg ' +
+		class={'bg-card z-20 h-12 rounded-2xl border-none px-5 text-lg ' +
 			(completionsExist ? ' rounded-b-none ' : '')}
 		bind:ref={input}
 		bind:value={query}

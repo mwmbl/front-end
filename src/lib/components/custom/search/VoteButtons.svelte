@@ -17,10 +17,6 @@
 			| undefined;
 	} = $props();
 
-	if (votes === undefined) {
-		// issue with API: URL's with the , character are misinterpreted
-		console.log(url);
-	}
 	let currentVote: null | 'upvote' | 'downvote' = $state(votes?.user_vote ?? null);
 
 	async function vote(type: 'upvote' | 'downvote') {

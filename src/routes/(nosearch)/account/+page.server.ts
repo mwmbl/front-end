@@ -104,13 +104,34 @@ export async function load({ cookies, locals }) {
 		return {
 			awaitingEmailConfirmation: true,
 			accountMessage: locals.accountMessage,
-			username: cookies.get('username')
+			username: cookies.get('username'),
+			votes: undefined
 		};
 	} else {
+		const votesRes = await fetch(
+			'https://api.mwmbl.org/api/v1/platform/search-results/my-votes?limit=100&offset=0',
+			{
+				method: 'GET',
+				headers: {
+					Authorization: 'Bearer ' + cookies.get('accessToken')
+				}
+			}
+		);
+		const votesJson: {
+			count: number;
+			items: Array<{
+				url: string;
+				query: string;
+				vote_type: 'upvote' | 'downvote';
+				timestamp: string;
+			}>;
+		} = await votesRes.json();
+
 		return {
 			awaitingEmailConfirmation: false,
 			accountMessage: locals.accountMessage,
-			username: cookies.get('username')
+			username: cookies.get('username'),
+			votes: votesJson
 		};
 	}
 }

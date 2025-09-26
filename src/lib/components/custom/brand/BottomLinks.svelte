@@ -8,7 +8,9 @@
 		{ label: 'Source Code', href: 'https://github.com/mwmbl' },
 		{ label: 'Book', href: 'https://book.mwmbl.org/' },
 		{ label: 'Blog', href: 'https://blog.mwmbl.org/' },
-		{ label: 'YouTube', href: 'https://www.youtube.com/@mwmbl' }
+		{ label: 'YouTube', href: 'https://www.youtube.com/@mwmbl' },
+		{ label: 'Privacy Policy', href: '/privacy' },
+		{ label: 'Terms & Conditions', href: '/terms' }
 	];
 </script>
 
@@ -19,7 +21,7 @@
 				variant="link"
 				href={link.href}
 				class="h-fit px-0 py-0 text-sm font-medium text-unemphasized-2"
-				target="_blank"
+				target={link.href.startsWith('/') ? '_self' : '_blank'}
 			>
 				{link.label}
 			</Button>

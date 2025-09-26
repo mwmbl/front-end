@@ -1,5 +1,6 @@
 <script>
 	import Search from '@/components/custom/search/SearchBar.svelte';
+	import BottomLinks from '@/components/custom/brand/BottomLinks.svelte';
 	import EmojioneMagnifyingGlassTiltedRight from '~icons/emojione/magnifying-glass-tilted-right';
 </script>
 
@@ -21,3 +22,7 @@
 	</p>
 	<Search />
 </main>
+
+<footer class="mt-auto flex justify-center px-8 pb-8">
+	<BottomLinks />
+</footer>

@@ -77,7 +77,7 @@
 			Mwmbl engages a limited number of third-party service providers to support its infrastructure and maintain essential functionality. The following is the list of current subprocessors and their respective purposes. This list may be updated periodically to reflect any changes in Mwmbl's service ecosystem:
 		</p>
 		<ul class="mb-6 ml-6 list-disc space-y-2">
-			<li><strong>Hosting Provider:</strong> Granite (granite.host) – Provides infrastructure hosting services.</li>
+			<li><strong>Hosting Provider:</strong> Octopuce (www.octopuce.fr) – Provides infrastructure hosting services.</li>
 			<li><strong>Email Service Provider:</strong> SendGrid – Facilitates the secure delivery of transactional and user communications.</li>
 			<li><strong>Monitoring and Error Tracking:</strong> Sentry – Used for application monitoring and error reporting to ensure service reliability and performance.</li>
 			<li><strong>Backup Storage:</strong> Backblaze – Provides secure off-site storage for data backups.</li>

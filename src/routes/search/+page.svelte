@@ -104,7 +104,7 @@
 		{/if}
 	</main>
 
-	<section class="lg:col-start-3 lg:col-end-3 lg:mt-4">
+	<section class="max-w-sm lg:col-start-3 lg:col-end-3 lg:mt-4">
 		<hr class="mt-3 mb-6 lg:hidden" />
 		<Cta />
 		<BottomLinks class="lg:justify-end" />

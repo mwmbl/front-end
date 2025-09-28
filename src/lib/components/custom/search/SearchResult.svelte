@@ -17,7 +17,7 @@
 	} = $props();
 
 	import { localStorageOptions } from '@/localStorageOptions.svelte';
-	let options = localStorageOptions();
+	let { options } = localStorageOptions;
 
 	let urlSegments = $derived(result.url.replace(/.*:\/\//, '').split('/'));
 

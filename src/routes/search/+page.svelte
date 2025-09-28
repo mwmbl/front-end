@@ -85,7 +85,7 @@
 			<WikipediaCard result={data.results[0]} />
 		{/if}
 		{#each results as result}
-			<SearchResult {result} />
+			<SearchResult {result} query={data.query} />
 		{/each}
 		{#if results.length == 0}
 			<div class="flex flex-col justify-center gap-4 p-4">

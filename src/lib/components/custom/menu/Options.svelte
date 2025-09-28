@@ -19,14 +19,6 @@
 
 <div class="flex flex-col gap-3">
 	<div class="flex w-full max-w-2xl flex-row items-center justify-start gap-3">
-		{#if !loaded}
-			<Skeleton class="bg-input h-[24px] w-[44px] rounded-full" />
-		{:else}
-			<Switch id="newtab-switch" class="switch-fade" bind:checked={options.openInNewTab} />
-		{/if}
-		<Label for="newtab-switch">Open results in new tab</Label>
-	</div>
-	<div class="flex w-full max-w-2xl flex-row items-center justify-start gap-3">
 		<Button
 			onclick={toggleMode}
 			variant="secondary"
@@ -45,6 +37,22 @@
 			<span class="ml-6 inline dark:hidden">Light</span>
 		</Button>
 		<Label for="dark-toggle">Switch theme</Label>
+	</div>
+	<div class="flex w-full max-w-2xl flex-row items-center justify-start gap-3">
+		{#if !loaded}
+			<Skeleton class="bg-input h-[24px] w-[44px] rounded-full" />
+		{:else}
+			<Switch id="newtab-switch" class="switch-fade" bind:checked={options.openInNewTab} />
+		{/if}
+		<Label for="newtab-switch">Open results in new tab</Label>
+	</div>
+	<div class="flex w-full max-w-2xl flex-row items-center justify-start gap-3">
+		{#if !loaded}
+			<Skeleton class="bg-input h-[24px] w-[44px] rounded-full" />
+		{:else}
+			<Switch id="newtab-switch" class="switch-fade" bind:checked={options.showVotingInterface} />
+		{/if}
+		<Label for="newtab-switch">Show voting interface</Label>
 	</div>
 </div>
 

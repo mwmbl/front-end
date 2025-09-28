@@ -1,14 +1,38 @@
-<script>
+<script lang="ts">
 	import { Button } from '@/components/ui/button';
 	import * as Card from '@/components/ui/card';
 	import { Input } from '@/components/ui/input';
 	import * as Tabs from '@/components/ui/tabs';
 	import * as AlertDialog from '$lib/components/ui/alert-dialog';
 
+	import RiArrowUpSLine from '~icons/ri/arrow-up-s-line';
+	import RiArrowDownSLine from '~icons/ri/arrow-down-s-line';
+	import RiDeleteBin5Line from '~icons/ri/delete-bin-5-line';
+
 	import { getCookies } from '@/cookies.svelte';
 	const cookies = getCookies();
 
 	const { data } = $props();
+
+	function deleteVote(query: string, url: string) {
+		fetch('/api/v1/platform/search-results/vote', {
+			method: 'DELETE',
+			headers: {
+				'Content-Type': 'application/json'
+			},
+			body: JSON.stringify({ url, query })
+		})
+			.then((response) => response.json())
+			.then((data) => {
+				if (data.error) {
+					alert(data.error);
+				} else {
+					alert('Vote deleted successfully');
+					// Refresh the page to reflect the changes
+					location.reload();
+				}
+			});
+	}
 </script>
 
 <main class="flex w-full max-w-2xl flex-col gap-2 self-center px-6">
@@ -120,5 +144,40 @@
 				</AlertDialog.Footer>
 			</AlertDialog.Content>
 		</AlertDialog.Root>
+
+		<hr class="my-4" />
+
+		<h3 class="text-xl">My votes</h3>
+		{#if data.votes}
+			<ul class="mt-4 flex flex-col gap-4">
+				{#each data.votes.items as vote}
+					<li class="bg-muted flex flex-row items-center gap-2 p-4">
+						<div class="bg-card text-accent-text flex aspect-square items-center p-2">
+							{#if vote.vote_type === 'upvote'}
+								<RiArrowUpSLine class="size-8" />
+							{:else}
+								<RiArrowDownSLine class="size-8" />
+							{/if}
+						</div>
+						<div class="flex flex-col gap-1">
+							<Button variant="link" class="h-fit py-0 font-medium" href={vote.url}
+								>{vote.url}</Button
+							>
+							<p class="px-4">for query: {vote.query}</p>
+						</div>
+						<Button
+							onclick={() => deleteVote(vote.query, vote.url)}
+							variant="destructive"
+							size="icon"
+							class="ml-auto size-9 hover:-rotate-20"
+						>
+							<RiDeleteBin5Line class="size-6" />
+						</Button>
+					</li>
+				{/each}
+			</ul>
+		{:else}
+			<p>No votes yet.</p>
+		{/if}
 	{/if}
 </main>

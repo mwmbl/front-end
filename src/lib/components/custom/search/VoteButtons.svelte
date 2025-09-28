@@ -57,35 +57,40 @@
 			currentVote = data.votes[url].user_vote;
 		}
 	}
+
+	import { localStorageOptions } from '@/localStorageOptions.svelte';
+	let { options } = localStorageOptions;
 </script>
 
-<div
-	class="flex flex-col items-center justify-center gap-3 p-4 shadow-md [clip-path:inset(0_0_0_-15px)]"
->
-	<Button
-		size="icon"
-		variant="outline"
-		class={currentVote === 'upvote'
-			? 'text-accent-text hover:text-gray-500'
-			: ' hover:text-accent-text'}
-		onclick={(e) => {
-			e.preventDefault();
-			vote('upvote');
-		}}
+{#if options.showVotingInterface}
+	<div
+		class="flex flex-col items-center justify-center gap-3 p-4 shadow-md [clip-path:inset(0_0_0_-15px)]"
 	>
-		<RiArrowUpSLine class="size-8" />
-	</Button>
-	<Button
-		size="icon"
-		variant="outline"
-		class={currentVote === 'downvote'
-			? 'text-accent-text hover:text-gray-500'
-			: ' hover:text-accent-text'}
-		onclick={(e) => {
-			e.preventDefault();
-			vote('downvote');
-		}}
-	>
-		<RiArrowDownSLine class="size-8" />
-	</Button>
-</div>
+		<Button
+			size="icon"
+			variant="outline"
+			class={currentVote === 'upvote'
+				? 'text-accent-text hover:text-gray-500'
+				: ' hover:text-accent-text'}
+			onclick={(e) => {
+				e.preventDefault();
+				vote('upvote');
+			}}
+		>
+			<RiArrowUpSLine class="size-8" />
+		</Button>
+		<Button
+			size="icon"
+			variant="outline"
+			class={currentVote === 'downvote'
+				? 'text-accent-text hover:text-gray-500'
+				: ' hover:text-accent-text'}
+			onclick={(e) => {
+				e.preventDefault();
+				vote('downvote');
+			}}
+		>
+			<RiArrowDownSLine class="size-8" />
+		</Button>
+	</div>
+{/if}

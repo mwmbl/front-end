@@ -2,23 +2,34 @@ import { browser } from '$app/environment';
 
 type optionObject = {
 	openInNewTab: boolean | undefined;
+	showVotingInterface: boolean | undefined;
 };
 
 const defaults: optionObject = {
-	openInNewTab: false
+	openInNewTab: false,
+	showVotingInterface: false
 };
 
-export function localStorageOptions(): optionObject {
+function createLocalStorageOptions(): {
+	get options(): optionObject;
+	set options(value: optionObject);
+} {
 	let options: optionObject = $state(defaults);
 
 	if (browser) {
 		const value = window.localStorage.getItem('options');
-		if (value) options = JSON.parse(value);
+		if (value) options = { ...defaults, ...JSON.parse(value) };
 	}
 
-	$effect(() => {
-		window.localStorage.setItem('options', JSON.stringify(options));
-	});
-
-	return options;
+	return {
+		get options() {
+			return options;
+		},
+		set options(value) {
+			options = value;
+			window.localStorage.setItem('options', JSON.stringify(options));
+		}
+	};
 }
+
+export const localStorageOptions = createLocalStorageOptions();

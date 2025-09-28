@@ -9,7 +9,7 @@
 	import PhSunFill from '~icons/ph/sun-fill';
 	import PhMoonFill from '~icons/ph/moon-fill';
 
-	let options = localStorageOptions();
+	let { options } = localStorageOptions;
 
 	let loaded = $state(false);
 	$effect(() => {

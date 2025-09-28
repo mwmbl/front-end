@@ -28,6 +28,8 @@
 					alert(data.error);
 				} else {
 					alert('Vote deleted successfully');
+					// Refresh the page to reflect the changes
+					location.reload();
 				}
 			});
 	}
@@ -149,23 +151,25 @@
 		{#if data.votes}
 			<ul class="mt-4 flex flex-col gap-4">
 				{#each data.votes.items as vote}
-					<li class="flex flex-row gap-2 border-t-1 pt-4">
-						<div class="bg-card text-accent-text flex items-center p-2">
+					<li class="bg-muted flex flex-row items-center gap-2 p-4">
+						<div class="bg-card text-accent-text flex aspect-square items-center p-2">
 							{#if vote.vote_type === 'upvote'}
 								<RiArrowUpSLine class="size-8" />
 							{:else}
 								<RiArrowDownSLine class="size-8" />
 							{/if}
 						</div>
-						<div class="flex flex-col">
-							<Button variant="link" class="font-medium" href={vote.url}>{vote.url}</Button>
+						<div class="flex flex-col gap-1">
+							<Button variant="link" class="h-fit py-0 font-medium" href={vote.url}
+								>{vote.url}</Button
+							>
 							<p class="px-4">for query: {vote.query}</p>
 						</div>
 						<Button
 							onclick={() => deleteVote(vote.query, vote.url)}
 							variant="destructive"
 							size="icon"
-							class="size-9"
+							class="ml-auto size-9 hover:-rotate-20"
 						>
 							<RiDeleteBin5Line class="size-6" />
 						</Button>

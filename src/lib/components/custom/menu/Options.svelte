@@ -10,6 +10,10 @@
 	import PhMoonFill from '~icons/ph/moon-fill';
 
 	let { options } = localStorageOptions;
+	$effect(() => {
+		// ensure setter is run and data is persisted in localStorage
+		localStorageOptions.options = options;
+	});
 
 	let loaded = $state(false);
 	$effect(() => {

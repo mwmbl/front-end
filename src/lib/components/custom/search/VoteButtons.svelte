@@ -49,7 +49,7 @@
 			}
 		}
 
-		const res = await fetch(`/api/v1/platform/search-results/votes?query=${query}&urls=${url}`, {
+		const res = await fetch(`/api/v1/platform/search-results/votes?query=${query}&url=${url}`, {
 			method: 'GET'
 		});
 		if (res.ok) {

@@ -24,18 +24,13 @@ export async function load({ url, cookies, locals }) {
 			results: results
 		};
 	}
-	const urlQuery = results
-		.slice(0, 160) // the endpoint breaks when called with more than 160 urls
-		.map((r) => `&url=${encodeURIComponent(r.url)}`)
-		.join('');
-	const votesRes = await fetch(
-		`https://api.mwmbl.org/api/v1/platform/search-results/votes?query=${url.searchParams.get('q')}${urlQuery}`,
-		{
-			headers: {
-				Authorization: `Bearer ${cookies.get('accessToken')}`
-			}
-		}
-	);
+	const votesRes = await fetch(`https://api.mwmbl.org/api/v1/platform/search-results/votes`, {
+		headers: {
+			Authorization: `Bearer ${cookies.get('accessToken')}`
+		},
+		method: 'POST',
+		body: JSON.stringify({ query: url.searchParams.get('q'), urls: results.map((r) => r.url) })
+	});
 	const votes = await votesRes.json();
 
 	const resultsWithVotes: Array<{

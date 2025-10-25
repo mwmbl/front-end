@@ -21,7 +21,7 @@
 	<meta property="og:type" content="website" />
 	<meta
 		property="og:description"
-		content={'Mwmbl (pronounced "mumble") is the first search engine that\'s completely independent, open source, and non-profit.'}
+		content={'Mwmbl (pronounced "mumble") is a search engine that\'s completely independent, open source, and non-profit.'}
 	/>
 	<meta property="og:determiner" content="the" />
 </svelte:head>

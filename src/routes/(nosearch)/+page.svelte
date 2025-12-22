@@ -17,7 +17,7 @@
 		>
 	</h2>
 	<p class="mb-8 max-w-full px-6 text-center text-sm sm:text-base md:max-w-184">
-		Mwmbl (pronounced "mumble") is the first search engine that's completely independent, open
+		Mwmbl (pronounced "mumble") is a search engine that's completely independent, open
 		source, and non-profit.
 	</p>
 	<Search />

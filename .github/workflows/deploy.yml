@@ -21,5 +21,5 @@ jobs:
         with:
           # specify the `main` branch as the remote branch to push to
           branch: 'main'
-          git_remote_url: 'ssh://dokku@alpha.mwmbl.org:22/alpha.mwmbl.org'
+          git_remote_url: 'ssh://dokku@mwmbl.org:22/mwmbl.org'
           ssh_private_key: ${{ secrets.SSH_PRIVATE_KEY }}

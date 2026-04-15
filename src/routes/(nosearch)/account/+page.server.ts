@@ -4,8 +4,9 @@ import { dev } from '$app/environment';
 export const actions: Actions = {
 	login: async ({ request, cookies, locals }) => {
 		const data = await request.formData();
-		const res = await fetch('https://api.mwmbl.org/api/v1/platform/token/pair', {
+		const res = await fetch('https://api.mwmbl.org/api/v1/token/pair', {
 			method: 'POST',
+			headers: { 'Content-Type': 'application/json' },
 			body: JSON.stringify({
 				username: data.get('username'),
 				password: data.get('password')
@@ -45,6 +46,7 @@ export const actions: Actions = {
 		const data = await request.formData();
 		const res = await fetch('https://api.mwmbl.org/api/v1/platform/register', {
 			method: 'POST',
+			headers: { 'Content-Type': 'application/json' },
 			body: JSON.stringify({
 				email: data.get('email'),
 				username: data.get('username'),

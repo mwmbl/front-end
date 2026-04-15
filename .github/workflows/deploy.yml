@@ -23,4 +23,3 @@ jobs:
           branch: 'main'
           git_remote_url: 'ssh://dokku@mwmbl.org:22/mwmbl.org'
           ssh_private_key: ${{ secrets.SSH_PRIVATE_KEY }}
-          force: true

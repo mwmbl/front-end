@@ -100,7 +100,7 @@ export const actions: Actions = {
 		}
 	},
 	agreeToTerms: async ({ cookies }) => {
-		await fetch(`${API}/api/v1/platform/agreements/`, {
+		const res = await fetch(`${API}/api/v1/platform/agreements/`, {
 			method: 'POST',
 			headers: {
 				Authorization: 'Bearer ' + cookies.get('accessToken'),
@@ -108,6 +108,10 @@ export const actions: Actions = {
 			},
 			body: JSON.stringify({ agreement_type: 'TERMS_OF_SERVICE_GUI' })
 		});
+		if (!res.ok) {
+			return { success: false, error: 'Failed to record agreement. Please try again.' };
+		}
+		return { success: true };
 	},
 	createApiKey: async ({ request, cookies }) => {
 		const data = await request.formData();
@@ -127,7 +131,6 @@ export const actions: Actions = {
 		return {
 			success: true,
 			newKey: json.key as string,
-			newKeyId: json.id as number,
 			newKeyName: (json.name as string) || null
 		};
 	},

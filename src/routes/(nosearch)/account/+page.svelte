@@ -195,6 +195,13 @@
 			</Card.Root>
 		{/if}
 
+		<!-- Action error banner — shown when any server action returns success: false -->
+		{#if form?.success === false && form?.error}
+			<Card.Root class="p-4 outline-red-100 outline-solid dark:outline-red-900">
+				{form.error}
+			</Card.Root>
+		{/if}
+
 		<!-- Newly created key banner — shown once after createApiKey action -->
 		{#if displayedNewKey}
 			<Card.Root class="p-4 outline-green-100 outline-solid dark:outline-green-900">
@@ -206,7 +213,10 @@
 				<div class="mt-2 flex gap-2">
 					<Button
 						variant="outline"
-						onclick={() => navigator.clipboard.writeText(displayedNewKey!)}
+						onclick={() =>
+							navigator.clipboard.writeText(displayedNewKey!).catch(() => {
+								alert('Copy failed — please select and copy the key manually.');
+							})}
 					>
 						Copy to clipboard
 					</Button>
@@ -260,7 +270,7 @@
 			</p>
 		{/if}
 
-		{#if data.apiKeys && data.apiKeys.length > 0}
+		{#if data.apiKeys.length > 0}
 			<ul class="mt-4 flex flex-col gap-2">
 				{#each data.apiKeys as key}
 					<li class="bg-muted flex flex-row items-center gap-2 p-4">

@@ -247,41 +247,6 @@
 
 		<hr class="my-4" />
 
-		<h3 class="text-xl">My votes</h3>
-		{#if data.votes}
-			<ul class="mt-4 flex flex-col gap-4">
-				{#each data.votes.items as vote}
-					<li class="bg-muted flex flex-row items-center gap-2 p-4">
-						<div class="bg-card text-accent-text flex aspect-square items-center p-2">
-							{#if vote.vote_type === 'upvote'}
-								<RiArrowUpSLine class="size-8" />
-							{:else}
-								<RiArrowDownSLine class="size-8" />
-							{/if}
-						</div>
-						<div class="flex flex-col gap-1">
-							<Button variant="link" class="h-fit py-0 font-medium" href={vote.url}
-								>{vote.url}</Button
-							>
-							<p class="px-4">for query: {vote.query}</p>
-						</div>
-						<Button
-							onclick={() => deleteVote(vote.query, vote.url)}
-							variant="destructive"
-							size="icon"
-							class="ml-auto size-9 hover:-rotate-20"
-						>
-							<RiDeleteBin5Line class="size-6" />
-						</Button>
-					</li>
-				{/each}
-			</ul>
-		{:else}
-			<p>No votes yet.</p>
-		{/if}
-
-		<hr class="my-4" />
-
 		<h3 class="text-xl">API Keys</h3>
 
 		{#if !data.hasAgreedToTerms}
@@ -377,6 +342,41 @@
 			<Button class="mt-4 max-w-48" onclick={() => openTosForKeyCreation()}>
 				Create API key
 			</Button>
+		{/if}
+
+		<hr class="my-4" />
+
+		<h3 class="text-xl">My votes</h3>
+		{#if data.votes}
+			<ul class="mt-4 flex flex-col gap-4">
+				{#each data.votes.items as vote}
+					<li class="bg-muted flex flex-row items-center gap-2 p-4">
+						<div class="bg-card text-accent-text flex aspect-square items-center p-2">
+							{#if vote.vote_type === 'upvote'}
+								<RiArrowUpSLine class="size-8" />
+							{:else}
+								<RiArrowDownSLine class="size-8" />
+							{/if}
+						</div>
+						<div class="flex flex-col gap-1">
+							<Button variant="link" class="h-fit py-0 font-medium" href={vote.url}
+								>{vote.url}</Button
+							>
+							<p class="px-4">for query: {vote.query}</p>
+						</div>
+						<Button
+							onclick={() => deleteVote(vote.query, vote.url)}
+							variant="destructive"
+							size="icon"
+							class="ml-auto size-9 hover:-rotate-20"
+						>
+							<RiDeleteBin5Line class="size-6" />
+						</Button>
+					</li>
+				{/each}
+			</ul>
+		{:else}
+			<p>No votes yet.</p>
 		{/if}
 	{/if}
 </main>

@@ -17,19 +17,16 @@
 	const { data, form } = $props();
 
 	// ── ToS dialog ────────────────────────────────────────────────────────────
-	let tosDialogOpen = $state(false);
-	let tosOpenedForKeyCreation = $state(false);
+	// Open whenever the user is logged in with confirmed email and hasn't agreed yet.
+	// "Maybe later" closes it for this page visit; it reappears on the next visit.
+	let tosDialogOpen = $state(
+		data.loginStatus === 'assumeLoggedIn' &&
+			!data.awaitingEmailConfirmation &&
+			!data.hasAgreedToTerms
+	);
+	let pendingKeyCreation = $state(false);
 
 	onMount(() => {
-		if (
-			data.loginStatus === 'assumeLoggedIn' &&
-			!data.awaitingEmailConfirmation &&
-			!data.hasAgreedToTerms &&
-			!sessionStorage.getItem('tosDialogShown')
-		) {
-			tosDialogOpen = true;
-		}
-
 		if (
 			data.loginStatus === 'assumeLoggedIn' &&
 			!data.awaitingEmailConfirmation &&
@@ -42,12 +39,12 @@
 	});
 
 	function openTosForKeyCreation() {
-		tosOpenedForKeyCreation = true;
+		pendingKeyCreation = true;
 		tosDialogOpen = true;
 	}
 
 	function onAgreeToTerms() {
-		if (tosOpenedForKeyCreation) {
+		if (pendingKeyCreation) {
 			sessionStorage.setItem('pendingKeyCreation', '1');
 		}
 	}
@@ -178,9 +175,7 @@
 					</AlertDialog.Description>
 				</AlertDialog.Header>
 				<AlertDialog.Footer>
-					<AlertDialog.Cancel onclick={() => sessionStorage.setItem('tosDialogShown', '1')}
-						>Maybe later</AlertDialog.Cancel
-					>
+					<AlertDialog.Cancel>Maybe later</AlertDialog.Cancel>
 					<form method="post" action="?/agreeToTerms">
 						<AlertDialog.Action type="submit" onclick={onAgreeToTerms}
 							>I agree to the Terms of Service</AlertDialog.Action

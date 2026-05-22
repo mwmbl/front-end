@@ -1,10 +1,25 @@
-import type { Actions } from './$types';
+import type { Actions, PageServerLoad } from './$types';
 import { dev } from '$app/environment';
+
+const API = 'https://api.mwmbl.org';
+
+type Agreement = {
+	agreement_type: string;
+	version_id: string;
+	accepted_at: string;
+};
+
+type ApiKey = {
+	id: number;
+	name: string;
+	created_on: string;
+	scopes: string[];
+};
 
 export const actions: Actions = {
 	login: async ({ request, cookies, locals }) => {
 		const data = await request.formData();
-		const res = await fetch('https://api.mwmbl.org/api/v1/platform/token/pair', {
+		const res = await fetch(`${API}/api/v1/platform/token/pair`, {
 			method: 'POST',
 			body: JSON.stringify({
 				username: data.get('username'),
@@ -43,7 +58,7 @@ export const actions: Actions = {
 	},
 	register: async ({ request, locals }) => {
 		const data = await request.formData();
-		const res = await fetch('https://api.mwmbl.org/api/v1/platform/register', {
+		const res = await fetch(`${API}/api/v1/platform/register`, {
 			method: 'POST',
 			body: JSON.stringify({
 				email: data.get('email'),
@@ -67,15 +82,12 @@ export const actions: Actions = {
 		locals.accountMessage = 'Logged out.';
 	},
 	deleteUser: async ({ cookies, locals }) => {
-		const res = await fetch(
-			`https://api.mwmbl.org/api/v1/platform/users/${cookies.get('username')}`,
-			{
-				method: 'DELETE',
-				headers: {
-					Authorization: 'Bearer ' + cookies.get('accessToken')
-				}
+		const res = await fetch(`${API}/api/v1/platform/users/${cookies.get('username')}`, {
+			method: 'DELETE',
+			headers: {
+				Authorization: 'Bearer ' + cookies.get('accessToken')
 			}
-		);
+		});
 		if (res.ok) {
 			cookies.delete('refreshToken', { path: '/' });
 			cookies.delete('accessToken', { path: '/' });
@@ -86,11 +98,57 @@ export const actions: Actions = {
 			locals.loginStatus = 'accountError';
 			locals.accountMessage = res.statusText;
 		}
+	},
+	agreeToTerms: async ({ cookies }) => {
+		await fetch(`${API}/api/v1/platform/agreements/`, {
+			method: 'POST',
+			headers: {
+				Authorization: 'Bearer ' + cookies.get('accessToken'),
+				'Content-Type': 'application/json'
+			},
+			body: JSON.stringify({ agreement_type: 'TERMS_OF_SERVICE_GUI' })
+		});
+	},
+	createApiKey: async ({ request, cookies }) => {
+		const data = await request.formData();
+		const name = (data.get('keyName') as string | null)?.trim() || undefined;
+		const res = await fetch(`${API}/api/v1/platform/api-keys/`, {
+			method: 'POST',
+			headers: {
+				Authorization: 'Bearer ' + cookies.get('accessToken'),
+				'Content-Type': 'application/json'
+			},
+			body: JSON.stringify({ name, scope: 'crawl' })
+		});
+		if (!res.ok) {
+			return { success: false, error: 'Failed to create API key.' };
+		}
+		const json = await res.json();
+		return {
+			success: true,
+			newKey: json.key as string,
+			newKeyId: json.id as number,
+			newKeyName: (json.name as string) || null
+		};
+	},
+	revokeApiKey: async ({ request, cookies }) => {
+		const data = await request.formData();
+		const keyId = data.get('keyId') as string;
+		const res = await fetch(`${API}/api/v1/platform/api-keys/${keyId}`, {
+			method: 'DELETE',
+			headers: {
+				Authorization: 'Bearer ' + cookies.get('accessToken')
+			}
+		});
+		if (!res.ok) {
+			return { success: false, error: 'Failed to revoke key.' };
+		}
+		return { success: true };
 	}
 };
 
-export async function load({ cookies, locals }) {
-	const res = await fetch('https://api.mwmbl.org/api/v1/platform/protected', {
+export const load: PageServerLoad = async ({ cookies, locals }) => {
+	const res = await fetch(`${API}/api/v1/platform/protected`, {
 		method: 'GET',
 		headers: {
 			Authorization: 'Bearer ' + cookies.get('accessToken')
@@ -105,18 +163,26 @@ export async function load({ cookies, locals }) {
 			awaitingEmailConfirmation: true,
 			accountMessage: locals.accountMessage,
 			username: cookies.get('username'),
-			votes: undefined
+			votes: undefined,
+			hasAgreedToTerms: false,
+			apiKeys: [] as ApiKey[]
 		};
 	} else {
-		const votesRes = await fetch(
-			'https://api.mwmbl.org/api/v1/platform/search-results/my-votes?limit=100&offset=0',
-			{
+		const [votesRes, agreementsRes, keysRes] = await Promise.all([
+			fetch(`${API}/api/v1/platform/search-results/my-votes?limit=100&offset=0`, {
 				method: 'GET',
-				headers: {
-					Authorization: 'Bearer ' + cookies.get('accessToken')
-				}
-			}
-		);
+				headers: { Authorization: 'Bearer ' + cookies.get('accessToken') }
+			}),
+			fetch(`${API}/api/v1/platform/agreements/`, {
+				method: 'GET',
+				headers: { Authorization: 'Bearer ' + cookies.get('accessToken') }
+			}),
+			fetch(`${API}/api/v1/platform/api-keys/`, {
+				method: 'GET',
+				headers: { Authorization: 'Bearer ' + cookies.get('accessToken') }
+			})
+		]);
+
 		const votesJson: {
 			count: number;
 			items: Array<{
@@ -127,11 +193,18 @@ export async function load({ cookies, locals }) {
 			}>;
 		} = await votesRes.json();
 
+		const agreements: Agreement[] = agreementsRes.ok ? await agreementsRes.json() : [];
+		const hasAgreedToTerms = agreements.some((a) => a.agreement_type === 'TERMS_OF_SERVICE_GUI');
+
+		const apiKeys: ApiKey[] = keysRes.ok ? await keysRes.json() : [];
+
 		return {
 			awaitingEmailConfirmation: false,
 			accountMessage: locals.accountMessage,
 			username: cookies.get('username'),
-			votes: votesJson
+			votes: votesJson,
+			hasAgreedToTerms,
+			apiKeys
 		};
 	}
 }

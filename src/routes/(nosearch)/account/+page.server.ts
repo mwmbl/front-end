@@ -86,6 +86,23 @@ export const actions: Actions = {
 			locals.loginStatus = 'accountError';
 			locals.accountMessage = res.statusText;
 		}
+	},
+	deleteVote: async ({ request, cookies }) => {
+		const formData = await request.formData();
+
+		const res = await fetch(`${API}/api/v1/platform/search-results/vote`, {
+			method: 'DELETE',
+			headers: {
+				'Content-Type': 'application/json',
+				Authorization: 'Bearer ' + cookies.get('accessToken')
+			},
+			body: JSON.stringify({ url: formData.get('url'), query: formData.get('query') })
+		});
+		const data = await res.json();
+		if (!res.ok) {
+			return { success: false, error: data.error };
+		}
+		return { success: true };
 	}
 };
 
@@ -134,4 +151,4 @@ export async function load({ cookies, locals }) {
 			votes: votesJson
 		};
 	}
-}
+};

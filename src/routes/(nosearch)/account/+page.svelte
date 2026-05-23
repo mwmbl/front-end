@@ -14,25 +14,48 @@
 
 	const { data } = $props();
 
-	function deleteVote(query: string, url: string) {
-		fetch('/api/v1/platform/search-results/vote', {
-			method: 'DELETE',
-			headers: {
-				'Content-Type': 'application/json'
-			},
-			body: JSON.stringify({ url, query })
-		})
-			.then((response) => response.json())
-			.then((data) => {
-				if (data.error) {
-					alert(data.error);
-				} else {
-					alert('Vote deleted successfully');
-					// Refresh the page to reflect the changes
-					location.reload();
-				}
-			});
+	// ── ToS dialog ────────────────────────────────────────────────────────────
+	// Open whenever the user is logged in with confirmed email and hasn't agreed yet.
+	// "Maybe later" closes it for this page visit; it reappears on the next visit.
+	let tosDialogOpen = $state(false);
+	let pendingKeyCreation = $state(false);
+	let keyCopiedToClipboard = $state(false);
+
+	onMount(() => {
+		if (
+			data.loginStatus === 'assumeLoggedIn' &&
+			!data.awaitingEmailConfirmation &&
+			data.hasAgreedToTerms &&
+			sessionStorage.getItem('pendingKeyCreation')
+		) {
+			sessionStorage.removeItem('pendingKeyCreation');
+			createKeyDialogOpen = true;
+		}
+	});
+
+	function openTosForKeyCreation() {
+		pendingKeyCreation = true;
+		tosDialogOpen = true;
 	}
+
+	function onAgreeToTerms() {
+		if (pendingKeyCreation) {
+			sessionStorage.setItem('pendingKeyCreation', '1');
+		}
+	}
+
+	// ── Create key dialog ─────────────────────────────────────────────────────
+	let createKeyDialogOpen = $state(false);
+	let displayedNewKey = $state<string | null>(null);
+	let displayedNewKeyName = $state<string | null>(null);
+
+	$effect(() => {
+		if (form?.success && form?.newKey) {
+			displayedNewKey = form.newKey;
+			displayedNewKeyName = form.newKeyName ?? null;
+			createKeyDialogOpen = false;
+		}
+	});
 </script>
 
 <main class="flex w-full max-w-2xl flex-col gap-2 self-center px-6">
@@ -165,14 +188,40 @@
 							>
 							<p class="px-4">for query: {vote.query}</p>
 						</div>
-						<Button
-							onclick={() => deleteVote(vote.query, vote.url)}
-							variant="destructive"
-							size="icon"
-							class="ml-auto size-9 hover:-rotate-20"
-						>
-							<RiDeleteBin5Line class="size-6" />
-						</Button>
+						<AlertDialog.Root>
+							<AlertDialog.Trigger>
+								{#snippet child({ props })}
+									<Button
+										{...props}
+										variant="destructive"
+										size="icon"
+										class="ml-auto size-9 hover:-rotate-20"
+									>
+										<RiDeleteBin5Line class="size-6" />
+									</Button>
+								{/snippet}
+							</AlertDialog.Trigger>
+							<AlertDialog.Content>
+								<AlertDialog.Header>
+									<AlertDialog.Title>Delete vote?</AlertDialog.Title>
+									<AlertDialog.Description>
+										This permanently removes your {vote.vote_type} for <code>{vote.url}</code> on
+										query <code>{vote.query}</code>.
+									</AlertDialog.Description>
+								</AlertDialog.Header>
+								<AlertDialog.Footer>
+									<AlertDialog.Cancel>Cancel</AlertDialog.Cancel>
+									<form method="post" action="?/deleteVote">
+										<input type="hidden" name="url" value={vote.url} />
+
+										<input type="hidden" name="query" value={vote.query} />
+										<AlertDialog.Action class="bg-red-600" type="submit"
+											>Delete vote</AlertDialog.Action
+										>
+									</form>
+								</AlertDialog.Footer>
+							</AlertDialog.Content>
+						</AlertDialog.Root>
 					</li>
 				{/each}
 			</ul>

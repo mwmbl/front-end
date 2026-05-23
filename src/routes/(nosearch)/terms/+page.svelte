@@ -56,6 +56,35 @@
 			While no financial compensation is provided for contributions or crawled data, Mwmbl acknowledges and deeply values the role of every contributor in building a free and open search ecosystem.
 		</p>
 
+		<h3 id="crawling-api" class="mb-3 mt-6 text-xl font-semibold">Crawling API</h3>
+		<p class="mb-4">
+			Mwmbl provides a Crawling API (accessible via API keys) that allows users to submit URLs and
+			metadata for inclusion in the Mwmbl search index. Use of the Crawling API is subject to the
+			following conditions:
+		</p>
+		<ul class="mb-6 ml-6 list-disc space-y-2">
+			<li>You must agree to these Terms of Service before an API key will be issued.</li>
+			<li>
+				API keys are personal and must not be shared. You are responsible for all activity
+				performed using your key.
+			</li>
+			<li>You must only use the software provided by Mwmbl for crawling.</li>
+			<li>
+				You must not use the API to promote your own websites or the websites of others, or to
+				subvert Mwmbl's search results in any way.
+			</li>
+			<li>
+				Data submitted via the Crawling API is made available under the
+				<a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" class="text-blue-600 hover:underline"
+					>CC BY-NC-SA 4.0 license</a
+				>, consistent with the rest of the Mwmbl dataset.
+			</li>
+			<li>
+				Mwmbl reserves the right to revoke API keys at any time for misuse or violation of these
+				Terms.
+			</li>
+		</ul>
+
 		<h3 class="mb-3 mt-6 text-xl font-semibold">Obligations Under Mwmbl's License</h3>
 		<p class="mb-4">
 			Mwmbl is an open-source project distributed under the <strong>AGPL-3.0 license</strong>.

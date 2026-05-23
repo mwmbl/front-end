@@ -25,7 +25,7 @@
 	--secondary: hsl(220 8% 85%);
 	--secondary-foreground: hsl(0 0% 0%);
 
-	--accent: hsl(0 0% 96.1%);
+	--accent: hsl(220 50% 96.1%);
 	--accent-foreground: hsl(0 0% 9%);
 	/* --accent-text: 220 77% 59%; */
 	--accent-text: hsl(220 77% 49%);

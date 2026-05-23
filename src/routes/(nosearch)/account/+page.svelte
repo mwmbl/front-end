@@ -21,6 +21,7 @@
 	// "Maybe later" closes it for this page visit; it reappears on the next visit.
 	let tosDialogOpen = $state(false);
 	let pendingKeyCreation = $state(false);
+	let keyCopiedToClipboard = $state(false);
 
 	onMount(() => {
 		if (
@@ -209,12 +210,18 @@
 				<div class="mt-2 flex gap-2">
 					<Button
 						variant="outline"
-						onclick={() =>
+						onclick={() => {
 							navigator.clipboard.writeText(displayedNewKey!).catch(() => {
 								alert('Copy failed — please select and copy the key manually.');
-							})}
+							});
+							keyCopiedToClipboard = true;
+						}}
 					>
-						Copy to clipboard
+						{#if !keyCopiedToClipboard}
+							Copy to clipboard
+						{:else}
+							Copied to clipboard
+						{/if}
 					</Button>
 					<Button variant="ghost" onclick={() => (displayedNewKey = null)}>Dismiss</Button>
 				</div>
@@ -279,8 +286,13 @@
 						<AlertDialog.Root>
 							<AlertDialog.Trigger>
 								{#snippet child({ props })}
-									<Button {...props} variant="destructive" size="icon" class="size-9">
-										<RiDeleteBin5Line class="size-5" />
+									<Button
+										{...props}
+										variant="destructive"
+										size="icon"
+										class="ml-auto size-9 hover:-rotate-20"
+									>
+										<RiDeleteBin5Line class="size-6" />
 									</Button>
 								{/snippet}
 							</AlertDialog.Trigger>

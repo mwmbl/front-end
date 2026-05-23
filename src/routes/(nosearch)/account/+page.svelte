@@ -160,7 +160,7 @@
 							{/if}
 						</div>
 						<div class="flex flex-col gap-1">
-							<Button variant="link" class="h-fit py-0 font-medium" href={vote.url}
+							<Button variant="link" class="h-fit py-0 font-medium" href={vote.url} target="_blank"
 								>{vote.url}</Button
 							>
 							<p class="px-4">for query: {vote.query}</p>

@@ -58,26 +58,6 @@
 			createKeyDialogOpen = false;
 		}
 	});
-
-	// ── Votes ─────────────────────────────────────────────────────────────────
-	function deleteVote(query: string, url: string) {
-		fetch('/api/v1/platform/search-results/vote', {
-			method: 'DELETE',
-			headers: {
-				'Content-Type': 'application/json'
-			},
-			body: JSON.stringify({ url, query })
-		})
-			.then((response) => response.json())
-			.then((data) => {
-				if (data.error) {
-					alert(data.error);
-				} else {
-					alert('Vote deleted successfully');
-					location.reload();
-				}
-			});
-	}
 </script>
 
 <main class="flex w-full max-w-2xl flex-col gap-2 self-center px-6">
@@ -382,19 +362,45 @@
 							{/if}
 						</div>
 						<div class="flex flex-col gap-1">
-							<Button variant="link" class="h-fit py-0 font-medium" href={vote.url}
+							<Button variant="link" class="h-fit py-0 font-medium" href={vote.url} target="_blank"
 								>{vote.url}</Button
 							>
 							<p class="px-4">for query: {vote.query}</p>
 						</div>
-						<Button
-							onclick={() => deleteVote(vote.query, vote.url)}
-							variant="destructive"
-							size="icon"
-							class="ml-auto size-9 hover:-rotate-20"
-						>
-							<RiDeleteBin5Line class="size-6" />
-						</Button>
+						<AlertDialog.Root>
+							<AlertDialog.Trigger>
+								{#snippet child({ props })}
+									<Button
+										{...props}
+										variant="destructive"
+										size="icon"
+										class="ml-auto size-9 hover:-rotate-20"
+									>
+										<RiDeleteBin5Line class="size-6" />
+									</Button>
+								{/snippet}
+							</AlertDialog.Trigger>
+							<AlertDialog.Content>
+								<AlertDialog.Header>
+									<AlertDialog.Title>Delete vote?</AlertDialog.Title>
+									<AlertDialog.Description>
+										This permanently removes your {vote.vote_type} for <code>{vote.url}</code> on
+										query <code>{vote.query}</code>.
+									</AlertDialog.Description>
+								</AlertDialog.Header>
+								<AlertDialog.Footer>
+									<AlertDialog.Cancel>Cancel</AlertDialog.Cancel>
+									<form method="post" action="?/deleteVote">
+										<input type="hidden" name="url" value={vote.url} />
+
+										<input type="hidden" name="query" value={vote.query} />
+										<AlertDialog.Action class="bg-red-600" type="submit"
+											>Delete vote</AlertDialog.Action
+										>
+									</form>
+								</AlertDialog.Footer>
+							</AlertDialog.Content>
+						</AlertDialog.Root>
 					</li>
 				{/each}
 			</ul>

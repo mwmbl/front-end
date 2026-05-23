@@ -271,6 +271,13 @@
 					agree to the Terms of Service
 				</button> before creating API keys.
 			</p>
+		{:else}
+			<p class="mt-2 text-sm italic">
+				Note: Always follow the <a
+					class="cursor-pointer text-blue-600 underline"
+					href="/terms#crawling-api">API Terms of Service</a
+				>.
+			</p>
 		{/if}
 
 		{#if data.apiKeys.length > 0}
@@ -319,7 +326,7 @@
 				{/each}
 			</ul>
 		{:else if data.hasAgreedToTerms}
-			<p class="mt-2 text-sm">No API keys yet.</p>
+			<p class="text-sm">No API keys yet.</p>
 		{/if}
 
 		{#if data.hasAgreedToTerms}

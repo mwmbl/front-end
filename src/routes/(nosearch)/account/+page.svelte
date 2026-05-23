@@ -19,11 +19,7 @@
 	// ── ToS dialog ────────────────────────────────────────────────────────────
 	// Open whenever the user is logged in with confirmed email and hasn't agreed yet.
 	// "Maybe later" closes it for this page visit; it reappears on the next visit.
-	let tosDialogOpen = $state(
-		data.loginStatus === 'assumeLoggedIn' &&
-			!data.awaitingEmailConfirmation &&
-			!data.hasAgreedToTerms
-	);
+	let tosDialogOpen = $state(false);
 	let pendingKeyCreation = $state(false);
 
 	onMount(() => {
@@ -209,7 +205,7 @@
 					API key created{displayedNewKeyName ? ` — ${displayedNewKeyName}` : ''}
 				</p>
 				<p class="mb-2 text-sm">Copy this key now — it will not be shown again.</p>
-				<div class="bg-muted break-all rounded p-2 font-mono text-sm">{displayedNewKey}</div>
+				<div class="bg-muted rounded p-2 font-mono text-sm break-all">{displayedNewKey}</div>
 				<div class="mt-2 flex gap-2">
 					<Button
 						variant="outline"
@@ -292,8 +288,8 @@
 								<AlertDialog.Header>
 									<AlertDialog.Title>Revoke API key?</AlertDialog.Title>
 									<AlertDialog.Description>
-										This permanently revokes "{key.name ||
-											'(unnamed)'}". Any clients using it will stop working.
+										This permanently revokes "{key.name || '(unnamed)'}". Any clients using it will
+										stop working.
 									</AlertDialog.Description>
 								</AlertDialog.Header>
 								<AlertDialog.Footer>
@@ -349,9 +345,7 @@
 				</AlertDialog.Content>
 			</AlertDialog.Root>
 		{:else}
-			<Button class="mt-4 max-w-48" onclick={() => openTosForKeyCreation()}>
-				Create API key
-			</Button>
+			<Button class="mt-4 max-w-48" onclick={() => openTosForKeyCreation()}>Create API key</Button>
 		{/if}
 
 		<hr class="my-4" />

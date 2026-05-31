@@ -25,6 +25,11 @@
 	const results = $derived(!wikipediaCard ? data.results : data.results.slice(1));
 
 	let superSearchActive = $state(false);
+
+	$effect(() => {
+		data.query;
+		superSearchActive = false;
+	});
 </script>
 
 <svelte:head>
@@ -68,7 +73,8 @@
 				<Button
 					variant={superSearchActive ? 'default' : 'secondary'}
 					class="dark:bg-muted flex flex-row items-center gap-2"
-					onclick={() => (superSearchActive = !superSearchActive)}
+					disabled={superSearchActive}
+					onclick={() => (superSearchActive = true)}
 				>
 					<RiSparklingLine class="min-h-5 min-w-5" />
 					Super Search
@@ -99,28 +105,28 @@
 			{#key data.query}
 				<SuperSearch query={data.query ?? ''} />
 			{/key}
-			<hr class="my-2" />
-		{/if}
-		{#if wikipediaCard}
-			<WikipediaCard result={data.results[0]} query={data.query} />
-		{/if}
-		{#each results as result}
-			<SearchResult {result} query={data.query} />
-		{/each}
-		{#if results.length == 0}
-			<div class="flex flex-col justify-center gap-4 p-4">
-				<h2 class="text-2xl font-semibold">No results found</h2>
-				<p class="text-muted-foreground text-sm">
-					Try searching for something else or use <a
-						href="https://mwmbl.org/?q={data.query}"
-						class="underline transition-[text-underline-offset] hover:underline-offset-4"
-					>
-						the old frontend
-					</a>
-					to add a result. <br />
-					(feature coming to the new site soon)
-				</p>
-			</div>
+		{:else}
+			{#if wikipediaCard}
+				<WikipediaCard result={data.results[0]} query={data.query} />
+			{/if}
+			{#each results as result}
+				<SearchResult {result} query={data.query} />
+			{/each}
+			{#if results.length == 0}
+				<div class="flex flex-col justify-center gap-4 p-4">
+					<h2 class="text-2xl font-semibold">No results found</h2>
+					<p class="text-muted-foreground text-sm">
+						Try searching for something else or use <a
+							href="https://mwmbl.org/?q={data.query}"
+							class="underline transition-[text-underline-offset] hover:underline-offset-4"
+						>
+							the old frontend
+						</a>
+						to add a result. <br />
+						(feature coming to the new site soon)
+					</p>
+				</div>
+			{/if}
 		{/if}
 	</main>
 

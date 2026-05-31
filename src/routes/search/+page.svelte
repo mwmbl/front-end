@@ -4,9 +4,11 @@
 
 	import RiEqualizer2Line from '~icons/ri/equalizer-2-line';
 	import RiLinksLine from '~icons/ri/links-line';
+	import RiSparklingLine from '~icons/ri/sparkling-line';
 
 	import Search from '@/components/custom/search/SearchBar.svelte';
 	import SearchResult from '@/components/custom/search/SearchResult.svelte';
+	import SuperSearch from '@/components/custom/search/SuperSearch.svelte';
 	import Options from '@/components/custom/menu/Options.svelte';
 	import MobileMenu from '@/components/custom/menu/MobileMenu.svelte';
 	import SignInButton from '@/components/custom/menu/SignInButton.svelte';
@@ -21,6 +23,8 @@
 	);
 
 	const results = $derived(!wikipediaCard ? data.results : data.results.slice(1));
+
+	let superSearchActive = $state(false);
 </script>
 
 <svelte:head>
@@ -60,6 +64,16 @@
 				<RiLinksLine class="min-h-5 min-w-5 text-black dark:text-white" />
 				Submit Domain
 			</Button>
+			{#if data.loginStatus === 'assumeLoggedIn'}
+				<Button
+					variant={superSearchActive ? 'default' : 'secondary'}
+					class="dark:bg-muted flex flex-row items-center gap-2"
+					onclick={() => (superSearchActive = !superSearchActive)}
+				>
+					<RiSparklingLine class="min-h-5 min-w-5" />
+					Super Search
+				</Button>
+			{/if}
 			<Popover.Root>
 				<Popover.Trigger>
 					{#snippet child({ props })}
@@ -81,6 +95,12 @@
 	<hr class="absolute top-52 left-0 w-screen lg:top-36" />
 
 	<main class="mt-4 flex w-full flex-col gap-4 lg:col-start-2 lg:col-end-2">
+		{#if superSearchActive}
+			{#key data.query}
+				<SuperSearch query={data.query ?? ''} />
+			{/key}
+			<hr class="my-2" />
+		{/if}
 		{#if wikipediaCard}
 			<WikipediaCard result={data.results[0]} query={data.query} />
 		{/if}

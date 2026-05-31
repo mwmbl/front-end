@@ -1,7 +1,6 @@
 import type { Actions, PageServerLoad } from './$types';
 import { dev } from '$app/environment';
-
-const API = 'https://api.mwmbl.org';
+import { API_BASE as API } from '$lib/api';
 
 type Agreement = {
 	agreement_type: string;

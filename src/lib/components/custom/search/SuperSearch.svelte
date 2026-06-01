@@ -2,6 +2,7 @@
 	import { onMount, onDestroy } from 'svelte';
 	import SearchResult from './SearchResult.svelte';
 	import RiLoaderLine from '~icons/ri/loader-line';
+	import RiCheckLine from '~icons/ri/check-line';
 
 	let { query }: { query: string } = $props();
 
@@ -20,6 +21,9 @@
 	let sources = $state<Record<string, 'loading' | number>>({});
 	let results = $state<SuperResult[]>([]);
 	let crawlCount = $state(0);
+	let elapsedSeconds = $state<number | null>(null);
+	let monthlyUsage = $state<number | null>(null);
+	let monthlyLimit = $state<number | null>(null);
 
 	let abortController: AbortController | null = null;
 
@@ -50,6 +54,9 @@
 		sources = {};
 		results = [];
 		crawlCount = 0;
+		elapsedSeconds = null;
+		monthlyUsage = null;
+		monthlyLimit = null;
 
 		try {
 			const response = await fetch(
@@ -113,6 +120,15 @@
 			results = (data.results as SuperResult[]) ?? [];
 		} else if (type === 'page_fetched') {
 			crawlCount += 1;
+		} else if (type === 'done') {
+			elapsedSeconds = (data.elapsed_seconds as number) ?? null;
+			monthlyUsage = (data.monthly_usage as number) ?? null;
+			monthlyLimit = (data.monthly_limit as number) ?? null;
+			sources = Object.fromEntries(
+				Object.entries(sources).map(([k, v]) => [k, v === 'loading' ? 0 : v])
+			);
+			streaming = false;
+			done = true;
 		}
 	}
 
@@ -141,6 +157,14 @@
 					{/if}
 				</span>
 			{/each}
+			{#if done}
+				<span
+					class="inline-flex items-center gap-1 font-medium text-green-600 dark:text-green-500"
+					title="Search complete"
+				>
+					<RiCheckLine />
+				</span>
+			{/if}
 		</div>
 	{/if}
 
@@ -167,6 +191,18 @@
 	{#if streaming && crawlCount > 0}
 		<p class="text-muted-foreground text-xs">
 			Crawled {crawlCount} page{crawlCount !== 1 ? 's' : ''}…
+		</p>
+	{/if}
+
+	{#if done && elapsedSeconds !== null}
+		<p class="text-muted-foreground text-xs">
+			Search completed in {elapsedSeconds.toFixed(1)}s
+		</p>
+	{/if}
+
+	{#if done && monthlyUsage !== null && monthlyLimit !== null}
+		<p class="text-muted-foreground text-xs">
+			{monthlyUsage} of {monthlyLimit} super searches used this month
 		</p>
 	{/if}
 

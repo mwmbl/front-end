@@ -11,7 +11,7 @@
 	import RiArrowDownSLine from '~icons/ri/arrow-down-s-line';
 	import RiDeleteBin5Line from '~icons/ri/delete-bin-5-line';
 
-	import { getCookies } from '@/cookies.svelte';
+	import { getCookies } from '@/cookies';
 	const cookies = getCookies();
 
 	const { data, form } = $props();

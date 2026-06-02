@@ -59,13 +59,10 @@
 		monthlyLimit = null;
 
 		try {
-			const response = await fetch(
-				`/api/v2/super-search/?q=${encodeURIComponent(query)}`,
-				{
-					signal: abortController.signal,
-					headers: { Accept: 'text/event-stream' }
-				}
-			);
+			const response = await fetch(`/api/v2/super-search/?q=${encodeURIComponent(query)}`, {
+				signal: abortController.signal,
+				headers: { Accept: 'text/event-stream' }
+			});
 
 			if (!response.ok || !response.body) {
 				errorMsg = `Request failed (${response.status})`;
@@ -106,9 +103,16 @@
 				errorMsg = 'Connection lost';
 			}
 		} finally {
+			finalizeSources();
 			streaming = false;
 			done = true;
 		}
+	}
+
+	function finalizeSources() {
+		sources = Object.fromEntries(
+			Object.entries(sources).map(([k, v]) => [k, v === 'loading' ? 0 : v])
+		);
 	}
 
 	function handleEvent(type: string, data: Record<string, unknown>) {
@@ -117,16 +121,16 @@
 		} else if (type === 'source_returned') {
 			sources = { ...sources, [data.source as string]: data.count as number };
 		} else if (type === 'results') {
-			results = (data.results as SuperResult[]) ?? [];
+			const incoming = (data.results as SuperResult[]) ?? [];
+			const seen = new Set<string>();
+			results = incoming.filter((r) => (seen.has(r.url) ? false : seen.add(r.url)));
 		} else if (type === 'page_fetched') {
 			crawlCount += 1;
 		} else if (type === 'done') {
 			elapsedSeconds = (data.elapsed_seconds as number) ?? null;
 			monthlyUsage = (data.monthly_usage as number) ?? null;
 			monthlyLimit = (data.monthly_limit as number) ?? null;
-			sources = Object.fromEntries(
-				Object.entries(sources).map(([k, v]) => [k, v === 'loading' ? 0 : v])
-			);
+			finalizeSources();
 			streaming = false;
 			done = true;
 		}

@@ -161,7 +161,14 @@
 					{/if}
 				</span>
 			{/each}
-			{#if done}
+			{#if streaming && !done}
+				<span
+					class="inline-flex items-center gap-1 font-medium text-muted-foreground"
+					title="Searching…"
+				>
+					<RiLoaderLine class="animate-spin" />
+				</span>
+			{:else if done}
 				<span
 					class="inline-flex items-center gap-1 font-medium text-green-600 dark:text-green-500"
 					title="Search complete"

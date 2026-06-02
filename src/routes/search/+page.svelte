@@ -4,8 +4,6 @@
 
 	import RiEqualizer2Line from '~icons/ri/equalizer-2-line';
 	import RiLinksLine from '~icons/ri/links-line';
-	import RiSparklingLine from '~icons/ri/sparkling-line';
-
 	import Search from '@/components/custom/search/SearchBar.svelte';
 	import SearchResult from '@/components/custom/search/SearchResult.svelte';
 	import SuperSearch from '@/components/custom/search/SuperSearch.svelte';
@@ -69,17 +67,6 @@
 				<RiLinksLine class="min-h-5 min-w-5 text-black dark:text-white" />
 				Submit Domain
 			</Button>
-			{#if data.loginStatus === 'assumeLoggedIn'}
-				<Button
-					variant={superSearchActive ? 'default' : 'secondary'}
-					class="dark:bg-muted flex flex-row items-center gap-2"
-					disabled={superSearchActive}
-					onclick={() => (superSearchActive = true)}
-				>
-					<RiSparklingLine class="min-h-5 min-w-5" />
-					Super Search
-				</Button>
-			{/if}
 			<Popover.Root>
 				<Popover.Trigger>
 					{#snippet child({ props })}
@@ -112,7 +99,17 @@
 			{#each results as result}
 				<SearchResult {result} query={data.query} />
 			{/each}
-			{#if results.length == 0}
+			{#if data.loginStatus === 'assumeLoggedIn'}
+				<div class="flex flex-col items-start gap-3 p-4">
+					<p class="text-muted-foreground text-sm">
+						No good results? Super Search sends your query to external APIs, gathers the results and
+						crawls the web just for you, in ten seconds.
+					</p>
+					<button onclick={() => (superSearchActive = true)} class="cursor-pointer">
+						SUPER
+					</button>
+				</div>
+			{:else if results.length == 0}
 				<div class="flex flex-col justify-center gap-4 p-4">
 					<h2 class="text-2xl font-semibold">No results found</h2>
 					<p class="text-muted-foreground text-sm">

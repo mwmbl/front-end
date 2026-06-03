@@ -1,4 +1,6 @@
 <script lang="ts">
+	import { onMount } from 'svelte';
+	import { goto } from '$app/navigation';
 	import { Button } from '@/components/ui/button';
 	import * as Popover from '@/components/ui/popover';
 
@@ -27,6 +29,24 @@
 	$effect(() => {
 		data.query;
 		superSearchActive = false;
+	});
+
+	const SUPER_SEARCH_TTL_MS = 60 * 60 * 1000;
+
+	onMount(() => {
+		if (data.loginStatus === 'assumeLoggedIn') {
+			const raw = localStorage.getItem('pendingSuperSearch');
+			if (raw) {
+				const { query, timestamp } = JSON.parse(raw);
+				const expired = Date.now() - timestamp > SUPER_SEARCH_TTL_MS;
+				if (!expired && query === data.query) {
+					localStorage.removeItem('pendingSuperSearch');
+					superSearchActive = true;
+				} else if (expired) {
+					localStorage.removeItem('pendingSuperSearch');
+				}
+			}
+		}
 	});
 </script>
 
@@ -99,17 +119,34 @@
 			{#each results as result}
 				<SearchResult {result} query={data.query} />
 			{/each}
-			{#if data.loginStatus === 'assumeLoggedIn'}
-				<div class="flex justify-center py-4">
+			{#if results.length === 0}
+				<div class="flex justify-center p-4">
+					<h2 class="text-2xl font-semibold">No results found</h2>
+				</div>
+			{/if}
+			<div class="flex justify-center py-4">
 					<div class="flex max-w-xs flex-col items-center gap-4 text-center">
 						<p class="text-muted-foreground text-sm">
 							No good results? Super Search sends your query to external APIs, gathers the results
 							and crawls the web just for you, in ten seconds.
 						</p>
+						{#if data.loginStatus !== 'assumeLoggedIn'}
+							<p class="text-muted-foreground text-sm">Sign up/log in to use super search.</p>
+						{/if}
 						<!-- padding reserves space so the 1.2× scale doesn't shift surrounding content -->
 						<div class="p-5">
 							<Button
-								onclick={() => (superSearchActive = true)}
+								onclick={() => {
+									if (data.loginStatus === 'assumeLoggedIn') {
+										superSearchActive = true;
+									} else {
+										localStorage.setItem(
+											'pendingSuperSearch',
+											JSON.stringify({ query: data.query ?? '', timestamp: Date.now() })
+										);
+										goto('/account');
+									}
+								}}
 								class="group relative h-12 overflow-visible px-8 text-base font-semibold text-foreground bg-brand-gradient transition-transform duration-300 ease-[cubic-bezier(0.34,1.56,0.64,1)] hover:scale-[1.2]"
 							>
 								<span
@@ -120,21 +157,6 @@
 						</div>
 					</div>
 				</div>
-			{:else if results.length == 0}
-				<div class="flex flex-col justify-center gap-4 p-4">
-					<h2 class="text-2xl font-semibold">No results found</h2>
-					<p class="text-muted-foreground text-sm">
-						Try searching for something else or use <a
-							href="https://mwmbl.org/?q={data.query}"
-							class="underline transition-[text-underline-offset] hover:underline-offset-4"
-						>
-							the old frontend
-						</a>
-						to add a result. <br />
-						(feature coming to the new site soon)
-					</p>
-				</div>
-			{/if}
 		{/if}
 	</main>
 

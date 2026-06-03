@@ -1,5 +1,6 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
+	import { goto } from '$app/navigation';
 	import { Button } from '@/components/ui/button';
 	import * as Card from '@/components/ui/card';
 	import { Input } from '@/components/ui/input';
@@ -32,6 +33,18 @@
 		) {
 			sessionStorage.removeItem('pendingKeyCreation');
 			createKeyDialogOpen = true;
+		}
+
+		if (data.loginStatus === 'assumeLoggedIn') {
+			const raw = localStorage.getItem('pendingSuperSearch');
+			if (raw) {
+				const { query, timestamp } = JSON.parse(raw);
+				if (Date.now() - timestamp <= 60 * 60 * 1000) {
+					goto(`/search?q=${encodeURIComponent(query)}`);
+				} else {
+					localStorage.removeItem('pendingSuperSearch');
+				}
+			}
 		}
 	});
 

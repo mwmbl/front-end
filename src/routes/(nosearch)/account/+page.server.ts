@@ -1,5 +1,6 @@
 import type { Actions, PageServerLoad } from './$types';
 import { dev } from '$app/environment';
+import { redirect } from '@sveltejs/kit';
 import { API_BASE as API } from '$lib/api';
 
 type Agreement = {
@@ -50,6 +51,10 @@ export const actions: Actions = {
 			});
 
 			locals.loginStatus = 'assumeLoggedIn';
+			const next = data.get('next') as string | null;
+			if (next && next.startsWith('/') && !next.startsWith('//')) {
+				redirect(302, next);
+			}
 		} else {
 			locals.loginStatus = 'accountError';
 			locals.accountMessage = 'Error logging in.';

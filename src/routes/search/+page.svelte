@@ -24,28 +24,22 @@
 
 	const results = $derived(!wikipediaCard ? data.results : data.results.slice(1));
 
-	let superSearchActive = $state(false);
+	let superSearchActive = $state(data.loginStatus === 'assumeLoggedIn' && !!data.superSearch);
 
+	let prevQuery = data.query;
 	$effect(() => {
-		data.query;
-		superSearchActive = false;
+		const q = data.query;
+		if (q !== prevQuery) {
+			prevQuery = q;
+			superSearchActive = false;
+		}
 	});
 
-	const SUPER_SEARCH_TTL_MS = 60 * 60 * 1000;
-
 	onMount(() => {
-		if (data.loginStatus === 'assumeLoggedIn') {
-			const raw = localStorage.getItem('pendingSuperSearch');
-			if (raw) {
-				const { query, timestamp } = JSON.parse(raw);
-				const expired = Date.now() - timestamp > SUPER_SEARCH_TTL_MS;
-				if (!expired && query === data.query) {
-					localStorage.removeItem('pendingSuperSearch');
-					superSearchActive = true;
-				} else if (expired) {
-					localStorage.removeItem('pendingSuperSearch');
-				}
-			}
+		if (data.superSearch) {
+			const cleanUrl = new URL(window.location.href);
+			cleanUrl.searchParams.delete('superSearch');
+			history.replaceState({}, '', cleanUrl);
 		}
 	});
 </script>
@@ -140,11 +134,7 @@
 									if (data.loginStatus === 'assumeLoggedIn') {
 										superSearchActive = true;
 									} else {
-										localStorage.setItem(
-											'pendingSuperSearch',
-											JSON.stringify({ query: data.query ?? '', timestamp: Date.now() })
-										);
-										goto('/account');
+										goto(`/account?next=${encodeURIComponent(`/search?q=${encodeURIComponent(data.query ?? '')}&superSearch=1`)}`);
 									}
 								}}
 								class="group relative h-12 overflow-visible px-8 text-base font-semibold text-foreground bg-brand-gradient transition-transform duration-300 ease-[cubic-bezier(0.34,1.56,0.64,1)] hover:scale-[1.2]"

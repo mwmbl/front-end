@@ -1,6 +1,7 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
 	import { goto } from '$app/navigation';
+	import { page } from '$app/stores';
 	import { Button } from '@/components/ui/button';
 	import * as Card from '@/components/ui/card';
 	import { Input } from '@/components/ui/input';
@@ -35,17 +36,6 @@
 			createKeyDialogOpen = true;
 		}
 
-		if (data.loginStatus === 'assumeLoggedIn') {
-			const raw = localStorage.getItem('pendingSuperSearch');
-			if (raw) {
-				const { query, timestamp } = JSON.parse(raw);
-				if (Date.now() - timestamp <= 60 * 60 * 1000) {
-					goto(`/search?q=${encodeURIComponent(query)}`);
-				} else {
-					localStorage.removeItem('pendingSuperSearch');
-				}
-			}
-		}
 	});
 
 	function openTosForKeyCreation() {
@@ -104,6 +94,7 @@
 			<Tabs.Content value="Log in">
 				<div class="text-unemphasized-2 mb-2">Log in to an existing account.</div>
 				<form method="post" action="?/login" class="flex flex-col gap-2">
+					<input type="hidden" name="next" value={$page.url.searchParams.get('next') ?? ''} />
 					<Input
 						required
 						type="text"

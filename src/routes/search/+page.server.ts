@@ -19,10 +19,13 @@ export async function load({ url, cookies, locals }) {
 		votes: undefined;
 	}> = await resultsRes.json();
 
+	const superSearch = url.searchParams.get('superSearch') === '1';
+
 	if (locals.loginStatus !== 'assumeLoggedIn') {
 		return {
 			query: url.searchParams.get('q') as string | undefined,
-			results: results
+			results: results,
+			superSearch
 		};
 	}
 	const votesRes = await fetch(`${API_BASE}/api/v1/platform/search-results/votes`, {
@@ -47,7 +50,8 @@ export async function load({ url, cookies, locals }) {
 
 	return {
 		query: url.searchParams.get('q') as string | undefined,
-		results: resultsWithVotes
+		results: resultsWithVotes,
+		superSearch
 	};
 	// }
 	// else {

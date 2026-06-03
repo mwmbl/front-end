@@ -100,14 +100,19 @@
 				<SearchResult {result} query={data.query} />
 			{/each}
 			{#if data.loginStatus === 'assumeLoggedIn'}
-				<div class="flex flex-col items-start gap-3 p-4">
-					<p class="text-muted-foreground text-sm">
-						No good results? Super Search sends your query to external APIs, gathers the results and
-						crawls the web just for you, in ten seconds.
-					</p>
-					<button onclick={() => (superSearchActive = true)} class="cursor-pointer">
-						SUPER
-					</button>
+				<div class="flex justify-center py-4">
+					<div class="flex max-w-xs flex-col items-center gap-4 text-center">
+						<p class="text-muted-foreground text-sm">
+							No good results? Super Search sends your query to external APIs, gathers the results
+							and crawls the web just for you, in ten seconds.
+						</p>
+						<Button
+							onclick={() => (superSearchActive = true)}
+							class="bg-brand-gradient h-12 px-8 text-base font-semibold text-foreground"
+						>
+							Super Search
+						</Button>
+					</div>
 				</div>
 			{:else if results.length == 0}
 				<div class="flex flex-col justify-center gap-4 p-4">

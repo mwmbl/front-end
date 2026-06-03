@@ -124,7 +124,7 @@
 						{#if results.length > 0}Need more results?
 						{:else}Try Super Search!
 						{/if} Super Search sends your query to external APIs, gathers the results and crawls the
-						web just for you, in ten seconds.
+						web just for you, in ten seconds. New results are added to our index, making Mwmbl better for everyone, yay!
 					</p>
 					{#if data.loginStatus !== 'assumeLoggedIn'}
 						<p class="text-muted-foreground text-sm">Sign up/log in to use Super Search.</p>

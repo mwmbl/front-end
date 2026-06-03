@@ -7,7 +7,6 @@
 	import Search from '@/components/custom/search/SearchBar.svelte';
 	import SearchResult from '@/components/custom/search/SearchResult.svelte';
 	import SuperSearch from '@/components/custom/search/SuperSearch.svelte';
-	import SuperButton from '@/components/custom/search/SuperButton.svelte';
 	import Options from '@/components/custom/menu/Options.svelte';
 	import MobileMenu from '@/components/custom/menu/MobileMenu.svelte';
 	import SignInButton from '@/components/custom/menu/SignInButton.svelte';
@@ -106,7 +105,9 @@
 						No good results? Super Search sends your query to external APIs, gathers the results and
 						crawls the web just for you, in ten seconds.
 					</p>
-					<SuperButton onclick={() => (superSearchActive = true)} />
+					<button onclick={() => (superSearchActive = true)} class="cursor-pointer">
+						SUPER
+					</button>
 				</div>
 			{:else if results.length == 0}
 				<div class="flex flex-col justify-center gap-4 p-4">

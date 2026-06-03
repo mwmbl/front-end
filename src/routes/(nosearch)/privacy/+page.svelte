@@ -69,9 +69,6 @@
 			<p class="mb-4">
 				These queries are processed in real time to generate your search results. Mwmbl does not keep a log of your queries that is linked to you or your account. However, in order to improve results for everyone, the results returned by these queries (such as newly discovered web pages) may be added to Mwmbl's public search index and stored against the keywords from the query that they match. This index is openly available and forms part of Mwmbl's search data; it is not associated with your identity. Requests to third-party providers are made by Mwmbl's own servers: <strong>we forward only the text of your search query, and never your name, email address, username, account identifiers, or any other information that identifies you</strong>. Although Super Search requires you to be logged in, your identity is used only by Mwmbl &ndash; for example, to apply your monthly usage limit &ndash; and is not disclosed to the third-party providers. Your query is processed by these providers under their own privacy policies, over which Mwmbl has no control, and because some of them operate globally it may be processed outside the European Economic Area (EEA) or the United Kingdom.
 			</p>
-			<p class="mb-6">
-				Super Search is optional and is only triggered when you choose to use it. If you do not wish your query to be sent to the additional third-party providers used by Super Search, simply do not use that feature.
-			</p>
 
 			<h3 class="mb-3 mt-6 text-xl font-semibold">Data Sharing and Transfers</h3>
 		<p class="mb-4">

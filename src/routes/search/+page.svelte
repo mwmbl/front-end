@@ -119,34 +119,38 @@
 				</div>
 			{/if}
 			<div class="flex justify-center py-4">
-					<div class="flex max-w-xs flex-col items-center gap-4 text-center">
-						<p class="text-muted-foreground text-sm">
-							No good results? Super Search sends your query to external APIs, gathers the results
-							and crawls the web just for you, in ten seconds.
-						</p>
-						{#if data.loginStatus !== 'assumeLoggedIn'}
-							<p class="text-muted-foreground text-sm">Sign up/log in to use super search.</p>
-						{/if}
-						<!-- padding reserves space so the 1.2× scale doesn't shift surrounding content -->
-						<div class="p-5">
-							<Button
-								onclick={() => {
-									if (data.loginStatus === 'assumeLoggedIn') {
-										superSearchActive = true;
-									} else {
-										goto(`/account?next=${encodeURIComponent(`/search?q=${encodeURIComponent(data.query ?? '')}&superSearch=1`)}`);
-									}
-								}}
-								class="group relative h-12 overflow-visible px-8 text-base font-semibold text-foreground bg-brand-gradient transition-transform duration-300 ease-[cubic-bezier(0.34,1.56,0.64,1)] hover:scale-[1.2]"
-							>
-								<span
-									class="pointer-events-none absolute inset-0 rounded-[inherit] bg-black/20 transition-opacity duration-300 group-hover:opacity-0"
-								></span>
-								<span class="relative">Super Search</span>
-							</Button>
-						</div>
+				<div class="flex max-w-xs flex-col items-center gap-4 text-center">
+					<p class="text-muted-foreground text-sm">
+						{#if results.length > 0}Need more results?
+						{:else}Try Super Search!
+						{/if} Super Search sends your query to external APIs, gathers the results and crawls the
+						web just for you, in ten seconds.
+					</p>
+					{#if data.loginStatus !== 'assumeLoggedIn'}
+						<p class="text-muted-foreground text-sm">Sign up/log in to use Super Search.</p>
+					{/if}
+					<!-- padding reserves space so the 1.2× scale doesn't shift surrounding content -->
+					<div class="p-5">
+						<Button
+							onclick={() => {
+								if (data.loginStatus === 'assumeLoggedIn') {
+									superSearchActive = true;
+								} else {
+									goto(
+										`/account?next=${encodeURIComponent(`/search?q=${encodeURIComponent(data.query ?? '')}&superSearch=1`)}`
+									);
+								}
+							}}
+							class="group bg-brand-gradient text-foreground relative h-12 overflow-visible px-8 text-base font-semibold transition-transform duration-300 ease-[cubic-bezier(0.34,1.56,0.64,1)] hover:scale-[1.2]"
+						>
+							<span
+								class="pointer-events-none absolute inset-0 rounded-[inherit] bg-black/20 transition-opacity duration-300 group-hover:opacity-0"
+							></span>
+							<span class="relative">Super Search</span>
+						</Button>
 					</div>
 				</div>
+			</div>
 		{/if}
 	</main>
 

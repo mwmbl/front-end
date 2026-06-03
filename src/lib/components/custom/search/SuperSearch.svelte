@@ -29,19 +29,19 @@
 
 	function toSegments(text: string): Array<{ value: string; is_bold: boolean }> {
 		if (!text) return [];
-		const terms = query
-			.toLowerCase()
-			.split(/\s+/)
-			.filter(Boolean)
-			.map((t) => t.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'));
+		const terms = query.toLowerCase().split(/\s+/).filter(Boolean);
 		if (terms.length === 0) return [{ value: text, is_bold: false }];
-		const pattern = new RegExp(`(${terms.join('|')})`, 'gi');
-		const parts = text.split(pattern);
-		return parts
+		const termSet = new Set(terms);
+		const escaped = terms.map((t) => t.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'));
+		const pattern = new RegExp(`(${escaped.join('|')})`, 'gi');
+		// split() with a capturing group keeps the matched terms as separate parts,
+		// so a part is bold iff its lowercased value is one of the query terms.
+		return text
+			.split(pattern)
 			.filter((p) => p.length > 0)
 			.map((part) => ({
 				value: part,
-				is_bold: terms.some((t) => new RegExp(`^${t}$`, 'i').test(part))
+				is_bold: termSet.has(part.toLowerCase())
 			}));
 	}
 
@@ -130,9 +130,7 @@
 			elapsedSeconds = (data.elapsed_seconds as number) ?? null;
 			monthlyUsage = (data.monthly_usage as number) ?? null;
 			monthlyLimit = (data.monthly_limit as number) ?? null;
-			finalizeSources();
-			streaming = false;
-			done = true;
+			// streaming/done flags and source finalisation are handled in startSearch's finally block
 		}
 	}
 
@@ -163,7 +161,7 @@
 			{/each}
 			{#if streaming && !done}
 				<span
-					class="inline-flex items-center gap-1 font-medium text-muted-foreground"
+					class="text-muted-foreground inline-flex items-center gap-1 font-medium"
 					title="Searching…"
 				>
 					<RiLoaderLine class="animate-spin" />

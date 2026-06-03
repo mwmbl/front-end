@@ -35,7 +35,6 @@
 			sessionStorage.removeItem('pendingKeyCreation');
 			createKeyDialogOpen = true;
 		}
-
 	});
 
 	function openTosForKeyCreation() {

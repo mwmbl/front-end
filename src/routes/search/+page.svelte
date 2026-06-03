@@ -106,12 +106,18 @@
 							No good results? Super Search sends your query to external APIs, gathers the results
 							and crawls the web just for you, in ten seconds.
 						</p>
-						<Button
-							onclick={() => (superSearchActive = true)}
-							class="bg-brand-gradient h-12 px-8 text-base font-semibold text-foreground"
-						>
-							Super Search
-						</Button>
+						<!-- padding reserves space so the 1.2× scale doesn't shift surrounding content -->
+						<div class="p-5">
+							<Button
+								onclick={() => (superSearchActive = true)}
+								class="group relative h-12 overflow-visible px-8 text-base font-semibold text-foreground bg-brand-gradient transition-transform duration-300 ease-[cubic-bezier(0.34,1.56,0.64,1)] hover:scale-[1.2]"
+							>
+								<span
+									class="pointer-events-none absolute inset-0 rounded-[inherit] bg-black/20 transition-opacity duration-300 group-hover:opacity-0"
+								></span>
+								<span class="relative">Super Search</span>
+							</Button>
+						</div>
 					</div>
 				</div>
 			{:else if results.length == 0}

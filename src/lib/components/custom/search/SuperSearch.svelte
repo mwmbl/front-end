@@ -24,6 +24,7 @@
 	let elapsedSeconds = $state<number | null>(null);
 	let monthlyUsage = $state<number | null>(null);
 	let monthlyLimit = $state<number | null>(null);
+	let pagesIndexed = $state<number | null>(null);
 
 	let abortController: AbortController | null = null;
 
@@ -57,6 +58,7 @@
 		elapsedSeconds = null;
 		monthlyUsage = null;
 		monthlyLimit = null;
+		pagesIndexed = null;
 
 		try {
 			const response = await fetch(`/api/v2/super-search/?q=${encodeURIComponent(query)}`, {
@@ -130,6 +132,7 @@
 			elapsedSeconds = (data.elapsed_seconds as number) ?? null;
 			monthlyUsage = (data.monthly_usage as number) ?? null;
 			monthlyLimit = (data.monthly_limit as number) ?? null;
+			pagesIndexed = data.pages_indexed;
 			// streaming/done flags and source finalisation are handled in startSearch's finally block
 		}
 	}
@@ -205,13 +208,16 @@
 
 	{#if done && elapsedSeconds !== null}
 		<p class="text-muted-foreground text-xs">
-			Search completed in {elapsedSeconds.toFixed(1)}s
+			Search completed in {elapsedSeconds.toFixed(1)}s.
+			{#if pagesIndexed !== null}
+				Added {pagesIndexed} page{pagesIndexed !== 1 ? 's' : ''} to the index.
+			{/if}
 		</p>
 	{/if}
 
 	{#if done && monthlyUsage !== null && monthlyLimit !== null}
 		<p class="text-muted-foreground text-xs">
-			{monthlyUsage} of {monthlyLimit} super searches used this month
+			{monthlyUsage} of {monthlyLimit} super searches used this month.
 		</p>
 	{/if}
 

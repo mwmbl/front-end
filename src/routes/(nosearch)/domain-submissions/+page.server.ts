@@ -1,4 +1,5 @@
 import type { Actions } from '@sveltejs/kit';
+import { API_BASE } from '$lib/api';
 
 const pageSize = 500;
 
@@ -19,7 +20,7 @@ export async function load({ fetch, url, locals }) {
 	const page = Number(url.searchParams.get('page'));
 	const offset = page * pageSize;
 	const response = await fetch(
-		`https://api.mwmbl.org/api/v1/platform/domain-submissions?limit=${pageSize}&offset=${offset}`
+		`${API_BASE}/api/v1/platform/domain-submissions?limit=${pageSize}&offset=${offset}`
 	);
 	const submissions: SubmissionsResult = await response.json();
 
@@ -34,7 +35,7 @@ export const actions: Actions = {
 	submitDomain: async ({ request, cookies, locals }) => {
 		const data = await request.formData();
 		const res = await fetch(
-			'https://api.mwmbl.org/api/v1/platform/domain-submissions/?domain=' + data.get('domain'),
+			`${API_BASE}/api/v1/platform/domain-submissions/?domain=` + data.get('domain'),
 			{
 				method: 'POST',
 				headers: {

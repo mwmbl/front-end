@@ -3,6 +3,7 @@
 	import { Button } from '@/components/ui/button';
 	import * as Card from '$lib/components/ui/card';
 
+	import { API_BASE } from '$lib/api';
 	import RiSearchLine from '~icons/ri/search-line';
 	import PhArrowSquareOutFill from '~icons/ph/arrow-square-out-fill';
 	import MaterialSymbolsCloseRounded from '~icons/material-symbols/close-rounded';
@@ -24,7 +25,7 @@
 			const controller = new AbortController();
 			const signal = controller.signal;
 			abortControllers.push(controller);
-			fetch('https://api.mwmbl.org/api/v1/search/complete?q=' + query, { signal })
+			fetch(API_BASE + '/api/v1/search/complete?q=' + query, { signal })
 				.then((res) => {
 					res.json().then((json) => {
 						searchCompletions = json[1];

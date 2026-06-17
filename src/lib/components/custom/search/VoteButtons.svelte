@@ -1,6 +1,6 @@
 <script lang="ts">
 	import Button from '@/components/ui/button/button.svelte';
-	import { getCookies } from '@/cookies.svelte';
+	import { getCookies } from '@/cookies';
 
 	import RiArrowUpSLine from '~icons/ri/arrow-up-s-line';
 	import RiArrowDownSLine from '~icons/ri/arrow-down-s-line';

@@ -1,5 +1,7 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
+	import { goto } from '$app/navigation';
+	import { page } from '$app/stores';
 	import { Button } from '@/components/ui/button';
 	import * as Card from '@/components/ui/card';
 	import { Input } from '@/components/ui/input';
@@ -11,7 +13,7 @@
 	import RiArrowDownSLine from '~icons/ri/arrow-down-s-line';
 	import RiDeleteBin5Line from '~icons/ri/delete-bin-5-line';
 
-	import { getCookies } from '@/cookies.svelte';
+	import { getCookies } from '@/cookies';
 	const cookies = getCookies();
 
 	const { data, form } = $props();
@@ -91,6 +93,7 @@
 			<Tabs.Content value="Log in">
 				<div class="text-unemphasized-2 mb-2">Log in to an existing account.</div>
 				<form method="post" action="?/login" class="flex flex-col gap-2">
+					<input type="hidden" name="next" value={$page.url.searchParams.get('next') ?? ''} />
 					<Input
 						required
 						type="text"

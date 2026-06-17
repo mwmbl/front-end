@@ -1,8 +1,9 @@
 import { dev } from '$app/environment';
 import type { Handle } from '@sveltejs/kit';
 import { error } from '@sveltejs/kit';
+import { API_BASE } from '$lib/api';
 
-const MWMBL_API_BASE_URL = 'https://api.mwmbl.org';
+const MWMBL_API_BASE_URL = API_BASE;
 const PROXY_PATH = '/api';
 
 export const handle: Handle = async ({ event, resolve }) => {
@@ -18,7 +19,7 @@ export const handle: Handle = async ({ event, resolve }) => {
 			// Access token is expired, let's do a refresh
 			const refreshToken = event.cookies.get('refreshToken');
 			if (refreshToken) {
-				const res = await fetch('https://api.mwmbl.org/api/v1/platform/token/refresh', {
+				const res = await fetch(`${API_BASE}/api/v1/platform/token/refresh`, {
 					method: 'POST',
 					body: JSON.stringify({
 						refresh: refreshToken

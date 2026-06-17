@@ -8,7 +8,7 @@
 	import Options from '@/components/custom/menu/Options.svelte';
 	import SignInButton from '@/components/custom/menu/SignInButton.svelte';
 
-	import { getCookies } from '@/cookies.svelte';
+	import { getCookies } from '@/cookies';
 	let cookies = getCookies();
 
 	let open = $state(false);

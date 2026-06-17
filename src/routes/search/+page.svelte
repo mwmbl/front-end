@@ -1,12 +1,14 @@
 <script lang="ts">
+	import { onMount } from 'svelte';
+	import { goto } from '$app/navigation';
 	import { Button } from '@/components/ui/button';
 	import * as Popover from '@/components/ui/popover';
 
 	import RiEqualizer2Line from '~icons/ri/equalizer-2-line';
 	import RiLinksLine from '~icons/ri/links-line';
-
 	import Search from '@/components/custom/search/SearchBar.svelte';
 	import SearchResult from '@/components/custom/search/SearchResult.svelte';
+	import SuperSearch from '@/components/custom/search/SuperSearch.svelte';
 	import Options from '@/components/custom/menu/Options.svelte';
 	import MobileMenu from '@/components/custom/menu/MobileMenu.svelte';
 	import SignInButton from '@/components/custom/menu/SignInButton.svelte';
@@ -21,6 +23,25 @@
 	);
 
 	const results = $derived(!wikipediaCard ? data.results : data.results.slice(1));
+
+	let superSearchActive = $state(data.loginStatus === 'assumeLoggedIn' && !!data.superSearch);
+
+	let prevQuery = data.query;
+	$effect(() => {
+		const q = data.query;
+		if (q !== prevQuery) {
+			prevQuery = q;
+			superSearchActive = false;
+		}
+	});
+
+	onMount(() => {
+		if (data.superSearch) {
+			const cleanUrl = new URL(window.location.href);
+			cleanUrl.searchParams.delete('superSearch');
+			history.replaceState({}, '', cleanUrl);
+		}
+	});
 </script>
 
 <svelte:head>
@@ -81,25 +102,54 @@
 	<hr class="absolute top-52 left-0 w-screen lg:top-36" />
 
 	<main class="mt-4 flex w-full flex-col gap-4 lg:col-start-2 lg:col-end-2">
-		{#if wikipediaCard}
-			<WikipediaCard result={data.results[0]} query={data.query} />
-		{/if}
-		{#each results as result}
-			<SearchResult {result} query={data.query} />
-		{/each}
-		{#if results.length == 0}
-			<div class="flex flex-col justify-center gap-4 p-4">
-				<h2 class="text-2xl font-semibold">No results found</h2>
-				<p class="text-muted-foreground text-sm">
-					Try searching for something else or use <a
-						href="https://mwmbl.org/?q={data.query}"
-						class="underline transition-[text-underline-offset] hover:underline-offset-4"
-					>
-						the old frontend
-					</a>
-					to add a result. <br />
-					(feature coming to the new site soon)
-				</p>
+		{#if superSearchActive}
+			{#key data.query}
+				<SuperSearch query={data.query ?? ''} />
+			{/key}
+		{:else}
+			{#if wikipediaCard}
+				<WikipediaCard result={data.results[0]} query={data.query} />
+			{/if}
+			{#each results as result}
+				<SearchResult {result} query={data.query} />
+			{/each}
+			{#if results.length === 0}
+				<div class="flex justify-center p-4">
+					<h2 class="text-2xl font-semibold">No results found</h2>
+				</div>
+			{/if}
+			<div class="flex justify-center py-4">
+				<div class="flex max-w-xs flex-col items-center gap-4 text-center">
+					<p class="text-muted-foreground text-sm">
+						{#if results.length > 0}Need more results?
+						{:else}Try Super Search!
+						{/if} Super Search sends your query to external APIs, gathers the results and crawls the
+						web just for you, in ten seconds. New results are added to our index, making Mwmbl better for everyone, yay!
+					</p>
+					{#if data.loginStatus !== 'assumeLoggedIn'}
+						<p class="text-muted-foreground text-sm">Sign up/log in to use Super Search.</p>
+					{/if}
+					<!-- padding reserves space so the 1.2× scale doesn't shift surrounding content -->
+					<div class="p-5">
+						<Button
+							onclick={() => {
+								if (data.loginStatus === 'assumeLoggedIn') {
+									superSearchActive = true;
+								} else {
+									goto(
+										`/account?next=${encodeURIComponent(`/search?q=${encodeURIComponent(data.query ?? '')}&superSearch=1`)}`
+									);
+								}
+							}}
+							class="group bg-brand-gradient text-foreground relative h-12 overflow-visible px-8 text-base font-semibold transition-transform duration-300 ease-[cubic-bezier(0.34,1.56,0.64,1)] hover:scale-[1.2]"
+						>
+							<span
+								class="pointer-events-none absolute inset-0 rounded-[inherit] bg-black/20 transition-opacity duration-300 group-hover:opacity-0"
+							></span>
+							<span class="relative">Super Search</span>
+						</Button>
+					</div>
+				</div>
 			</div>
 		{/if}
 	</main>

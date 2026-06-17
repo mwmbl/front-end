@@ -8,6 +8,7 @@
 	import RiLoader2Line from '~icons/ri/loader-2-line';
 
 	import type { SubmissionsResult } from './+page.server.js';
+	import { API_BASE } from '$lib/api';
 	import SignInButton from '@/components/custom/menu/SignInButton.svelte';
 
 	import * as Card from '@/components/ui/card';
@@ -23,7 +24,7 @@
 
 	async function fetchSubmissionsForInput() {
 		const res = await fetch(
-			'https://api.mwmbl.org/api/v1/platform/domain-submissions/domains/' + domainInput
+			API_BASE + '/api/v1/platform/domain-submissions/domains/' + domainInput
 		);
 		if (res.ok) {
 			const submissions: SubmissionsResult = await res.json();

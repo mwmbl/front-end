@@ -16,7 +16,7 @@
 		</p>
 		<h1 class="mb-4 text-center text-3xl font-bold">Mwmbl - Data Privacy Policy</h1>
 		
-		<p class="mb-6 text-center"><strong>Effective Date: 10th May 2025</strong></p>
+		<p class="mb-6 text-center"><strong>Effective Date: 3rd June 2026</strong></p>
 		
 		<p class="mb-6">
 			Mwmbl is committed to ensuring the highest standards of data protection and cybersecurity in compliance with the <strong>General Data Protection Regulation (GDPR) (EU) 2016/679</strong>, the <strong>UK General Data Protection Regulation (UK GDPR)</strong>, and the <strong>Swiss Act on Federal Data Protection (nFADP)</strong>. This Data Privacy Policy explains how we collect, process, store, and protect your personal data when you use our services at <a href="https://mwmbl.org" class="text-blue-600 hover:underline">https://mwmbl.org</a>.
@@ -40,7 +40,7 @@
 				</ol>
 			</li>
 			<li>
-				<p><strong>Technical and Usage Data:</strong> This includes browser type, device identifiers, and site interaction data for the purposes of performance optimization and maintaining the security of our services. IP addresses are not stored on disk, and user search queries are not recorded or retained in any form.</p>
+				<p><strong>Technical and Usage Data:</strong> This includes browser type, device identifiers, and site interaction data for the purposes of performance optimization and maintaining the security of our services. IP addresses are not stored on disk, and we do not keep a record of your searches that is linked to you or your account. To return results we transmit your query to third-party sources, and information derived from searches (such as newly discovered pages and the keywords they match) may be added to our public search index &ndash; see <strong>Search Queries and Third-Party Processing</strong> below.</p>
 			</li>
 		</ul>
 
@@ -62,14 +62,22 @@
 			<li><strong>Legal Obligations (Article 6(1)(c))</strong>: When required to comply with EU, UK or Swiss regulations.</li>
 		</ul>
 
-		<h3 class="mb-3 mt-6 text-xl font-semibold">Data Sharing and Transfers</h3>
+		<h3 class="mb-3 mt-6 text-xl font-semibold">Search Queries and Third-Party Processing</h3>
+			<p class="mb-4">
+				To return relevant results, Mwmbl transmits your search query to one or more third-party sources at the time you perform a search. Standard searches may send your query to external content sources (for example, to retrieve reference content). The optional <strong>Super Search</strong> feature, available to logged-in users, broadens this by sending your query to additional third-party search and web-content providers and by performing live crawling of third-party websites, in order to produce more comprehensive results.
+			</p>
+			<p class="mb-4">
+				These queries are processed in real time to generate your search results. Mwmbl does not keep a log of your queries that is linked to you or your account. However, in order to improve results for everyone, the results returned by these queries (such as newly discovered web pages) may be added to Mwmbl's public search index and stored against the keywords from the query that they match. This index is openly available and forms part of Mwmbl's search data; it is not associated with your identity. Requests to third-party providers are made by Mwmbl's own servers: <strong>we forward only the text of your search query, and never your name, email address, username, account identifiers, or any other information that identifies you</strong>. Although Super Search requires you to be logged in, your identity is used only by Mwmbl &ndash; for example, to apply your monthly usage limit &ndash; and is not disclosed to the third-party providers. Your query is processed by these providers under their own privacy policies, over which Mwmbl has no control, and because some of them operate globally it may be processed outside the European Economic Area (EEA) or the United Kingdom.
+			</p>
+
+			<h3 class="mb-3 mt-6 text-xl font-semibold">Data Sharing and Transfers</h3>
 		<p class="mb-4">
 			Mwmbl follows a strict policy of <strong>not selling or commercially exploiting user data</strong>. We may share data under the following circumstances:
 		</p>
 		<ul class="mb-6 ml-6 list-disc space-y-2">
 			<li><strong>Service Providers</strong>: We may engage third-party hosting and security providers under strict data processing agreements (DPAs) ensuring GDPR compliance.</li>
 			<li><strong>Legal Authorities</strong>: We may disclose data where required by EU, UK and Swiss law.</li>
-			<li><strong>Cross-Border Transfers</strong>: No personal data is transferred outside the European Economic Area (EEA) or the United Kingdom. All data processing is conducted exclusively within these jurisdictions, in accordance with applicable data protection legislation.</li>
+			<li><strong>Cross-Border Transfers</strong>: With the exception of search queries processed by third-party providers as described in <strong>Search Queries and Third-Party Processing</strong> above, no personal data is transferred outside the European Economic Area (EEA) or the United Kingdom. Search queries (forwarded without any information identifying you) may be processed by third-party search and web-content providers located outside these jurisdictions. All other data processing is conducted exclusively within the EEA and the UK, in accordance with applicable data protection legislation.</li>
 		</ul>
 
 		<h3 class="mb-3 mt-6 text-xl font-semibold">List of Subprocessors</h3>
@@ -84,7 +92,7 @@
 		</ul>
 
 		<p class="mb-6">
-			At present, no content delivery networks (CDNs) or analytics providers are in use. Mwmbl does not transfer personal data outside the EEA or UK. No formal data processing agreements are currently in place with these subprocessors, although service use is limited and subject to future review and compliance actions.
+			At present, no content delivery networks (CDNs) or analytics providers are in use. Other than search queries sent to third-party search and web-content providers as described in <strong>Search Queries and Third-Party Processing</strong> above, Mwmbl does not transfer personal data outside the EEA or UK. No formal data processing agreements are currently in place with these subprocessors, although service use is limited and subject to future review and compliance actions.
 		</p>
 
 		<h3 class="mb-3 mt-6 text-xl font-semibold">User Rights Under GDPR</h3>

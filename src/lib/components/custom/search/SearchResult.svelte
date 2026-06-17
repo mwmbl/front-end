@@ -30,7 +30,13 @@
 
 	// Favicons are fetched from DDG to preserve privacy.
 	// Making our own Favicon API would be possible too if we want that in the future.
-	let faviconUrl = $derived(`https://icons.duckduckgo.com/ip2/${new URL(result.url).hostname}.ico`);
+	let faviconUrl = $derived.by(() => {
+		try {
+			return `https://icons.duckduckgo.com/ip2/${new URL(result.url).hostname}.ico`;
+		} catch {
+			return '';
+		}
+	});
 </script>
 
 <a href={result.url} class="group max-w-full" target={options.openInNewTab ? '_blank' : '_self'}>
@@ -40,7 +46,9 @@
 				class="text-unemphasized-2 grid grid-cols-[2rem_1fr] items-center gap-2 leading-snug font-medium group-hover:underline"
 			>
 				<div class="bg-secondary mr-3 min-h-8 min-w-8 rounded-xl p-2">
-					<img src={faviconUrl} alt="" class="h-4 w-4" />
+					{#if faviconUrl}
+						<img src={faviconUrl} alt="" class="h-4 w-4" />
+					{/if}
 				</div>
 				<div class="flex flex-row flex-wrap items-center">
 					{#if result.url.startsWith('https')}

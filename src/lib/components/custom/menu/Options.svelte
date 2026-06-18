@@ -54,9 +54,9 @@
 		{#if !loaded}
 			<Skeleton class="bg-input h-[24px] w-[44px] rounded-full" />
 		{:else}
-			<Switch id="newtab-switch" class="switch-fade" bind:checked={options.showVotingInterface} />
+			<Switch id="show-voting-switch" class="switch-fade" bind:checked={options.showVotingInterface} />
 		{/if}
-		<Label for="newtab-switch">Show voting interface</Label>
+		<Label for="show-voting-switch">Show voting interface</Label>
 	</div>
 </div>
 

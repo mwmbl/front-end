@@ -8,6 +8,7 @@
 	import { Label } from '@/components/ui/label';
 	import * as Tabs from '@/components/ui/tabs';
 	import * as AlertDialog from '$lib/components/ui/alert-dialog';
+	import BottomLinks from '@/components/custom/brand/BottomLinks.svelte';
 
 	import RiArrowUpSLine from '~icons/ri/arrow-up-s-line';
 	import RiArrowDownSLine from '~icons/ri/arrow-down-s-line';
@@ -135,6 +136,13 @@
 							I agree to the <a href="/terms" class="text-blue-600 hover:underline"
 								>Terms of Service</a
 							>
+						</Label>
+					</div>
+					<div class="flex items-center gap-2">
+						<input id="marketing-opt-in" type="checkbox" name="marketingOptIn" class="h-4 w-4" />
+						<Label for="marketing-opt-in" class="text-sm font-normal">
+							Send me emails with occasional updates about new features, events, and ways to support
+							Mwmbl (surveys, interviews, donations).
 						</Label>
 					</div>
 					<Button class="max-w-32" type="submit">Register</Button>
@@ -410,5 +418,29 @@
 		{:else}
 			<p>No votes yet.</p>
 		{/if}
+
+		<hr class="my-4" />
+
+		<h3 class="text-xl">Email preferences</h3>
+		<form method="post" action="?/updateMarketingConsent" class="mt-2 flex flex-col gap-2">
+			<div class="flex items-center gap-2">
+				<input
+					id="marketing-consent"
+					type="checkbox"
+					name="marketingOptIn"
+					checked={data.marketingOptIn}
+					class="h-4 w-4"
+				/>
+				<Label for="marketing-consent" class="text-sm font-normal">
+					Send me emails with occasional updates about new features, events, and ways to support
+					Mwmbl (surveys, interviews, donations).
+				</Label>
+			</div>
+			<Button class="my-2 max-w-40" type="submit">Save preference</Button>
+		</form>
 	{/if}
 </main>
+
+<footer class="mt-4 flex justify-center px-8 pb-8">
+	<BottomLinks />
+</footer>

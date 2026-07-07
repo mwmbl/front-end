@@ -16,6 +16,12 @@ type ApiKey = {
 	scopes: string[];
 };
 
+type MarketingConsent = {
+	source: 'GUI' | 'API';
+	opted_in: boolean;
+	timestamp: string;
+};
+
 export const actions: Actions = {
 	login: async ({ request, cookies, locals }) => {
 		const data = await request.formData();
@@ -67,7 +73,9 @@ export const actions: Actions = {
 			body: JSON.stringify({
 				email: data.get('email'),
 				username: data.get('username'),
-				password: data.get('password')
+				password: data.get('password'),
+				source: 'GUI',
+				marketing_opt_in: data.get('marketingOptIn') === 'on'
 			})
 		});
 		const json = await res.json();
@@ -151,6 +159,25 @@ export const actions: Actions = {
 			return { success: false, error: 'Failed to revoke key.' };
 		}
 		return { success: true };
+	},
+	updateMarketingConsent: async ({ request, cookies }) => {
+		const data = await request.formData();
+		const optedIn = data.get('marketingOptIn') === 'on';
+		const res = await fetch(`${API}/api/v1/platform/marketing-consent`, {
+			method: 'POST',
+			headers: {
+				Authorization: 'Bearer ' + cookies.get('accessToken'),
+				'Content-Type': 'application/json'
+			},
+			body: JSON.stringify({ source: 'GUI', opted_in: optedIn })
+		});
+		if (!res.ok) {
+			return {
+				success: false,
+				error: 'Failed to update your marketing email preference. Please try again.'
+			};
+		}
+		return { success: true };
 	}
 };
 
@@ -172,10 +199,11 @@ export const load: PageServerLoad = async ({ cookies, locals }) => {
 			username: cookies.get('username'),
 			votes: undefined,
 			hasAgreedToTerms: false,
-			apiKeys: [] as ApiKey[]
+			apiKeys: [] as ApiKey[],
+			marketingOptIn: false
 		};
 	} else {
-		const [votesRes, agreementsRes, keysRes] = await Promise.all([
+		const [votesRes, agreementsRes, keysRes, consentRes] = await Promise.all([
 			fetch(`${API}/api/v1/platform/search-results/my-votes?limit=100&offset=0`, {
 				method: 'GET',
 				headers: { Authorization: 'Bearer ' + cookies.get('accessToken') }
@@ -185,6 +213,10 @@ export const load: PageServerLoad = async ({ cookies, locals }) => {
 				headers: { Authorization: 'Bearer ' + cookies.get('accessToken') }
 			}),
 			fetch(`${API}/api/v1/platform/api-keys/`, {
+				method: 'GET',
+				headers: { Authorization: 'Bearer ' + cookies.get('accessToken') }
+			}),
+			fetch(`${API}/api/v1/platform/marketing-consent`, {
 				method: 'GET',
 				headers: { Authorization: 'Bearer ' + cookies.get('accessToken') }
 			})
@@ -205,13 +237,19 @@ export const load: PageServerLoad = async ({ cookies, locals }) => {
 
 		const apiKeys: ApiKey[] = keysRes.ok ? await keysRes.json() : [];
 
+		const marketingConsent: MarketingConsent[] = consentRes.ok
+			? (await consentRes.json()).consent
+			: [];
+		const marketingOptIn = marketingConsent.find((c) => c.source === 'GUI')?.opted_in ?? false;
+
 		return {
 			awaitingEmailConfirmation: false,
 			accountMessage: locals.accountMessage,
 			username: cookies.get('username'),
 			votes: votesJson,
 			hasAgreedToTerms,
-			apiKeys
+			apiKeys,
+			marketingOptIn
 		};
 	}
 };

@@ -8,9 +8,12 @@ export async function load({ url, cookies, locals }) {
 	// const useWasmRanker = url.searchParams.get('useWasmRanker') === 'true';
 
 	// if (!useWasmRanker) {
-	const resultsRes = await fetch(
-		`${API_BASE}/api/v1/search/?s=` + url.searchParams.get('q')
-	);
+	const source = url.searchParams.get('source');
+	const searchParams = new URLSearchParams({ s: url.searchParams.get('q') ?? '' });
+	if (source) {
+		searchParams.set('source', source);
+	}
+	const resultsRes = await fetch(`${API_BASE}/api/v1/search/?${searchParams.toString()}`);
 	const results: Array<{
 		title: Array<{ value: string; is_bold: boolean }>;
 		extract: Array<{ value: string; is_bold: boolean }>;

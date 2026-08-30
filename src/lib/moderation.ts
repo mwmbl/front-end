@@ -23,6 +23,14 @@ export type Suggestion = {
 	confidence: number;
 	/** Empty unless the action is REJECT. */
 	reason: string;
+	/**
+	 * What the submitter would be told, sent straight back as `rejection_detail`.
+	 *
+	 * Non-empty whenever `reason` is OTHER and empty otherwise: OTHER says nothing on its own,
+	 * so the API refuses a decision carrying it with no detail, and the API in turn never
+	 * suggests OTHER without one — a suggested rejection is always one that can be taken.
+	 */
+	reason_detail: string;
 	reason_confidence: number;
 	/** `rule`, `model` or `derived` — `derived` is the weakest hint. */
 	reason_source: string;

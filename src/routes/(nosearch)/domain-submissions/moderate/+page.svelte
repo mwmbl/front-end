@@ -112,7 +112,7 @@
 		return {
 			enabled: true,
 			approve: false,
-			label: `Reject — ${reasonLabel(suggestion.reason)}`
+			label: suggestion.reason ? `Reject — ${reasonLabel(suggestion.reason)}` : 'Reject'
 		};
 	});
 
@@ -272,11 +272,11 @@
 	function openReject() {
 		if (!current || exiting) return;
 		const suggestion = current.suggestion;
-		reason =
-			suggestion?.action === 'REJECT' && suggestion.reason
-				? (suggestion.reason as RejectionReason)
-				: 'SPAM';
-		detail = '';
+		const suggested = suggestion?.action === 'REJECT' && suggestion.reason;
+		reason = suggested ? (suggestion!.reason as RejectionReason) : 'SPAM';
+		// The suggestion's own words, which for an OTHER are the check that found the problem
+		// ("Homepage returns HTTP 404") — better than anything typed here, and still editable.
+		detail = suggested ? suggestion!.reason_detail : '';
 		rejectOpen = true;
 	}
 
@@ -291,9 +291,17 @@
 		const suggestion = current.suggestion!;
 		if (suggestion.action === 'APPROVE') {
 			void decide('APPROVED');
-		} else {
-			void decide('REJECTED', suggestion.reason, '');
+			return;
 		}
+		// The detail travels with the suggestion, because a rejection carrying OTHER is refused
+		// without one. The API never suggests a rejection it cannot say the reason for, so this
+		// only bites against an older one — and there the honest answer is to ask the moderator
+		// for the sentence, not to send a decision that is refused or recorded with no reason.
+		if (!suggestion.reason || (suggestion.reason === 'OTHER' && !suggestion.reason_detail.trim())) {
+			openReject();
+			return;
+		}
+		void decide('REJECTED', suggestion.reason, suggestion.reason_detail);
 	}
 
 	function onkeydown(event: KeyboardEvent) {

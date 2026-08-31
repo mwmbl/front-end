@@ -26,11 +26,16 @@ export type Suggestion = {
 	/**
 	 * What the submitter would be told, sent straight back as `rejection_detail`.
 	 *
-	 * Non-empty whenever `reason` is OTHER and empty otherwise: OTHER says nothing on its own,
-	 * so the API refuses a decision carrying it with no detail, and the API in turn never
-	 * suggests OTHER without one — a suggested rejection is always one that can be taken.
+	 * Optional, and in practice absent: `SuggestionSchema` has no such field. A suggestion names
+	 * the reason class and stops there, so an OTHER never arrives with the sentence the API
+	 * refuses the decision without — the moderator writes it. Declared here anyway, because the
+	 * decision side does carry a `rejection_detail` and a suggestion that grows one should be
+	 * used rather than ignored.
+	 *
+	 * Reading it as a plain `string` is what took the review screen down: `undefined.trim()`
+	 * inside the reject dialog's own render, so the overlay went up and the dialog never did.
 	 */
-	reason_detail: string;
+	reason_detail?: string;
 	reason_confidence: number;
 	/** `rule`, `model` or `derived` — `derived` is the weakest hint. */
 	reason_source: string;
@@ -165,6 +170,37 @@ export function auditFields(suggestion: Suggestion | null): SuggestionAudit {
 		suggestion_confidence: suggestion.confidence,
 		suggestion_model_version: suggestion.model_version || null
 	};
+}
+
+/**
+ * What the reject dialog opens on for a domain.
+ *
+ * A suggested rejection puts its own reason under the cursor, so taking it is one more keystroke
+ * rather than a hunt through the list. Anything else — an approval, an UNSURE, a rejection with
+ * no reason class, no suggestion at all — opens on SPAM, which is what most rejections are.
+ *
+ * The detail is `?? ''` rather than `!` because the API does not send one; see `reason_detail`.
+ */
+export function rejectionDraft(suggestion: Suggestion | null | undefined): {
+	reason: RejectionReason;
+	detail: string;
+} {
+	if (suggestion?.action !== 'REJECT' || !suggestion.reason) {
+		return { reason: 'SPAM', detail: '' };
+	}
+	return { reason: suggestion.reason as RejectionReason, detail: suggestion.reason_detail ?? '' };
+}
+
+/**
+ * Whether a suggested rejection can be sent exactly as it stands.
+ *
+ * The API refuses a rejection carrying OTHER with no detail, and a suggestion has no detail to
+ * give, so an OTHER always goes to the moderator for the sentence rather than being sent as a
+ * decision that is refused — or worse, recorded with no reason at all.
+ */
+export function isTakeableRejection(suggestion: Suggestion): boolean {
+	if (!suggestion.reason) return false;
+	return suggestion.reason !== 'OTHER' || (suggestion.reason_detail ?? '').trim().length > 0;
 }
 
 /** A suggestion the moderator can take with one keystroke. UNSURE is not one. */

@@ -29,8 +29,10 @@
 		REJECTION_REASONS,
 		auditFields,
 		isActionable,
+		isTakeableRejection,
 		pathSegments,
 		reasonLabel,
+		rejectionDraft,
 		relativeTime,
 		whyLine,
 		type DecisionStatus,
@@ -376,12 +378,12 @@
 
 	function openReject() {
 		if (!current) return;
-		const suggestion = current.suggestion;
-		const suggested = suggestion?.action === 'REJECT' && suggestion.reason;
-		reason = suggested ? (suggestion!.reason as RejectionReason) : 'SPAM';
-		// The suggestion's own words, which for an OTHER are the check that found the problem
-		// ("Homepage returns HTTP 404") — better than anything typed here, and still editable.
-		detail = suggested ? suggestion!.reason_detail : '';
+		// Both fields come from one helper because getting the detail wrong here is not a wrong
+		// default — it is an exception thrown inside this dialog's own render, which leaves the
+		// overlay up with nothing on it and no way back. See `rejectionDraft`.
+		const draft = rejectionDraft(current.suggestion);
+		reason = draft.reason;
+		detail = draft.detail;
 		rejectOpen = true;
 	}
 
@@ -398,15 +400,14 @@
 			void decide('APPROVED');
 			return;
 		}
-		// The detail travels with the suggestion, because a rejection carrying OTHER is refused
-		// without one. The API never suggests a rejection it cannot say the reason for, so this
-		// only bites against an older one — and there the honest answer is to ask the moderator
-		// for the sentence, not to send a decision that is refused or recorded with no reason.
-		if (!suggestion.reason || (suggestion.reason === 'OTHER' && !suggestion.reason_detail.trim())) {
+		// A rejection carrying OTHER is refused without a detail, and the API sends no detail to
+		// travel with the suggestion — so an OTHER opens the dialog and asks the moderator for
+		// the sentence rather than sending a decision that is refused, or recorded with no reason.
+		if (!isTakeableRejection(suggestion)) {
 			openReject();
 			return;
 		}
-		void decide('REJECTED', suggestion.reason, suggestion.reason_detail);
+		void decide('REJECTED', suggestion.reason, suggestion.reason_detail ?? '');
 	}
 
 	function onkeydown(event: KeyboardEvent) {

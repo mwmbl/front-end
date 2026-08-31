@@ -1,16 +1,18 @@
 <script lang="ts">
 	import { cn } from '$lib/utils.js';
-	import type { DecisionStatus } from '$lib/moderation';
+	import type { PillStatus } from '$lib/moderation';
 
 	// Muted throughout, as in the design: the dot carries the meaning, not a whole coloured
 	// pill. Approved and rejected have to be distinguishable without relying on the colour.
-	const DOTS: Record<DecisionStatus, string> = {
+	const DOTS: Record<PillStatus, string> = {
 		PENDING: 'bg-[hsl(220_8%_62%)]',
 		APPROVED: 'bg-[hsl(142_20%_45%)]',
-		REJECTED: 'bg-[hsl(2_30%_50%)]'
+		REJECTED: 'bg-[hsl(2_30%_50%)]',
+		// Not an API status — a domain left for later, which is still PENDING on the server.
+		SKIPPED: 'bg-[hsl(38_35%_50%)]'
 	};
 
-	let { status, class: className }: { status: DecisionStatus; class?: string } = $props();
+	let { status, class: className }: { status: PillStatus; class?: string } = $props();
 </script>
 
 <span

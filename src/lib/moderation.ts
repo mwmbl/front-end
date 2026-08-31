@@ -71,6 +71,14 @@ export type ModerationQueue = {
 };
 
 export type DecisionStatus = 'PENDING' | 'APPROVED' | 'REJECTED';
+
+/**
+ * What a pill on this screen can say.
+ *
+ * `SKIPPED` is the screen's own state and nothing else: the API has no such status, a skip sends
+ * no request, and a skipped domain stays `PENDING` server-side. It must never be sent back.
+ */
+export type PillStatus = DecisionStatus | 'SKIPPED';
 export type RejectionReason = 'SPAM' | 'OFFENSIVE' | 'LANGUAGE' | 'OTHER';
 
 /** What the moderator was shown, echoed back so the decision's audit trail is honest. */

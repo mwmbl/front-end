@@ -18,6 +18,7 @@
 	import RiCloseLine from '~icons/ri/close-line';
 	import RiEqualizer2Line from '~icons/ri/equalizer-2-line';
 	import RiArrowDropRightLine from '~icons/ri/arrow-drop-right-line';
+	import RiSkipForwardLine from '~icons/ri/skip-forward-line';
 
 	import {
 		API_ROOT,
@@ -34,6 +35,18 @@
 		type QueueItem,
 		type RejectionReason
 	} from '$lib/moderation';
+	import {
+		NEW_SESSION,
+		current as sessionCurrent,
+		decisions,
+		isDecision,
+		reduce,
+		remaining as sessionRemaining,
+		skips,
+		upcoming as sessionUpcoming,
+		type DecisionAction,
+		type Session
+	} from '$lib/moderation-session';
 
 	let { data } = $props();
 
@@ -42,25 +55,12 @@
 	let timers: ReturnType<typeof setTimeout>[] = [];
 	onDestroy(() => timers.forEach(clearTimeout));
 
-	/** One decision, as it sits in the reviewed tray: still undoable, and still reversible
-	 *  locally if the request behind it turns out to have failed. */
-	type Reviewed = {
-		item: QueueItem;
-		/**
-		 * Where the domain sits in `queue`. It tells an undo whether to rewind the cursor, and
-		 * it is also how entries are identified: `$state` deep-proxies objects, so an entry read
-		 * back out of state is a proxy and never `===` the one that was put in.
-		 */
-		index: number;
-		status: DecisionStatus;
-		reason: string;
-	};
-
 	let queue: QueueItem[] = $state(data.access === 'ok' ? data.items : []);
 	let pendingCount = $state(data.access === 'ok' ? data.count : 0);
-	let cursor = $state(0);
-	let reviewed: Reviewed[] = $state([]);
-	let reviewedOpen = $state(false);
+	// Where the cursor is and what can be taken back. Skips and decisions share one stack, so
+	// `U` reaches whichever the moderator actually did last; see $lib/moderation-session.
+	let session = $state<Session>(NEW_SESSION);
+	let trayOpen = $state(false);
 	let error = $state('');
 	let loadingMore = false;
 	// Decision and undo requests that have not come back yet. Paging waits for these so it
@@ -69,15 +69,18 @@
 
 	// The card that flew out of the slot, mid-flight. Held separately from `queue` so the
 	// decided domain stays on screen for the length of the animation.
-	let exiting: { entry: Reviewed; away: boolean } | null = $state(null);
+	// Only decisions fly out — a skip is instant, because there is no request behind it to hide.
+	let exiting: { entry: DecisionAction; away: boolean } | null = $state(null);
 
 	let rejectOpen = $state(false);
 	let reason = $state<RejectionReason>('SPAM');
 	let detail = $state('');
 
-	let current = $derived(queue[cursor]);
-	let upcoming = $derived(queue.slice(cursor + 1));
-	let remaining = $derived(Math.max(0, pendingCount - reviewed.length));
+	let current = $derived(sessionCurrent(queue, session));
+	let upcoming = $derived(sessionUpcoming(queue, session));
+	let decided = $derived(decisions(session));
+	let skipped = $derived(skips(session));
+	let remaining = $derived(sessionRemaining(pendingCount, session));
 	let why = $derived(whyLine(current?.suggestion ?? null));
 	// OTHER is the only reason the submitter learns nothing from on its own, so the API
 	// requires the detail and 422s without it.
@@ -165,7 +168,10 @@
 		if (!item || exiting) return;
 		error = '';
 
-		const entry: Reviewed = { item, index: cursor, status, reason: rejectionReason };
+		session = reduce(session, { type: 'decide', queue, status, reason: rejectionReason });
+		const entry = session.actions[0];
+		// Always true given `current` above; the check is what tells the compiler so.
+		if (!isDecision(entry)) return;
 		// Fired before the animation, not after it: the moderator's decision should not be
 		// waiting on a transition, and a failure rolls the card back.
 		const request = track(postDecision(item, status, rejectionReason, rejectionDetail));
@@ -175,11 +181,10 @@
 		if (failure) rollBack(entry, failure);
 	}
 
-	function flyOut(entry: Reviewed) {
+	function flyOut(entry: DecisionAction) {
 		const land = () => {
 			exiting = null;
-			reviewed = [entry, ...reviewed];
-			cursor = entry.index + 1;
+			session = reduce(session, { type: 'land', id: entry.id });
 			void loadMore();
 		};
 
@@ -193,7 +198,7 @@
 			// A second frame, so the browser has painted the starting transform before the
 			// transition to the end one begins.
 			requestAnimationFrame(() => {
-				if (exiting?.entry.index === entry.index) exiting = { entry, away: true };
+				if (exiting?.entry.id === entry.id) exiting = { entry, away: true };
 			});
 		});
 		timers.push(setTimeout(land, FLIGHT_MS));
@@ -206,14 +211,46 @@
 		return request;
 	}
 
-	function rollBack(entry: Reviewed, message: string) {
-		if (exiting?.entry.index === entry.index) exiting = null;
-		reviewed = reviewed.filter((r) => r.index !== entry.index);
-		cursor = Math.min(cursor, entry.index);
+	function rollBack(entry: DecisionAction, message: string) {
+		if (exiting?.entry.id === entry.id) exiting = null;
+		session = reduce(session, { type: 'rollBack', id: entry.id });
 		error = message;
 	}
 
-	async function undo(entry: Reviewed) {
+	/** Leave this domain for later. Sends nothing: it stays PENDING for whoever looks next. */
+	function skipCurrent() {
+		if (!current || exiting) return;
+		error = '';
+		session = reduce(session, { type: 'skip', queue });
+		void loadMore();
+	}
+
+	/** Move to a specific domain — an UP NEXT row, or one waiting in the tray. */
+	function goTo(index: number) {
+		if (exiting) return;
+		error = '';
+		session = reduce(session, { type: 'goTo', queue, index });
+		void loadMore();
+	}
+
+	/**
+	 * Take back the last thing done, whatever it was.
+	 *
+	 * A skip is local and cannot fail; a decision has to be undone at the server first. Reading
+	 * both off one stack is what stops `U` after a skip reversing an earlier approval.
+	 */
+	function undoLast() {
+		const entry = session.actions[0];
+		if (!entry) return;
+		if (entry.kind === 'skip') {
+			error = '';
+			session = reduce(session, { type: 'undoEntry', id: entry.id });
+			return;
+		}
+		void undo(entry);
+	}
+
+	async function undo(entry: DecisionAction) {
 		error = '';
 		const res = await track(
 			fetch(`${API_ROOT}/domains/${encodeURIComponent(entry.item.name)}/undo`, { method: 'POST' })
@@ -222,11 +259,7 @@
 			error = await failureMessage(res, `Could not undo the decision on ${entry.item.name}`);
 			return;
 		}
-		reviewed = reviewed.filter((r) => r.index !== entry.index);
-		// Rewinding only for the most recent decision. An older one is pending again on the
-		// server, but stepping the cursor back to it would re-present every card decided
-		// since; it returns to the queue on the next load instead.
-		if (entry.index === cursor - 1) cursor = entry.index;
+		session = reduce(session, { type: 'undoEntry', id: entry.id });
 	}
 
 	/**
@@ -246,7 +279,7 @@
 	async function loadMore() {
 		if (loadingMore || queue.length >= pendingCount) return;
 
-		const ahead = queue.length - cursor;
+		const ahead = queue.length - session.cursor;
 		if (ahead > 10) return;
 
 		loadingMore = true;
@@ -260,8 +293,9 @@
 			if (!res.ok) return;
 			const page: ModerationQueue = await res.json();
 			// `count` is the server's own pending total, so the header reads the truth rather
-			// than this screen's arithmetic.
-			pendingCount = page.count + reviewed.length;
+			// than this screen's arithmetic. Only decisions are added back: a skipped domain was
+			// never sent anywhere and is still inside that count.
+			pendingCount = page.count + decided.length;
 			const held = new Set(queue.map((item) => item.name));
 			queue = [...queue, ...page.items.filter((item) => !held.has(item.name))];
 		} finally {
@@ -325,7 +359,17 @@
 			return;
 		}
 
-		if (typing || exiting || !current) return;
+		if (typing || exiting) return;
+
+		// Undo is deliberately outside the `current` guard below: skipping the last of the loaded
+		// rows leaves no card in the slot, and that is exactly when walking back is needed.
+		if (event.key === 'u' || event.key === 'U') {
+			event.preventDefault();
+			undoLast();
+			return;
+		}
+
+		if (!current) return;
 
 		switch (event.key) {
 			case 'Enter':
@@ -342,10 +386,10 @@
 				event.preventDefault();
 				openReject();
 				break;
-			case 'u':
-			case 'U':
+			case 's':
+			case 'S':
 				event.preventDefault();
-				if (reviewed.length > 0) void undo(reviewed[0]);
+				skipCurrent();
 				break;
 		}
 	}
@@ -408,10 +452,10 @@
 			<Button
 				variant="secondary"
 				class="h-9 gap-2 px-4 text-sm"
-				aria-expanded={reviewedOpen}
-				onclick={() => (reviewedOpen = !reviewedOpen)}
+				aria-expanded={trayOpen}
+				onclick={() => (trayOpen = !trayOpen)}
 			>
-				<RiCheckLine class="size-4" /> Reviewed ({reviewed.length})
+				<RiCheckLine class="size-4" /> This session ({session.actions.length})
 			</Button>
 		</div>
 		<hr class="my-4" />
@@ -422,32 +466,45 @@
 			</Card.Root>
 		{/if}
 
-		{#if reviewedOpen}
+		{#if trayOpen}
 			<div class="bg-card mb-4 flex flex-col gap-2.5 rounded-2xl px-4 py-3.5">
-				<div class="text-unemphasized-1 text-xs font-semibold tracking-[0.05em]">
-					REVIEWED THIS SESSION
-				</div>
-				{#each reviewed as entry (entry.item.name)}
+				<div class="text-unemphasized-1 text-xs font-semibold tracking-[0.05em]">THIS SESSION</div>
+				{#each session.actions as entry (entry.id)}
 					<div class="text-unemphasized-2 flex flex-wrap items-center gap-3 text-sm">
-						<StatusPill status={entry.status} />
+						<StatusPill status={entry.kind === 'skip' ? 'SKIPPED' : entry.status} />
 						<span class="font-medium">{entry.item.name}</span>
 						<span class="text-unemphasized-1">
-							{entry.status === 'APPROVED'
-								? 'approved by you'
-								: `reason: ${reasonLabel(entry.reason)}`}
+							{#if entry.kind === 'skip'}
+								no decision yet — still pending
+							{:else if entry.status === 'APPROVED'}
+								approved by you
+							{:else}
+								reason: {reasonLabel(entry.reason)}
+							{/if}
 						</span>
 						<div class="flex-1"></div>
-						<button
-							type="button"
-							class="text-accent-text font-medium hover:underline"
-							onclick={() => undo(entry)}
-						>
-							undo
-						</button>
+						{#if entry.kind === 'skip'}
+							<button
+								type="button"
+								class="text-accent-text font-medium hover:underline"
+								onclick={() => goTo(entry.index)}
+							>
+								review →
+							</button>
+						{:else}
+							<button
+								type="button"
+								class="text-accent-text font-medium hover:underline"
+								onclick={() => undo(entry)}
+							>
+								undo
+							</button>
+						{/if}
 					</div>
 				{:else}
 					<div class="text-unemphasized-1 text-sm">
-						Nothing yet — decisions you make land here, and stay undoable.
+						Nothing yet — decisions land here and stay undoable, and anything you skip waits here
+						too.
 					</div>
 				{/each}
 			</div>
@@ -459,7 +516,7 @@
 				<div class="flex-1"></div>
 				<span class="flex items-center gap-1.5">
 					<Kbd>⏎</Kbd> take the suggestion · <Kbd>A</Kbd> approve · <Kbd>R</Kbd> reject ·
-					<Kbd>U</Kbd> undo
+					<Kbd>S</Kbd> skip · <Kbd>U</Kbd> undo
 				</span>
 			</div>
 
@@ -589,6 +646,23 @@
 						<span class="text-unemphasized-1 px-1 text-center text-[10px] leading-tight">
 							override
 						</span>
+
+						<!-- Set apart from the override pair on purpose: skipping is not a quieter way
+						     of deciding. It decides nothing and sends nothing. -->
+						<hr class="my-1.5 w-6" />
+
+						<Button
+							variant="ghost"
+							size="icon"
+							title="Skip for now — S"
+							aria-label="Skip {current.name} for now"
+							onclick={skipCurrent}
+						>
+							<RiSkipForwardLine class="size-5" />
+						</Button>
+						<span class="text-unemphasized-1 px-1 text-center text-[10px] leading-tight">
+							later
+						</span>
 					</div>
 				</div>
 
@@ -615,9 +689,14 @@
 				UP NEXT
 			</div>
 			<div class="flex flex-col">
-				{#each upcoming as item (item.name)}
-					<div
-						class="text-unemphasized-2 hover:bg-card grid grid-cols-[1fr_8rem_6rem] items-center gap-3 rounded-[10px] px-2.5 py-2 text-sm"
+				{#each upcoming as item, offset (item.name)}
+					<!-- The row already looked clickable; now it is. Everything stepped over on the way
+					     there is recorded as skipped, so nothing is lost by jumping. -->
+					<button
+						type="button"
+						title="Review {item.name} now"
+						onclick={() => goTo(session.cursor + 1 + offset)}
+						class="text-unemphasized-2 hover:bg-card grid w-full cursor-pointer grid-cols-[1fr_8rem_6rem] items-center gap-3 rounded-[10px] px-2.5 py-2 text-left text-sm"
 					>
 						<span class="flex min-w-0 items-center gap-2">
 							<span class="size-1.5 shrink-0 rounded-full bg-[hsl(220_8%_62%)]"></span>
@@ -630,13 +709,31 @@
 						<span class="text-unemphasized-1 flex items-center gap-2.5">
 							{@render votes(item)}
 						</span>
-					</div>
+					</button>
 				{:else}
 					<div class="text-unemphasized-1 px-2.5 text-sm">
 						Nothing else waiting — this is the last one.
 					</div>
 				{/each}
 			</div>
+		{:else if skipped.length > 0}
+			<!-- Not "the queue is empty": these were never sent anywhere and are still pending. -->
+			<Card.Root class="flex flex-col items-start gap-4 p-8">
+				<p class="text-lg">
+					That's the end of the queue, but you skipped {skipped.length}
+					{skipped.length === 1 ? 'domain' : 'domains'}.
+				</p>
+				<p class="text-unemphasized-1 text-sm">
+					Nothing was recorded for {skipped.length === 1 ? 'it' : 'them'} — still waiting for a decision,
+					from you or whoever moderates next.
+				</p>
+				<div class="flex flex-wrap items-center gap-3">
+					<Button onclick={() => goTo(skipped[0].index)}>
+						Review the {skipped.length === 1 ? 'one you skipped' : `${skipped.length} you skipped`}
+					</Button>
+					<Button href="/domain-submissions" variant="secondary">Back to domain submissions</Button>
+				</div>
+			</Card.Root>
 		{:else}
 			<Card.Root class="flex flex-col items-start gap-4 p-8">
 				<p class="text-lg">Nothing left to review. The queue is empty.</p>

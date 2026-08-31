@@ -1,0 +1,34 @@
+name: 'test'
+
+# yamllint disable-line rule:truthy
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Cloning repo
+        uses: actions/checkout@v4
+
+      # Reads the version from `packageManager` in package.json, so the lockfile
+      # is always resolved by the pnpm the repo is pinned to.
+      - name: Install pnpm
+        uses: pnpm/action-setup@v4
+
+      - name: Install node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: 'pnpm'
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      # `vitest.config.ts` is standalone and plugin-free, so the unit tests need
+      # neither `svelte-kit sync` nor a build to have run first.
+      - name: Run tests
+        run: pnpm test

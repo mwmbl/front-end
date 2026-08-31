@@ -8,6 +8,7 @@ import {
 	reduce,
 	remaining,
 	skips,
+	upcoming,
 	type Session,
 	type SessionEvent
 } from './moderation-session';
@@ -39,11 +40,18 @@ const skip = { type: 'skip', queue } as const;
 const approve = { type: 'decide', queue, status: 'APPROVED', reason: '' } as const;
 const goTo = (index: number) => ({ type: 'goTo', queue, index }) as const;
 
-/** Decide and let the card finish flying out, which is what the screen does either side of the POST. */
 function approved(session: Session): Session {
-	const decided = reduce(session, approve);
-	return reduce(decided, { type: 'land', id: decided.actions[0].id });
+	return reduce(session, approve);
 }
+
+describe('deciding', () => {
+	it('moves on by itself, without waiting for the card to finish animating', () => {
+		const session = reduce(NEW_SESSION, approve);
+
+		expect(current(queue, session)?.name).toBe('b.example');
+		expect(decisions(session).map((entry) => entry.item.name)).toEqual(['a.example']);
+	});
+});
 
 describe('skipping', () => {
 	it('moves on, recording a skip and no decision', () => {
@@ -148,6 +156,27 @@ describe('jumping to a domain further down', () => {
 	});
 });
 
+describe('what UP NEXT offers', () => {
+	it('addresses domains by index, not by counting from the cursor', () => {
+		// The rows carry their own index because the list is not contiguous once a rollback has
+		// left decided cards ahead of the cursor; counting offsets would then pick the wrong domain.
+		const session = reduce(approved(approved(approved(NEW_SESSION))), approve);
+		const failed = session.actions.find((entry) => entry.item.name === 'a.example')!;
+		const rolled = reduce(session, { type: 'rollBack', id: failed.id });
+		const row = upcoming(queue, rolled)[0];
+
+		expect(current(queue, reduce(rolled, goTo(row.index)))?.name).toBe(row.item.name);
+	});
+
+	it('steps over a decided domain rather than landing on it', () => {
+		const session = reduce(approved(approved(approved(NEW_SESSION))), approve);
+		const failed = session.actions.find((entry) => entry.item.name === 'a.example')!;
+		const rolled = reduce(session, { type: 'rollBack', id: failed.id });
+
+		expect(current(queue, reduce(rolled, goTo(2)))?.name).toBe('e.example');
+	});
+});
+
 describe('returning to a skipped domain', () => {
 	it('leaves one entry behind when it is finally decided, not two', () => {
 		// b.example is skipped, returned to, and then approved. Deciding it has to settle the skip
@@ -174,11 +203,25 @@ describe('a decision whose request fails', () => {
 		expect(decisions(rolled).map((entry) => entry.item.name)).toEqual(['a.example']);
 	});
 
-	it('is not stepped over by its own fly-out landing late', () => {
-		const session = reduce(approved(NEW_SESSION), approve);
-		const failed = session.actions[0];
+	it('rewinds past decisions that landed while its request was still in flight', () => {
+		// Only reachable now that nothing gates input: a.example's POST can fail while c and d have
+		// already been decided. The cursor goes back to the card the failure restored.
+		const session = reduce(approved(approved(approved(NEW_SESSION))), approve);
+		const failed = session.actions.find((entry) => entry.item.name === 'a.example')!;
 		const rolled = reduce(session, { type: 'rollBack', id: failed.id });
 
-		expect(current(queue, reduce(rolled, { type: 'land', id: failed.id }))?.name).toBe('b.example');
+		expect(current(queue, rolled)?.name).toBe('a.example');
+		expect(decisions(rolled)).toHaveLength(3);
+	});
+
+	it('does not offer the domains decided while it was in flight', () => {
+		// The bug the old 460ms input lock was hiding: `queue.slice(cursor + 1)` after a rewind
+		// lists cards that are already decided, and both UP NEXT and `skip` would walk onto them.
+		const session = reduce(approved(approved(approved(NEW_SESSION))), approve);
+		const failed = session.actions.find((entry) => entry.item.name === 'a.example')!;
+		const rolled = reduce(session, { type: 'rollBack', id: failed.id });
+
+		expect(upcoming(queue, rolled).map((row) => row.item.name)).toEqual(['e.example']);
+		expect(current(queue, reduce(rolled, skip))?.name).toBe('e.example');
 	});
 });

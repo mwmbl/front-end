@@ -1,5 +1,8 @@
 <script lang="ts">
-	import { onDestroy } from 'svelte';
+	import { flip } from 'svelte/animate';
+	import { cubicOut } from 'svelte/easing';
+	import { MediaQuery } from 'svelte/reactivity';
+	import { fade } from 'svelte/transition';
 
 	import Button from '@/components/ui/button/button.svelte';
 	import * as Card from '@/components/ui/card';
@@ -47,13 +50,18 @@
 		type DecisionAction,
 		type Session
 	} from '$lib/moderation-session';
+	import {
+		ARRIVING,
+		flightCss,
+		flightFor,
+		motion,
+		outcomeLine,
+		riseFlight,
+		type MoveKind,
+		type Rect
+	} from '$lib/moderation-motion';
 
 	let { data } = $props();
-
-	// Cleared on unmount: a decision made just before navigating away leaves a landing timer
-	// behind, and its callback would run against a component that no longer exists.
-	let timers: ReturnType<typeof setTimeout>[] = [];
-	onDestroy(() => timers.forEach(clearTimeout));
 
 	let queue: QueueItem[] = $state(data.access === 'ok' ? data.items : []);
 	let pendingCount = $state(data.access === 'ok' ? data.count : 0);
@@ -67,10 +75,26 @@
 	// re-reads as little of the queue as possible; see loadMore.
 	let inFlight = new Set<Promise<unknown>>();
 
-	// The card that flew out of the slot, mid-flight. Held separately from `queue` so the
-	// decided domain stays on screen for the length of the animation.
-	// Only decisions fly out — a skip is instant, because there is no request behind it to hide.
-	let exiting: { entry: DecisionAction; away: boolean } | null = $state(null);
+	const reduced = new MediaQuery('prefers-reduced-motion: reduce');
+
+	/**
+	 * Which interaction moved the cursor, and so how the cards should move.
+	 *
+	 * Set immediately before the `reduce` that moves the cursor. Svelte evaluates a transition's
+	 * parameters during the flush that same assignment schedules, so the transitions read it.
+	 */
+	let lastMove = $state<MoveKind>('decide');
+	let trayButton = $state<HTMLElement | null>(null);
+	/**
+	 * Where the arriving card starts: the UP NEXT row its domain is sitting on.
+	 *
+	 * Measured in the handler rather than in the transition, because by the time an intro's
+	 * parameters are evaluated the vacating row has already been taken out of flow and the rows
+	 * below it have moved up — measuring then reads the layout that the animation is meant to
+	 * be coming *from*.
+	 */
+	let arriveFrom = $state<Rect | null>(null);
+	let rowNodes: Record<string, HTMLElement> = {};
 
 	let rejectOpen = $state(false);
 	let reason = $state<RejectionReason>('SPAM');
@@ -85,14 +109,6 @@
 	// OTHER is the only reason the submitter learns nothing from on its own, so the API
 	// requires the detail and 422s without it.
 	let confirmDisabled = $derived(reason === 'OTHER' && detail.trim().length === 0);
-
-	const FLIGHT_MS = 460;
-
-	function prefersReducedMotion(): boolean {
-		return (
-			typeof window !== 'undefined' && window.matchMedia('(prefers-reduced-motion: reduce)').matches
-		);
-	}
 
 	/** The suggested-action button. The API never sends a placeholder suggestion, so neither
 	 *  does the screen: everything short of an actionable suggestion says why there isn't one
@@ -165,43 +181,86 @@
 
 	async function decide(status: DecisionStatus, rejectionReason = '', rejectionDetail = '') {
 		const item = current;
-		if (!item || exiting) return;
+		if (!item) return;
 		error = '';
 
+		// Fired before the card moves, not after it: the moderator's decision should not be
+		// waiting on a transition, and a failure rolls the card back.
+		const request = track(postDecision(item, status, rejectionReason, rejectionDetail));
+
+		// The cursor moves in the same flush the card leaves in, so nothing waits on the animation
+		// and nothing gates the next keystroke. Svelte keeps each departing card alive for its own
+		// outro, so a moderator working fast simply has several of them in the air at once.
+		moveWith('decide');
 		session = reduce(session, { type: 'decide', queue, status, reason: rejectionReason });
 		const entry = session.actions[0];
 		// Always true given `current` above; the check is what tells the compiler so.
 		if (!isDecision(entry)) return;
-		// Fired before the animation, not after it: the moderator's decision should not be
-		// waiting on a transition, and a failure rolls the card back.
-		const request = track(postDecision(item, status, rejectionReason, rejectionDetail));
+		void loadMore();
 
-		flyOut(entry);
 		const failure = await request;
 		if (failure) rollBack(entry, failure);
 	}
 
-	function flyOut(entry: DecisionAction) {
-		const land = () => {
-			exiting = null;
-			session = reduce(session, { type: 'land', id: entry.id });
-			void loadMore();
-		};
+	/**
+	 * Set up the motion for a cursor move, then let the caller make it.
+	 *
+	 * The row measurement has to happen here, before the state changes: an intro's parameters are
+	 * evaluated after the leaving row has been pulled out of flow and its neighbours have slid up,
+	 * so by then the position the card should be growing out of is gone.
+	 */
+	function moveWith(kind: MoveKind, target = upcoming[0]?.item.name) {
+		lastMove = kind;
+		// An undo comes back out of the tray, not up out of the queue, so there is no row to read —
+		// and reading one would force a layout for nothing.
+		const row = kind === 'undo' || !target ? undefined : rowNodes[target];
+		arriveFrom = row ? row.getBoundingClientRect() : null;
+	}
 
-		if (prefersReducedMotion()) {
-			land();
-			return;
+	/** The card being decided, skipped, or stepped over on the way somewhere else. */
+	function depart(node: HTMLElement, { kind }: { kind: MoveKind }) {
+		const timing = motion(reduced.current);
+		const duration = kind === 'decide' ? timing.depart : timing.aside;
+		// An undo puts a card back; the one it replaces was never going anywhere.
+		if (!duration || kind === 'undo') return { duration: 0 };
+
+		const flight = flightFor(kind, node.getBoundingClientRect(), rectOf(trayButton));
+		// Svelte runs an outro's `t` from 1 down to 0; `flightCss` takes progress *away* from rest.
+		return { duration, easing: cubicOut, css: (t: number) => flightCss(1 - t, flight) };
+	}
+
+	/** The card taking its place, rising out of the row it was waiting on. */
+	function arrive(node: HTMLElement, { kind }: { kind: MoveKind }) {
+		const timing = motion(reduced.current);
+		if (!timing.arrive) return { duration: 0 };
+
+		const here = node.getBoundingClientRect();
+		// An undo is the decision's flight run backwards, so the card grows back out of the tray
+		// it was filed into rather than up out of a queue it was never in.
+		if (kind === 'undo') {
+			const tray = rectOf(trayButton);
+			if (!tray) return { duration: timing.arrive, css: (t: number) => `opacity: ${t};` };
+			return {
+				duration: timing.depart,
+				easing: cubicOut,
+				css: (t: number) => flightCss(1 - t, flightFor('decide', here, tray), ARRIVING)
+			};
 		}
 
-		exiting = { entry, away: false };
-		requestAnimationFrame(() => {
-			// A second frame, so the browser has painted the starting transform before the
-			// transition to the end one begins.
-			requestAnimationFrame(() => {
-				if (exiting?.entry.id === entry.id) exiting = { entry, away: true };
-			});
-		});
-		timers.push(setTimeout(land, FLIGHT_MS));
+		// No row to come from — the first card of the session, or a jump from the tray to a domain
+		// that was never on screen. Fading in is the honest answer: it came from nowhere visible.
+		if (!arriveFrom) return { duration: timing.arrive, css: (t: number) => `opacity: ${t};` };
+
+		const flight = riseFlight(here, arriveFrom);
+		return {
+			duration: timing.arrive,
+			easing: cubicOut,
+			css: (t: number) => flightCss(1 - t, flight, ARRIVING)
+		};
+	}
+
+	function rectOf(node: HTMLElement | null): Rect | null {
+		return node ? node.getBoundingClientRect() : null;
 	}
 
 	/** Register a mutation so `loadMore` can wait for it before trusting its offset. */
@@ -212,23 +271,27 @@
 	}
 
 	function rollBack(entry: DecisionAction, message: string) {
-		if (exiting?.entry.id === entry.id) exiting = null;
+		// The card comes back, which is the same thing an undo does, so it arrives the same way.
+		moveWith('undo');
 		session = reduce(session, { type: 'rollBack', id: entry.id });
 		error = message;
 	}
 
 	/** Leave this domain for later. Sends nothing: it stays PENDING for whoever looks next. */
 	function skipCurrent() {
-		if (!current || exiting) return;
+		if (!current) return;
 		error = '';
+		moveWith('skip');
 		session = reduce(session, { type: 'skip', queue });
 		void loadMore();
 	}
 
 	/** Move to a specific domain — an UP NEXT row, or one waiting in the tray. */
 	function goTo(index: number) {
-		if (exiting) return;
 		error = '';
+		// Backwards is a return, and reads like an undo. Forwards is an advance that happens to
+		// step over some rows, so it reads like one.
+		moveWith(index > session.cursor ? 'jump' : 'undo', queue[index]?.name);
 		session = reduce(session, { type: 'goTo', queue, index });
 		void loadMore();
 	}
@@ -244,6 +307,7 @@
 		if (!entry) return;
 		if (entry.kind === 'skip') {
 			error = '';
+			moveWith('undo');
 			session = reduce(session, { type: 'undoEntry', id: entry.id });
 			return;
 		}
@@ -259,6 +323,7 @@
 			error = await failureMessage(res, `Could not undo the decision on ${entry.item.name}`);
 			return;
 		}
+		moveWith('undo');
 		session = reduce(session, { type: 'undoEntry', id: entry.id });
 	}
 
@@ -280,13 +345,19 @@
 		if (loadingMore || queue.length >= pendingCount) return;
 
 		const ahead = queue.length - session.cursor;
-		if (ahead > 10) return;
+		// Half a page of slack. Ten rows was tuned against a 460ms-per-card ceiling that the
+		// animation used to impose and no longer does.
+		if (ahead > QUEUE_PAGE_SIZE / 2) return;
 
 		loadingMore = true;
 		try {
 			// The decisions already sent still shorten the list under us; letting them land
-			// first keeps the overlap small rather than making the result correct.
-			while (inFlight.size > 0) await Promise.allSettled([...inFlight]);
+			// first keeps the overlap small rather than making the result correct. One round, not
+			// a loop: with nothing gating input a moderator can keep adding requests faster than
+			// they settle, and a loop over a set that keeps growing may never finish — leaving
+			// `loadingMore` true, every later call a no-op, and the cursor running off the end of
+			// a queue the screen then claims is empty.
+			await Promise.allSettled([...inFlight]);
 
 			const limit = ahead + QUEUE_PAGE_SIZE;
 			const res = await fetch(`${API_ROOT}/queue?limit=${limit}&offset=0`);
@@ -304,7 +375,7 @@
 	}
 
 	function openReject() {
-		if (!current || exiting) return;
+		if (!current) return;
 		const suggestion = current.suggestion;
 		const suggested = suggestion?.action === 'REJECT' && suggestion.reason;
 		reason = suggested ? (suggestion!.reason as RejectionReason) : 'SPAM';
@@ -359,7 +430,12 @@
 			return;
 		}
 
-		if (typing || exiting) return;
+		if (typing) return;
+
+		// Nothing gates a decision on the animation any more, so a held-down key is no longer
+		// throttled by anything: auto-repeat would fire around thirty times a second and empty the
+		// queue unattended. Pressing the key repeatedly is unaffected — those are discrete events.
+		if (event.repeat) return;
 
 		// Undo is deliberately outside the `current` guard below: skipping the last of the loaded
 		// rows leaves no card in the slot, and that is exactly when walking back is needed.
@@ -450,6 +526,7 @@
 			<span class="text-unemphasized-1 text-sm">you're moderating — {remaining} pending</span>
 			<div class="flex-1"></div>
 			<Button
+				bind:ref={trayButton}
 				variant="secondary"
 				class="h-9 gap-2 px-4 text-sm"
 				aria-expanded={trayOpen}
@@ -470,18 +547,14 @@
 			<div class="bg-card mb-4 flex flex-col gap-2.5 rounded-2xl px-4 py-3.5">
 				<div class="text-unemphasized-1 text-xs font-semibold tracking-[0.05em]">THIS SESSION</div>
 				{#each session.actions as entry (entry.id)}
-					<div class="text-unemphasized-2 flex flex-wrap items-center gap-3 text-sm">
+					<div
+						class="text-unemphasized-2 flex flex-wrap items-center gap-3 text-sm"
+						animate:flip={{ duration: motion(reduced.current).flip, easing: cubicOut }}
+						out:fade={{ duration: motion(reduced.current).rowOut }}
+					>
 						<StatusPill status={entry.kind === 'skip' ? 'SKIPPED' : entry.status} />
 						<span class="font-medium">{entry.item.name}</span>
-						<span class="text-unemphasized-1">
-							{#if entry.kind === 'skip'}
-								no decision yet — still pending
-							{:else if entry.status === 'APPROVED'}
-								approved by you
-							{:else}
-								reason: {reasonLabel(entry.reason)}
-							{/if}
-						</span>
+						<span class="text-unemphasized-1">{outcomeLine(entry)}</span>
 						<div class="flex-1"></div>
 						{#if entry.kind === 'skip'}
 							<button
@@ -523,191 +596,193 @@
 			<!-- Fixed height, so the suggested-action button sits at the same place on every
 			     card and never moves under the cursor between decisions. -->
 			<div class="relative h-[376px]">
-				<div
-					class="ring-accent-text/25 bg-card absolute inset-0 grid grid-cols-[1fr_4rem] overflow-hidden rounded-2xl ring-2"
-				>
-					<div class="flex min-w-0 flex-col gap-2.5 px-5 py-4.5">
-						<div class="flex items-center gap-2.5">
-							<span
-								class="bg-secondary flex min-h-10 min-w-10 items-center justify-center rounded-2xl"
-							>
-								<RiGlobalLine class="size-[18px]" />
-							</span>
-							<div class="min-w-0">
-								<div class="flex flex-wrap items-center gap-2 text-2xl leading-tight font-medium">
-									{@render padlock(current.https, 'size-4')}
-									{current.name}
-									<StatusPill status="PENDING" />
-								</div>
-								<div class="text-unemphasized-1 mt-0.5 flex flex-wrap items-center gap-3.5 text-sm">
-									<span class="text-unemphasized-2 font-medium">
-										{current.submission_count}
-										{current.submission_count === 1 ? 'submission' : 'submissions'}
-									</span>
-									{@render votes(current)}
-									<span>
-										· first submitted {relativeTime(current.first_submitted_on)} by
-										{current.first_submitted_by_username}
-									</span>
-								</div>
-							</div>
-						</div>
-
-						<div class="flex h-[142px] flex-col gap-1.5 overflow-hidden pl-0.5">
-							{#each current.pages.slice(0, 3) as page (page.url)}
-								<div class="text-sm leading-snug">
-									<span class="text-unemphasized-1 flex flex-wrap items-center text-xs">
-										{#each pathSegments(page.url) as segment, index}
-											<span>{segment}</span>
-											{#if index < pathSegments(page.url).length - 1}
-												<RiArrowDropRightLine class="relative top-0.5 min-w-4" />
-											{/if}
-										{/each}
-									</span>
-									<a
-										href={page.url}
-										target="_blank"
-										rel="noreferrer"
-										class="text-accent-text font-medium hover:underline"
-									>
-										{page.title || page.url}
-									</a>
-									{#if page.extract}
-										<span class="text-unemphasized-1">— {page.extract}</span>
-									{:else if page.error}
-										<span class="text-unemphasized-1">— ({page.error})</span>
-									{/if}
-								</div>
-							{:else}
-								<div class="text-unemphasized-1 text-sm">
-									{current.evidence_state === 'PENDING'
-										? 'No pages yet — this domain is still being crawled.'
-										: 'No pages could be fetched from this domain.'}
-								</div>
-							{/each}
-						</div>
-
-						<div class="mt-auto flex flex-col gap-1.5">
-							<div class="text-unemphasized-1 flex items-center gap-2 text-xs">
-								<RiEqualizer2Line class="size-4 shrink-0" />
-								<span class="truncate">
-									{#if why}
-										suggested by the index — {why}
-									{:else}
-										no evidence gathered for this domain yet
-									{/if}
-								</span>
-							</div>
-							<button
-								type="button"
-								disabled={!suggested?.enabled}
-								onclick={takeSuggestion}
-								class="flex h-[52px] w-full items-center justify-center gap-2 rounded-2xl text-lg font-semibold transition-all disabled:cursor-not-allowed disabled:opacity-60
-									{suggested?.enabled
-									? suggested.approve
-										? 'bg-brand-gradient text-black hover:opacity-90'
-										: 'bg-secondary text-secondary-foreground shadow-[inset_0_0_0_1px] shadow-black/15 hover:opacity-90 dark:shadow-white/15'
-									: 'bg-secondary/60 text-unemphasized-1'}"
-							>
-								{#if suggested?.enabled}
-									{#if suggested.approve}
-										<RiCheckLine class="size-[18px]" />
-									{:else}
-										<RiCloseLine class="size-[18px]" />
-									{/if}
-								{/if}
-								{suggested?.label}
-								{#if suggested?.enabled}
-									<Kbd class="ml-2 bg-black/10 text-inherit dark:bg-white/20">⏎</Kbd>
-								{/if}
-							</button>
-						</div>
-					</div>
-
-					<div class="flex flex-col items-center justify-center gap-2 border-l">
-						<Button
-							variant="ghost"
-							size="icon"
-							title="Approve — A"
-							aria-label="Approve {current.name}"
-							onclick={() => decide('APPROVED')}
-						>
-							<RiCheckLine class="size-5" />
-						</Button>
-						<Button
-							variant="ghost"
-							size="icon"
-							title="Reject with a reason — R"
-							aria-label="Reject {current.name}"
-							onclick={openReject}
-						>
-							<RiCloseLine class="size-5" />
-						</Button>
-						<span class="text-unemphasized-1 px-1 text-center text-[10px] leading-tight">
-							override
-						</span>
-
-						<!-- Set apart from the override pair on purpose: skipping is not a quieter way
-						     of deciding. It decides nothing and sends nothing. -->
-						<hr class="my-1.5 w-6" />
-
-						<Button
-							variant="ghost"
-							size="icon"
-							title="Skip for now — S"
-							aria-label="Skip {current.name} for now"
-							onclick={skipCurrent}
-						>
-							<RiSkipForwardLine class="size-5" />
-						</Button>
-						<span class="text-unemphasized-1 px-1 text-center text-[10px] leading-tight">
-							later
-						</span>
-					</div>
-				</div>
-
-				{#if exiting}
+				<!-- Keyed on the domain, so a card leaving and the card taking its place are two
+				     elements and can be on screen at once. Both are `absolute inset-0`, so they
+				     overlap in the slot with no layout jump, and the slot keeps its height for the
+				     whole flight. `|global` is load-bearing rather than decorative: an outro local
+				     to this block would silently not run when the last card is decided and the
+				     enclosing `{#if current}` goes with it. -->
+				{#key current.name}
 					<div
-						aria-hidden="true"
-						class="bg-card absolute top-0 right-16 left-0 origin-top-right rounded-2xl px-5 py-4.5 shadow-lg transition-[translate,scale,opacity] duration-[420ms] ease-[cubic-bezier(.34,1.1,.64,1)]
-							{exiting.away ? 'translate-x-[300px] -translate-y-[232px] scale-[.42] opacity-0' : ''}"
+						class="ring-accent-text/25 bg-card absolute inset-0 grid grid-cols-[1fr_4rem] overflow-hidden rounded-2xl ring-2"
+						in:arrive={{ kind: lastMove }}
+						out:depart|global={{ kind: lastMove }}
 					>
-						<div class="flex flex-wrap items-center gap-2.5 text-lg font-medium">
-							<StatusPill status={exiting.entry.status} />
-							{exiting.entry.item.name}
+						<div class="flex min-w-0 flex-col gap-2.5 px-5 py-4.5">
+							<div class="flex items-center gap-2.5">
+								<span
+									class="bg-secondary flex min-h-10 min-w-10 items-center justify-center rounded-2xl"
+								>
+									<RiGlobalLine class="size-[18px]" />
+								</span>
+								<div class="min-w-0">
+									<div class="flex flex-wrap items-center gap-2 text-2xl leading-tight font-medium">
+										{@render padlock(current.https, 'size-4')}
+										{current.name}
+										<StatusPill status="PENDING" />
+									</div>
+									<div
+										class="text-unemphasized-1 mt-0.5 flex flex-wrap items-center gap-3.5 text-sm"
+									>
+										<span class="text-unemphasized-2 font-medium">
+											{current.submission_count}
+											{current.submission_count === 1 ? 'submission' : 'submissions'}
+										</span>
+										{@render votes(current)}
+										<span>
+											· first submitted {relativeTime(current.first_submitted_on)} by
+											{current.first_submitted_by_username}
+										</span>
+									</div>
+								</div>
+							</div>
+
+							<div class="flex h-[142px] flex-col gap-1.5 overflow-hidden pl-0.5">
+								{#each current.pages.slice(0, 3) as page (page.url)}
+									<div class="text-sm leading-snug">
+										<span class="text-unemphasized-1 flex flex-wrap items-center text-xs">
+											{#each pathSegments(page.url) as segment, index}
+												<span>{segment}</span>
+												{#if index < pathSegments(page.url).length - 1}
+													<RiArrowDropRightLine class="relative top-0.5 min-w-4" />
+												{/if}
+											{/each}
+										</span>
+										<a
+											href={page.url}
+											target="_blank"
+											rel="noreferrer"
+											class="text-accent-text font-medium hover:underline"
+										>
+											{page.title || page.url}
+										</a>
+										{#if page.extract}
+											<span class="text-unemphasized-1">— {page.extract}</span>
+										{:else if page.error}
+											<span class="text-unemphasized-1">— ({page.error})</span>
+										{/if}
+									</div>
+								{:else}
+									<div class="text-unemphasized-1 text-sm">
+										{current.evidence_state === 'PENDING'
+											? 'No pages yet — this domain is still being crawled.'
+											: 'No pages could be fetched from this domain.'}
+									</div>
+								{/each}
+							</div>
+
+							<div class="mt-auto flex flex-col gap-1.5">
+								<div class="text-unemphasized-1 flex items-center gap-2 text-xs">
+									<RiEqualizer2Line class="size-4 shrink-0" />
+									<span class="truncate">
+										{#if why}
+											suggested by the index — {why}
+										{:else}
+											no evidence gathered for this domain yet
+										{/if}
+									</span>
+								</div>
+								<button
+									type="button"
+									disabled={!suggested?.enabled}
+									onclick={takeSuggestion}
+									class="flex h-[52px] w-full items-center justify-center gap-2 rounded-2xl text-lg font-semibold transition-all disabled:cursor-not-allowed disabled:opacity-60
+										{suggested?.enabled
+										? suggested.approve
+											? 'bg-brand-gradient text-black hover:opacity-90'
+											: 'bg-secondary text-secondary-foreground shadow-[inset_0_0_0_1px] shadow-black/15 hover:opacity-90 dark:shadow-white/15'
+										: 'bg-secondary/60 text-unemphasized-1'}"
+								>
+									{#if suggested?.enabled}
+										{#if suggested.approve}
+											<RiCheckLine class="size-[18px]" />
+										{:else}
+											<RiCloseLine class="size-[18px]" />
+										{/if}
+									{/if}
+									{suggested?.label}
+									{#if suggested?.enabled}
+										<Kbd class="ml-2 bg-black/10 text-inherit dark:bg-white/20">⏎</Kbd>
+									{/if}
+								</button>
+							</div>
 						</div>
-						<div class="text-unemphasized-1 mt-1 text-sm">
-							{exiting.entry.status === 'APPROVED'
-								? 'approved — crawling starts within the hour'
-								: `rejected — reason: ${reasonLabel(exiting.entry.reason)}`}
+
+						<div class="flex flex-col items-center justify-center gap-2 border-l">
+							<Button
+								variant="ghost"
+								size="icon"
+								title="Approve — A"
+								aria-label="Approve {current.name}"
+								onclick={() => decide('APPROVED')}
+							>
+								<RiCheckLine class="size-5" />
+							</Button>
+							<Button
+								variant="ghost"
+								size="icon"
+								title="Reject with a reason — R"
+								aria-label="Reject {current.name}"
+								onclick={openReject}
+							>
+								<RiCloseLine class="size-5" />
+							</Button>
+							<span class="text-unemphasized-1 px-1 text-center text-[10px] leading-tight">
+								override
+							</span>
+
+							<!-- Set apart from the override pair on purpose: skipping is not a quieter way
+							     of deciding. It decides nothing and sends nothing. -->
+							<hr class="my-1.5 w-6" />
+
+							<Button
+								variant="ghost"
+								size="icon"
+								title="Skip for now — S"
+								aria-label="Skip {current.name} for now"
+								onclick={skipCurrent}
+							>
+								<RiSkipForwardLine class="size-5" />
+							</Button>
+							<span class="text-unemphasized-1 px-1 text-center text-[10px] leading-tight">
+								later
+							</span>
 						</div>
 					</div>
-				{/if}
+				{/key}
 			</div>
 
 			<div class="text-unemphasized-1 mt-4.5 mb-2 text-xs font-semibold tracking-[0.05em]">
 				UP NEXT
 			</div>
 			<div class="flex flex-col">
-				{#each upcoming as item, offset (item.name)}
+				{#each upcoming as row (row.item.name)}
 					<!-- The row already looked clickable; now it is. Everything stepped over on the way
-					     there is recorded as skipped, so nothing is lost by jumping. -->
+					     there is recorded as skipped, so nothing is lost by jumping.
+					     `animate:flip` has to be here rather than only on the rows that stay: it is
+					     what makes Svelte pull the leaving row out of flow at once, and that is what
+					     lets the rows below start closing the gap instead of waiting for its outro.
+					     `flip`'s duration has to be given: it defaults to `sqrt(distance) * 120`,
+					     which is 720ms over a row's height — three times anything else here. -->
 					<button
+						bind:this={rowNodes[row.item.name]}
 						type="button"
-						title="Review {item.name} now"
-						onclick={() => goTo(session.cursor + 1 + offset)}
+						title="Review {row.item.name} now"
+						onclick={() => goTo(row.index)}
+						animate:flip={{ duration: motion(reduced.current).flip, easing: cubicOut }}
+						out:fade={{ duration: motion(reduced.current).rowOut }}
 						class="text-unemphasized-2 hover:bg-card grid w-full cursor-pointer grid-cols-[1fr_8rem_6rem] items-center gap-3 rounded-[10px] px-2.5 py-2 text-left text-sm"
 					>
 						<span class="flex min-w-0 items-center gap-2">
 							<span class="size-1.5 shrink-0 rounded-full bg-[hsl(220_8%_62%)]"></span>
-							<span class="truncate">{item.name}</span>
+							<span class="truncate">{row.item.name}</span>
 						</span>
 						<span class="text-unemphasized-1">
-							{item.submission_count}
-							{item.submission_count === 1 ? 'submission' : 'submissions'}
+							{row.item.submission_count}
+							{row.item.submission_count === 1 ? 'submission' : 'submissions'}
 						</span>
 						<span class="text-unemphasized-1 flex items-center gap-2.5">
-							{@render votes(item)}
+							{@render votes(row.item)}
 						</span>
 					</button>
 				{:else}

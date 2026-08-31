@@ -57,10 +57,8 @@ export type SessionEvent =
 	| { type: 'skip'; queue: QueueItem[] }
 	/** Jump to a domain further down the list, skipping whatever is stepped over. */
 	| { type: 'goTo'; queue: QueueItem[]; index: number }
-	/** Record a decision. The cursor does not move until `land`. */
+	/** Record a decision and move on. The decided card animates away on its own. */
 	| { type: 'decide'; queue: QueueItem[]; status: DecisionStatus; reason: string }
-	/** The decided card has finished flying out: move past it. */
-	| { type: 'land'; id: number }
 	/** A skip taken back, or `/undo` accepted for a decision. */
 	| { type: 'undoEntry'; id: number }
 	/** The decision's POST failed: pretend it never happened. */
@@ -69,13 +67,17 @@ export type SessionEvent =
 export function reduce(session: Session, event: SessionEvent): Session {
 	switch (event.type) {
 		case 'skip':
-			return moveTo(pushSkips(session, event.queue, session.cursor + 1), session.cursor + 1);
+			return moveTo(
+				pushSkips(session, event.queue, session.cursor + 1),
+				event.queue,
+				session.cursor + 1
+			);
 
 		case 'goTo': {
 			// Backwards is a return, not a skip: nothing is stepped over, so nothing is recorded.
 			const stepped =
 				event.index > session.cursor ? pushSkips(session, event.queue, event.index) : session;
-			return moveTo(stepped, event.index);
+			return moveTo(stepped, event.queue, event.index);
 		}
 
 		case 'decide': {
@@ -91,19 +93,14 @@ export function reduce(session: Session, event: SessionEvent): Session {
 			};
 			// Any skip on this domain is settled by the decision, and would otherwise sit in the
 			// tray claiming the domain is still waiting for one.
+			const actions = [action, ...withoutSkipAt(session.actions, session.cursor)];
+			// The cursor moves now, not when the animation ends. The departing card is already out
+			// of the component's hands by then — Svelte keeps the old node alive for its outro.
 			return {
-				cursor: session.cursor,
-				actions: [action, ...withoutSkipAt(session.actions, session.cursor)],
+				cursor: nextUndecided(actions, event.queue, session.cursor + 1),
+				actions,
 				nextId: session.nextId + 1
 			};
-		}
-
-		case 'land': {
-			const action = session.actions.find((entry) => entry.id === event.id);
-			// Only ever forwards. A rolled-back decision can land after its request has failed,
-			// and moving the cursor on then would step over the card the failure just restored.
-			if (!action || session.cursor > action.index) return session;
-			return { ...session, cursor: action.index + 1 };
 		}
 
 		case 'undoEntry': {
@@ -155,8 +152,22 @@ function pushSkips(session: Session, queue: QueueItem[], target: number): Sessio
  * Every cursor move goes through here, which is what keeps that promise true: you are looking at
  * the domain, so it is no longer one you left for later.
  */
-function moveTo(session: Session, index: number): Session {
-	return { ...session, cursor: index, actions: withoutSkipAt(session.actions, index) };
+function moveTo(session: Session, queue: QueueItem[], index: number): Session {
+	const cursor = nextUndecided(session.actions, queue, index);
+	return { ...session, cursor, actions: withoutSkipAt(session.actions, cursor) };
+}
+
+/**
+ * The first index at or after `from` that has not already been decided.
+ *
+ * A decision whose request fails rewinds the cursor to the card it restored — and with nothing
+ * gating input, later decisions have landed by then, so the cards between are done. They are not
+ * waiting for anything and must not be walked onto or offered again.
+ */
+function nextUndecided(actions: Action[], queue: QueueItem[], from: number): number {
+	let index = from;
+	while (index < queue.length && decidedAt(actions, index)) index++;
+	return index;
 }
 
 function withoutSkipAt(actions: Action[], index: number): Action[] {
@@ -175,8 +186,23 @@ export function current(queue: QueueItem[], session: Session): QueueItem | undef
 	return queue[session.cursor];
 }
 
-export function upcoming(queue: QueueItem[], session: Session): QueueItem[] {
-	return queue.slice(session.cursor + 1);
+/** A row in UP NEXT, carrying the index it sits at because the list is no longer contiguous. */
+export type UpcomingRow = { item: QueueItem; index: number };
+
+/**
+ * The domains still waiting, in queue order.
+ *
+ * Carries the index rather than letting the caller count offsets from the cursor: a rolled-back
+ * decision leaves decided cards ahead of the cursor, and once those are filtered out `cursor + 1 +
+ * offset` addresses the wrong domain.
+ */
+export function upcoming(queue: QueueItem[], session: Session): UpcomingRow[] {
+	const rows: UpcomingRow[] = [];
+	for (let index = session.cursor + 1; index < queue.length; index++) {
+		if (decidedAt(session.actions, index)) continue;
+		rows.push({ item: queue[index], index });
+	}
+	return rows;
 }
 
 export function decisions(session: Session): Action[] {

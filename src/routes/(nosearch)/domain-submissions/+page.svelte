@@ -83,7 +83,16 @@
 {/snippet}
 
 <main class="flex w-full max-w-4xl flex-col gap-2 self-center px-6">
-	<h2 class="-mx-2 text-3xl">Domain submissions</h2>
+	<div class="-mx-2 flex flex-wrap items-baseline justify-between gap-2">
+		<h2 class="text-3xl">Domain submissions</h2>
+		{#if data.loginStatus == 'assumeLoggedIn'}
+			<!-- Shown to every signed-in user: the screen itself tells anyone without the
+			     permission that they can't review, which is a kinder answer than a dead end. -->
+			<a class="text-accent-text text-sm hover:underline" href="/domain-submissions/moderate">
+				Review the queue
+			</a>
+		{/if}
+	</div>
 	<hr class="my-2" />
 	{#if data.status === 'domainSubmissionError'}
 		<Card.Root class="p-4 outline-red-100 outline-solid dark:outline-red-900">

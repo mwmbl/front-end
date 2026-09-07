@@ -21,7 +21,7 @@
 import type { TransitionConfig } from 'svelte/transition';
 
 /** How long the decided card takes to leave. The enter waits this long before starting. */
-export const EXIT_DURATION = 260;
+export const EXIT_DURATION = 130;
 /** How long an arriving region takes to rise into place. */
 export const ENTER_DURATION = 300;
 /** The gap between the header arriving and the sample pages arriving. */

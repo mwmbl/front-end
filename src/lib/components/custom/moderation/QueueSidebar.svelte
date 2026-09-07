@@ -66,7 +66,7 @@
 </script>
 
 <aside
-	class="border-border flex flex-col border-r py-5"
+	class="border-border flex min-h-0 flex-col border-r py-5"
 	style="--tab-tick-duration: {TAB_TICK_DURATION}ms"
 >
 	<div class="flex gap-1.5 px-3.5 pb-3">
@@ -88,45 +88,49 @@
 	<div class="min-h-0 flex-1 overflow-auto">
 		{#each rows as name (name)}
 			{@const item = items.get(name)}
+			<!-- The whole row is the button, second line and padding included: a row that looks
+			     clickable everywhere but only answers on its name reads as dropped clicks. Undo sits
+			     on top of it rather than inside it, since a button cannot contain another. -->
 			<div
-				class="hover:bg-card/60 cursor-pointer border-l-2 py-2.5 pr-3.5 pl-[18px]
+				class="hover:bg-card/60 relative border-l-2
 					{name === state.selected ? 'border-foreground bg-card' : 'border-transparent'}"
 			>
-				<div class="flex items-center gap-2 text-sm font-medium">
-					<button
-						type="button"
-						onclick={() => onselect(name)}
-						class="flex min-w-0 flex-1 cursor-pointer items-center gap-2 text-left"
-					>
+				<button
+					type="button"
+					onclick={() => onselect(name)}
+					class="block w-full cursor-pointer py-2.5 pl-[18px] text-left
+						{state.tab === 'pending' ? 'pr-3.5' : 'pr-14'}"
+				>
+					<span class="flex items-center gap-2 text-sm font-medium">
 						<span class="size-[5px] shrink-0 rounded-full" style="background: {dotFor(name)}"
 						></span>
 						<span class="truncate">{name}</span>
+					</span>
+					<span class="text-unemphasized-1 block pl-[13px] text-xs">
+						{#if state.tab === 'pending' && item}
+							<span class="inline-flex items-center gap-2">
+								<span>{submissionCount(item.submission_count)}</span>
+								<span class="inline-flex items-center gap-px"
+									><RiArrowUpSLine class="size-4" />{item.upvotes}</span
+								>
+								<span class="inline-flex items-center gap-px"
+									><RiArrowDownSLine class="size-4" />{item.downvotes}</span
+								>
+							</span>
+						{:else}
+							{note(name)}
+						{/if}
+					</span>
+				</button>
+				{#if state.tab !== 'pending'}
+					<button
+						type="button"
+						onclick={() => onundo(name)}
+						class="text-accent-text absolute top-2.5 right-3.5 cursor-pointer text-xs font-medium hover:underline"
+					>
+						undo
 					</button>
-					{#if state.tab !== 'pending'}
-						<button
-							type="button"
-							onclick={() => onundo(name)}
-							class="text-accent-text shrink-0 cursor-pointer text-xs font-medium hover:underline"
-						>
-							undo
-						</button>
-					{/if}
-				</div>
-				<div class="text-unemphasized-1 pl-[13px] text-xs">
-					{#if state.tab === 'pending' && item}
-						<span class="inline-flex items-center gap-2">
-							<span>{submissionCount(item.submission_count)}</span>
-							<span class="inline-flex items-center gap-px"
-								><RiArrowUpSLine class="size-4" />{item.upvotes}</span
-							>
-							<span class="inline-flex items-center gap-px"
-								><RiArrowDownSLine class="size-4" />{item.downvotes}</span
-							>
-						</span>
-					{:else}
-						{note(name)}
-					{/if}
-				</div>
+				{/if}
 			</div>
 		{/each}
 

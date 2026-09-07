@@ -55,6 +55,41 @@
 	/** Loaded rows are a page of a possibly longer queue; say so rather than implying otherwise. */
 	let remaining = $derived(Math.max(0, serverCount - items.size));
 
+	/**
+	 * The panel is as tall as the space left below the header, never taller.
+	 *
+	 * The queue is longer than the design's fixtures suggested, and a panel that grows with it
+	 * pushes the decision buttons off the bottom of the window — the moderator then scrolls to
+	 * every decision. Bounding the panel puts the scrolling inside the queue instead, where it
+	 * belongs, and leaves the buttons where they were.
+	 *
+	 * Measured rather than hard-coded because the header above it is not a fixed height: the
+	 * Palestine banner wraps on narrow windows.
+	 */
+	const PANEL_BOTTOM_GAP = 24;
+	/** Below this the panel is too cramped to be worth fitting, and the page may as well scroll. */
+	const MIN_PANEL_HEIGHT = 420;
+
+	let panel = $state<HTMLElement | null>(null);
+	let panelHeight = $state(660);
+
+	function measurePanel() {
+		if (!panel) return;
+		const top = panel.getBoundingClientRect().top;
+		panelHeight = Math.max(MIN_PANEL_HEIGHT, window.innerHeight - top - PANEL_BOTTOM_GAP);
+	}
+
+	$effect(() => {
+		if (!panel) return;
+		// The error alert sits above the panel, so showing or dismissing it moves the panel's top.
+		void error;
+		measurePanel();
+		// The header's height answers to the window's width, so a resize can move the panel's top
+		// as well as the bottom it is being fitted against.
+		window.addEventListener('resize', measurePanel);
+		return () => window.removeEventListener('resize', measurePanel);
+	});
+
 	let tickTimers: ReturnType<typeof setTimeout>[] = [];
 
 	/**
@@ -219,8 +254,9 @@
 		{/if}
 
 		<div
-			class="bg-background mt-4 grid overflow-hidden rounded-2xl md:grid-cols-[20rem_1fr]"
-			style="min-height: 660px"
+			bind:this={panel}
+			class="panel bg-background mt-4 grid overflow-hidden rounded-2xl md:grid-cols-[20rem_1fr] md:grid-rows-[minmax(0,1fr)]"
+			style="--panel-height: {panelHeight}px"
 		>
 			<QueueSidebar
 				state={session}
@@ -263,3 +299,20 @@
 		</div>
 	{/if}
 </main>
+
+<style>
+	.panel {
+		min-height: 660px;
+	}
+
+	/*
+	 * Fitted to the window only once the panes sit side by side. Stacked — the queue above the
+	 * domain — the page's own scroll is the right one, and a window-height box would squeeze both.
+	 */
+	@media (min-width: 768px) {
+		.panel {
+			height: var(--panel-height);
+			min-height: 0;
+		}
+	}
+</style>

@@ -1,13 +1,13 @@
 import { describe, expect, it } from 'vitest';
 
 import {
-	actionLayout,
 	auditFields,
 	isTakeableRejection,
 	pathSegments,
 	rejectionDraft,
 	submissionCount,
 	submissionMeta,
+	suggestedCall,
 	whyFallback,
 	whyLine,
 	type QueueItem,
@@ -181,49 +181,56 @@ function queueItem(overrides: Partial<QueueItem> = {}): QueueItem {
 	};
 }
 
-describe('actionLayout', () => {
-	it('makes a suggested approval the wide brand button', () => {
-		const layout = actionLayout(
-			queueItem({ suggestion: suggestion({ action: 'APPROVE', reason: '' }) })
-		);
-		expect(layout.kind).toBe('approve');
-		expect(layout.primary).toEqual({ label: 'Approve', act: 'approve', brand: true });
-		expect(layout.secondary).toEqual({ label: 'Reject…', act: 'openReject' });
+describe('suggestedCall', () => {
+	it('offers a suggested approval as one click', () => {
+		expect(
+			suggestedCall(queueItem({ suggestion: suggestion({ action: 'APPROVE', reason: '' }) }))
+		).toEqual({ label: 'approve', act: 'approve', reason: '', detail: '' });
 	});
 
 	it('names the reason on a suggested rejection', () => {
-		const layout = actionLayout(
-			queueItem({ suggestion: suggestion({ action: 'REJECT', reason: 'LANGUAGE' }) })
-		);
-		expect(layout.kind).toBe('reject');
-		expect(layout.primary).toEqual({
-			label: 'Reject — unsupported language',
+		expect(
+			suggestedCall(queueItem({ suggestion: suggestion({ action: 'REJECT', reason: 'LANGUAGE' }) }))
+		).toEqual({
+			label: 'reject as unsupported language',
 			act: 'reject',
-			brand: false
+			reason: 'LANGUAGE',
+			detail: ''
 		});
-		expect(layout.secondary).toEqual({ label: 'Approve', act: 'approve' });
 	});
 
-	it('emphasises neither call when the index is unsure', () => {
-		const layout = actionLayout(
-			queueItem({ suggestion: suggestion({ action: 'UNSURE', reason: '' }) })
+	it('sends the detail the suggestion carries, rather than an empty one the API refuses', () => {
+		const call = suggestedCall(
+			queueItem({ suggestion: suggestion({ reason: 'OTHER', reason_detail: 'Parked domain' }) })
 		);
-		expect(layout.kind).toBe('undecided');
-		expect(layout.primary.brand).toBe(false);
-		expect(layout.secondary.act).toBe('openReject');
+		expect(call).toEqual({
+			label: 'reject as other',
+			act: 'reject',
+			reason: 'OTHER',
+			detail: 'Parked domain'
+		});
 	});
 
-	it('emphasises neither call for a domain with no suggestion at all', () => {
-		expect(actionLayout(queueItem({ suggestion: null })).kind).toBe('undecided');
-		expect(actionLayout(undefined).kind).toBe('undecided');
+	it('opens the drawer for an OTHER with no detail instead of sending a doomed decision', () => {
+		// The bug this replaces: the button sent OTHER with no detail and the API answered 422.
+		const call = suggestedCall(queueItem({ suggestion: suggestion({ reason: 'OTHER' }) }));
+		expect(call?.act).toBe('openReject');
+		expect(call?.reason).toBe('OTHER');
 	});
 
-	it('will not offer a one-click OTHER, which the API would refuse', () => {
-		const layout = actionLayout(
-			queueItem({ suggestion: suggestion({ action: 'REJECT', reason: 'OTHER' }) })
-		);
-		expect(layout.kind).toBe('undecided');
-		expect(layout.secondary.act).toBe('openReject');
+	it('offers nothing when the index is unsure', () => {
+		expect(
+			suggestedCall(queueItem({ suggestion: suggestion({ action: 'UNSURE', reason: '' }) }))
+		).toBe(null);
+	});
+
+	it('offers nothing without a suggestion, or without an item', () => {
+		expect(suggestedCall(queueItem({ suggestion: null }))).toBe(null);
+		expect(suggestedCall(undefined)).toBe(null);
+	});
+
+	it('offers nothing for a rejection with no reason class', () => {
+		expect(suggestedCall(queueItem({ suggestion: suggestion({ reason: '' }) }))).toBe(null);
 	});
 });
 

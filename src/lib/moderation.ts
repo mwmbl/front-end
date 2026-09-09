@@ -204,12 +204,6 @@ export function isTakeableRejection(suggestion: Suggestion): boolean {
 	return suggestion.reason !== 'OTHER' || (suggestion.reason_detail ?? '').trim().length > 0;
 }
 
-/** A suggestion the moderator can take with one keystroke. UNSURE is not one. */
-export function isActionable(item: QueueItem | undefined): boolean {
-	const action = item?.suggestion?.action;
-	return action === 'APPROVE' || action === 'REJECT';
-}
-
 const RELATIVE = new Intl.RelativeTimeFormat('en', { numeric: 'auto' });
 const UNITS: Array<[Intl.RelativeTimeFormatUnit, number]> = [
 	['year', 365 * 24 * 60 * 60 * 1000],
@@ -239,53 +233,45 @@ export function pathSegments(url: string): string[] {
 }
 
 /**
- * Which pair of buttons the footer draws for a domain.
+ * The index's call for a domain, as an offer the moderator can take in one click.
  *
- * The design puts the tool's suggestion under the cursor as the wide primary button and the
- * opposite call beside it, so agreeing is one click and disagreeing is also one click. Only the
- * emphasis differs — never the availability.
+ * The buttons themselves never move: Approve, Reject… and Set aside sit in the same places
+ * whatever the index thinks, because a moderator who wants to reject for a reason the index did
+ * not name should not have to hunt for the way in. The suggestion is a sentence above them with
+ * an Apply button beside it, so agreeing is still one click and disagreeing is one click too.
  *
- * `undecided` is the case the design does not draw, because its fixtures always carry a
- * suggestion: an `UNSURE` verdict, a domain still being crawled (`evidence_state` `PENDING`, no
- * suggestion at all), or a suggested `REJECT` whose reason is `OTHER` with no detail to send.
- * Emphasising either call there would be inventing a recommendation the index did not make, so
- * both buttons are drawn evenly and the moderator picks.
+ * `null` — no offer at all — for an `UNSURE` verdict, a domain still being crawled, or a
+ * rejection with no reason class. Offering one there would invent a recommendation.
+ *
+ * `openReject` is the third act, and it is what stops the API refusing the decision: an OTHER
+ * carries no detail, the API will not record it without one, so applying it opens the reason
+ * drawer on OTHER for the moderator to write the sentence rather than sending a doomed request.
  */
-export type ActionLayout = {
-	kind: 'approve' | 'reject' | 'undecided';
-	/** The wide button. `act` is what pressing it does. */
-	primary: { label: string; act: 'approve' | 'reject' | 'openReject'; brand: boolean };
-	/** The narrow button beside it. */
-	secondary: { label: string; act: 'approve' | 'openReject' };
+export type SuggestedCall = {
+	/** How the call reads in "suggested by the index — …", e.g. "reject as spam". */
+	label: string;
+	act: 'approve' | 'reject' | 'openReject';
+	/** Empty unless the call is a rejection. */
+	reason: RejectionReason | '';
+	/** What the submitter would be told. Almost always empty; see `reason_detail`. */
+	detail: string;
 };
 
-export function actionLayout(item: QueueItem | undefined): ActionLayout {
-	const suggestion = item?.suggestion ?? null;
+export function suggestedCall(item: QueueItem | undefined): SuggestedCall | null {
+	const suggestion = item?.suggestion;
+	if (!suggestion) return null;
 
-	if (suggestion?.action === 'APPROVE') {
-		return {
-			kind: 'approve',
-			primary: { label: 'Approve', act: 'approve', brand: true },
-			secondary: { label: 'Reject…', act: 'openReject' }
-		};
+	if (suggestion.action === 'APPROVE') {
+		return { label: 'approve', act: 'approve', reason: '', detail: '' };
 	}
 
-	if (suggestion?.action === 'REJECT' && isTakeableRejection(suggestion)) {
-		return {
-			kind: 'reject',
-			primary: {
-				label: 'Reject — ' + reasonLabel(suggestion.reason),
-				act: 'reject',
-				brand: false
-			},
-			secondary: { label: 'Approve', act: 'approve' }
-		};
-	}
+	if (suggestion.action !== 'REJECT' || !suggestion.reason) return null;
 
 	return {
-		kind: 'undecided',
-		primary: { label: 'Approve', act: 'approve', brand: false },
-		secondary: { label: 'Reject…', act: 'openReject' }
+		label: `reject as ${reasonLabel(suggestion.reason)}`,
+		act: isTakeableRejection(suggestion) ? 'reject' : 'openReject',
+		reason: suggestion.reason as RejectionReason,
+		detail: suggestion.reason_detail ?? ''
 	};
 }
 

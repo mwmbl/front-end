@@ -7,10 +7,11 @@
 	import Input from '@/components/ui/input/input.svelte';
 
 	import {
-		actionLayout,
 		reasonLabel,
+		rejectionDraft,
 		REJECTION_REASONS,
 		STATUS_DOT,
+		suggestedCall,
 		whyFallback,
 		type QueueItem,
 		type RejectionReason
@@ -35,11 +36,14 @@
 		onundo: () => void;
 	} = $props();
 
-	let layout = $derived(actionLayout(item));
+	/** What the index would do, if it has a view worth offering. Never moves the buttons. */
+	let call = $derived(suggestedCall(item));
+	let why = $derived(whyFallback(item));
 
 	let reasonOpen = $state(false);
 	let reason = $state<RejectionReason>('SPAM');
 	let detail = $state('');
+	let detailInput = $state<HTMLInputElement | null>(null);
 
 	/**
 	 * An OTHER with no detail is refused by the API, so the confirm button refuses it here
@@ -58,24 +62,32 @@
 		detail = '';
 	});
 
+	/**
+	 * Open the reason drawer on the suggested reason, which is a starting point and nothing more:
+	 * every reason is one click away from here, whatever the index thinks.
+	 */
 	function openReject() {
-		const suggested = item?.suggestion;
-		reason =
-			suggested?.action === 'REJECT' && suggested.reason
-				? (suggested.reason as RejectionReason)
-				: 'SPAM';
-		detail = '';
+		const draft = rejectionDraft(item?.suggestion);
+		reason = draft.reason;
+		detail = draft.detail;
 		reasonOpen = true;
 	}
 
-	function primary() {
-		if (layout.primary.act === 'approve') onapprove();
-		else if (layout.primary.act === 'openReject') openReject();
-		else onreject((item?.suggestion?.reason ?? 'SPAM') as RejectionReason, '');
+	function toggleReject() {
+		if (reasonOpen) reasonOpen = false;
+		else openReject();
 	}
 
-	function secondary() {
-		if (layout.secondary.act === 'approve') onapprove();
+	/**
+	 * Take the index's call.
+	 *
+	 * A rejection it cannot send on its own — an OTHER, which the API refuses without a detail —
+	 * opens the drawer on that reason instead of sending a request that comes back 422.
+	 */
+	function apply() {
+		if (!call) return;
+		if (call.act === 'approve') onapprove();
+		else if (call.act === 'reject') onreject(call.reason as RejectionReason, call.detail);
 		else openReject();
 	}
 
@@ -84,6 +96,11 @@
 		onreject(reason, detail.trim());
 		reasonOpen = false;
 	}
+
+	// The detail is the only thing left to supply when the reason is OTHER, so the cursor goes there.
+	$effect(() => {
+		if (reasonOpen && reason === 'OTHER') detailInput?.focus();
+	});
 
 	let lastDot = $derived(
 		last === null
@@ -97,34 +114,42 @@
 </script>
 
 <div class="relative grid content-end gap-2">
-	<p class="text-unemphasized-1 flex items-center gap-2 truncate text-xs">
-		<RiEqualizer2Line class="size-4 shrink-0" />
-		suggested by the index — {whyFallback(item)}
-	</p>
+	<div class="flex items-center gap-2 text-xs">
+		<RiEqualizer2Line class="text-unemphasized-1 size-4 shrink-0" />
+		<p class="text-unemphasized-1 min-w-0 flex-1 truncate">
+			suggested by the index —
+			{#if call}<span class="text-foreground font-medium">{call.label}</span>{/if}
+			{call && why ? `· ${why}` : why}
+		</p>
+		{#if call}
+			<Button
+				class="bg-brand-gradient h-7 shrink-0 rounded-xl border-none px-3 text-xs font-semibold text-black"
+				disabled={busy || !item}
+				onclick={apply}
+			>
+				Apply{call.act === 'openReject' ? '…' : ''}
+			</Button>
+		{/if}
+	</div>
 
 	<div class="flex items-center gap-2.5">
 		<Button
-			class="h-13 flex-1 text-lg {layout.primary.brand
-				? 'bg-brand-gradient border-none text-black'
-				: 'bg-secondary text-foreground border-none shadow-[inset_0_0_0_1px_hsl(220_8%_78%)]'}"
+			class="bg-secondary text-foreground h-13 flex-1 border-none text-lg shadow-[inset_0_0_0_1px_hsl(220_8%_78%)]"
 			disabled={busy || !item}
-			onclick={primary}
+			onclick={onapprove}
 		>
-			{#if layout.kind === 'approve'}
-				<RiCheckLine class="size-[18px]" />
-			{:else if layout.kind === 'reject'}
-				<RiCloseLine class="size-[18px]" />
-			{/if}
-			{layout.primary.label}
+			<RiCheckLine class="size-[18px]" />
+			Approve
 		</Button>
 
 		<Button
-			variant="outline"
-			class="bg-secondary h-13 border-none font-medium shadow-[inset_0_0_0_1px_hsl(220_8%_78%)]"
+			class="bg-secondary text-foreground h-13 flex-1 border-none text-lg shadow-[inset_0_0_0_1px_hsl(220_8%_78%)]"
 			disabled={busy || !item}
-			onclick={secondary}
+			aria-expanded={reasonOpen}
+			onclick={toggleReject}
 		>
-			{layout.secondary.label}
+			<RiCloseLine class="size-[18px]" />
+			Reject…
 		</Button>
 
 		<Button
@@ -156,6 +181,7 @@
 			{/each}
 			<Input
 				bind:value={detail}
+				bind:ref={detailInput}
 				placeholder={reason === 'OTHER'
 					? 'Required — what’s wrong with it?'
 					: 'Optional detail for the submitter…'}
@@ -171,7 +197,7 @@
 				disabled={!canConfirm || busy}
 				onclick={confirm}
 			>
-				Reject
+				Reject as {reasonLabel(reason)}
 			</Button>
 		</div>
 	{/if}

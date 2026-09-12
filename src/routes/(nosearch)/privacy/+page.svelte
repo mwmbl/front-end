@@ -40,7 +40,7 @@
 				</ol>
 			</li>
 			<li>
-				<p><strong>Technical and Usage Data:</strong> This includes browser type, device identifiers, and site interaction data for the purposes of performance optimization and maintaining the security of our services. IP addresses are not stored on disk, and we do not keep a record of your searches that is linked to you or your account. To return results we transmit your query to third-party sources, and information derived from searches (such as newly discovered pages and the keywords they match) may be added to our public search index &ndash; see <strong>Search Queries and Third-Party Processing</strong> below.</p>
+				<p><strong>Technical and Usage Data:</strong> This includes browser type, device identifiers, and site interaction data for the purposes of performance optimization and maintaining the security of our services. IP addresses are not stored on disk, and we do not keep a record of your searches that is linked to you or your account. To return results we transmit your query to third-party sources, and information derived from searches (such as newly discovered pages and the keywords they match) may be added to our public search index &ndash; see <strong>Search Queries and Third-Party Processing</strong> below. We also keep counts of how much our search service is used, in a form that cannot be traced back to you or to the words you searched for &ndash; see <strong>Aggregate Usage Measurement</strong> below.</p>
 			</li>
 		</ul>
 
@@ -68,6 +68,29 @@
 			</p>
 			<p class="mb-4">
 				These queries are processed in real time to generate your search results. Mwmbl does not keep a log of your queries that is linked to you or your account. However, in order to improve results for everyone, the results returned by these queries (such as newly discovered web pages) may be added to Mwmbl's public search index and stored against the keywords from the query that they match. This index is openly available and forms part of Mwmbl's search data; it is not associated with your identity. Requests to third-party providers are made by Mwmbl's own servers: <strong>we forward only the text of your search query, and never your name, email address, username, account identifiers, or any other information that identifies you</strong>. Although Super Search requires you to be logged in, your identity is used only by Mwmbl &ndash; for example, to apply your monthly usage limit &ndash; and is not disclosed to the third-party providers. Your query is processed by these providers under their own privacy policies, over which Mwmbl has no control, and because some of them operate globally it may be processed outside the European Economic Area (EEA) or the United Kingdom.
+			</p>
+
+			<h3 class="mb-3 mt-6 text-xl font-semibold">Aggregate Usage Measurement</h3>
+			<p class="mb-4">
+				Mwmbl is free to use, and we need to know how much search traffic we serve in order to run the service, keep it available, and decide how much free usage we can offer. To do that we count requests. We are describing this in detail because the counting involves your search query, even though the query itself is never stored.
+			</p>
+			<p class="mb-4">
+				<strong>How many searches we serve.</strong> We keep a daily count of search requests, grouped by which of our interfaces was used and by whether the request appears to come from a web browser or from an automated client such as a search-engine crawler. These are plain numbers with nothing attached to them.
+			</p>
+			<p class="mb-4">
+				<strong>How often the same query is repeated.</strong> This is the figure that determines how much of our third-party search costs we can avoid by caching, so it decides what we can afford to offer for free. To measure it without keeping your query, each query is converted into an irreversible keyed hash using a secret key held only by our servers, and that hash is added to a probabilistic counter. The counter stores a statistical summary rather than a list, so it can report approximately how many <em>different</em> queries were searched for, and nothing else. <strong>Neither your query nor its hash is retained, and no query can be recovered from what is stored.</strong> We never store your query alongside your address, your account, or anything else that identifies you.
+			</p>
+			<p class="mb-4">
+				<strong>How many people use Mwmbl.</strong> Distinct visitors are counted the same way: the network address or API key a request arrives with is converted into an irreversible keyed hash and added to a probabilistic counter, which reports approximately how many distinct visitors there were. The address itself is not written to disk, and the counter cannot be turned back into a list of visitors.
+			</p>
+			<p class="mb-4">
+				<strong>Which software is calling us.</strong> A significant share of the traffic we receive comes from automated clients rather than people. To understand how much, we count requests against the <em>User-Agent</em> string that browsers and bots send with every request, keeping only the most frequently seen ones, for a short period, and never linked to an address, a visitor or a query.
+			</p>
+			<p class="mb-4">
+				<strong>Retention.</strong> These counts are kept for up to 30 days, and the User-Agent counts for up to 7 days, after which they expire automatically. Some of the resulting totals, such as the number of searches a day and the share that came from self-identified bots, are published openly on our statistics page. Figures that could identify an individual are not published.
+			</p>
+			<p class="mb-6">
+				<strong>Lawful basis.</strong> We rely on our legitimate interests (Article 6(1)(f) GDPR) in operating, securing and sustaining a free search service. Because the measurements above are aggregated and irreversible, they do not allow us to single you out, and they are not used to build a profile of you or to personalise results or advertising.
 			</p>
 
 			<h3 class="mb-3 mt-6 text-xl font-semibold">Data Sharing and Transfers</h3>
@@ -113,7 +136,7 @@
 
 		<h3 class="mb-3 mt-6 text-xl font-semibold">Data Retention</h3>
 		<p class="mb-6">
-			We retain personal data only as long as necessary to fulfill the purposes for which it was collected or to comply with legal obligations. We employ anonymization and pseudonymization techniques where possible to minimize retention risks.
+			We retain personal data only as long as necessary to fulfill the purposes for which it was collected or to comply with legal obligations. We employ anonymization and pseudonymization techniques where possible to minimize retention risks. The usage counts described under <strong>Aggregate Usage Measurement</strong> expire automatically after 30 days, and the User-Agent counts after 7 days.
 		</p>
 
 		<h3 class="mb-3 mt-6 text-xl font-semibold">Data Security and Cybersecurity Measures</h3>

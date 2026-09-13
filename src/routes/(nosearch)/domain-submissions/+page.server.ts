@@ -1,5 +1,5 @@
 import type { Actions } from '@sveltejs/kit';
-import { API_BASE } from '$lib/api';
+import { API_BASE, serverFetch } from '$lib/api';
 
 const pageSize = 500;
 
@@ -19,7 +19,7 @@ export type SubmissionsResult = {
 export async function load({ fetch, url, locals }) {
 	const page = Number(url.searchParams.get('page'));
 	const offset = page * pageSize;
-	const response = await fetch(
+	const response = await serverFetch(
 		`${API_BASE}/api/v1/platform/domain-submissions?limit=${pageSize}&offset=${offset}`
 	);
 	const submissions: SubmissionsResult = await response.json();
@@ -34,7 +34,7 @@ export async function load({ fetch, url, locals }) {
 export const actions: Actions = {
 	submitDomain: async ({ request, cookies, locals }) => {
 		const data = await request.formData();
-		const res = await fetch(
+		const res = await serverFetch(
 			`${API_BASE}/api/v1/platform/domain-submissions/?domain=` + data.get('domain'),
 			{
 				method: 'POST',

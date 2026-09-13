@@ -1,7 +1,7 @@
 import type { Actions, PageServerLoad } from './$types';
 import { dev } from '$app/environment';
 import { redirect } from '@sveltejs/kit';
-import { API_BASE as API } from '$lib/api';
+import { API_BASE as API, serverFetch } from '$lib/api';
 
 type Agreement = {
 	agreement_type: string;
@@ -25,7 +25,7 @@ type MarketingConsent = {
 export const actions: Actions = {
 	login: async ({ request, cookies, locals }) => {
 		const data = await request.formData();
-		const res = await fetch(`${API}/api/v1/platform/token/pair`, {
+		const res = await serverFetch(`${API}/api/v1/platform/token/pair`, {
 			method: 'POST',
 			body: JSON.stringify({
 				username: data.get('username'),
@@ -68,7 +68,7 @@ export const actions: Actions = {
 	},
 	register: async ({ request, locals }) => {
 		const data = await request.formData();
-		const res = await fetch(`${API}/api/v1/platform/register`, {
+		const res = await serverFetch(`${API}/api/v1/platform/register`, {
 			method: 'POST',
 			body: JSON.stringify({
 				email: data.get('email'),
@@ -94,7 +94,7 @@ export const actions: Actions = {
 		locals.accountMessage = 'Logged out.';
 	},
 	deleteUser: async ({ cookies, locals }) => {
-		const res = await fetch(`${API}/api/v1/platform/users/${cookies.get('username')}`, {
+		const res = await serverFetch(`${API}/api/v1/platform/users/${cookies.get('username')}`, {
 			method: 'DELETE',
 			headers: {
 				Authorization: 'Bearer ' + cookies.get('accessToken')
@@ -112,7 +112,7 @@ export const actions: Actions = {
 		}
 	},
 	agreeToTerms: async ({ cookies }) => {
-		const res = await fetch(`${API}/api/v1/platform/agreements/`, {
+		const res = await serverFetch(`${API}/api/v1/platform/agreements/`, {
 			method: 'POST',
 			headers: {
 				Authorization: 'Bearer ' + cookies.get('accessToken'),
@@ -128,7 +128,7 @@ export const actions: Actions = {
 	createApiKey: async ({ request, cookies }) => {
 		const data = await request.formData();
 		const name = (data.get('keyName') as string | null)?.trim() || undefined;
-		const res = await fetch(`${API}/api/v1/platform/api-keys/`, {
+		const res = await serverFetch(`${API}/api/v1/platform/api-keys/`, {
 			method: 'POST',
 			headers: {
 				Authorization: 'Bearer ' + cookies.get('accessToken'),
@@ -149,7 +149,7 @@ export const actions: Actions = {
 	revokeApiKey: async ({ request, cookies }) => {
 		const data = await request.formData();
 		const keyId = data.get('keyId') as string;
-		const res = await fetch(`${API}/api/v1/platform/api-keys/${keyId}`, {
+		const res = await serverFetch(`${API}/api/v1/platform/api-keys/${keyId}`, {
 			method: 'DELETE',
 			headers: {
 				Authorization: 'Bearer ' + cookies.get('accessToken')
@@ -163,7 +163,7 @@ export const actions: Actions = {
 	updateMarketingConsent: async ({ request, cookies }) => {
 		const data = await request.formData();
 		const optedIn = data.get('marketingOptIn') === 'on';
-		const res = await fetch(`${API}/api/v1/platform/marketing-consent`, {
+		const res = await serverFetch(`${API}/api/v1/platform/marketing-consent`, {
 			method: 'POST',
 			headers: {
 				Authorization: 'Bearer ' + cookies.get('accessToken'),
@@ -182,7 +182,7 @@ export const actions: Actions = {
 };
 
 export const load: PageServerLoad = async ({ cookies, locals }) => {
-	const res = await fetch(`${API}/api/v1/platform/protected`, {
+	const res = await serverFetch(`${API}/api/v1/platform/protected`, {
 		method: 'GET',
 		headers: {
 			Authorization: 'Bearer ' + cookies.get('accessToken')
@@ -204,19 +204,19 @@ export const load: PageServerLoad = async ({ cookies, locals }) => {
 		};
 	} else {
 		const [votesRes, agreementsRes, keysRes, consentRes] = await Promise.all([
-			fetch(`${API}/api/v1/platform/search-results/my-votes?limit=100&offset=0`, {
+			serverFetch(`${API}/api/v1/platform/search-results/my-votes?limit=100&offset=0`, {
 				method: 'GET',
 				headers: { Authorization: 'Bearer ' + cookies.get('accessToken') }
 			}),
-			fetch(`${API}/api/v1/platform/agreements/`, {
+			serverFetch(`${API}/api/v1/platform/agreements/`, {
 				method: 'GET',
 				headers: { Authorization: 'Bearer ' + cookies.get('accessToken') }
 			}),
-			fetch(`${API}/api/v1/platform/api-keys/`, {
+			serverFetch(`${API}/api/v1/platform/api-keys/`, {
 				method: 'GET',
 				headers: { Authorization: 'Bearer ' + cookies.get('accessToken') }
 			}),
-			fetch(`${API}/api/v1/platform/marketing-consent`, {
+			serverFetch(`${API}/api/v1/platform/marketing-consent`, {
 				method: 'GET',
 				headers: { Authorization: 'Bearer ' + cookies.get('accessToken') }
 			})

@@ -1,7 +1,7 @@
 import { dev } from '$app/environment';
 import type { Handle } from '@sveltejs/kit';
 import { error } from '@sveltejs/kit';
-import { API_BASE } from '$lib/api';
+import { API_BASE, serverFetch } from '$lib/api';
 
 const MWMBL_API_BASE_URL = API_BASE;
 const PROXY_PATH = '/api';
@@ -19,7 +19,7 @@ export const handle: Handle = async ({ event, resolve }) => {
 			// Access token is expired, let's do a refresh
 			const refreshToken = event.cookies.get('refreshToken');
 			if (refreshToken) {
-				const res = await fetch(`${API_BASE}/api/v1/platform/token/refresh`, {
+				const res = await serverFetch(`${API_BASE}/api/v1/platform/token/refresh`, {
 					method: 'POST',
 					body: JSON.stringify({
 						refresh: refreshToken
@@ -78,6 +78,9 @@ const handleApiProxy: Handle = async ({ event }) => {
 
 	event.request.headers.set('Authorization', `Bearer ${event.cookies.get('accessToken')}`);
 
+	// Deliberately plain fetch, not serverFetch: this forwards the visitor's own headers,
+	// User-Agent included, because it is proxying their request rather than making one of its
+	// own. Stamping our User-Agent here would hide the real client from the API.
 	return fetch(apiURL.toString(), {
 		// propagate the request method and body
 		body: event.request.body,

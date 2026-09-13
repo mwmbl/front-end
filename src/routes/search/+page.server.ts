@@ -1,5 +1,5 @@
 // add the ranker to dependencies to use wasm ranker ("ranker": "file:./pkg/" when testing)
-import { API_BASE } from '$lib/api';
+import { API_BASE, serverFetch } from '$lib/api';
 
 // uncomment to use wasm ranker
 // export const ssr = false;
@@ -8,9 +8,7 @@ export async function load({ url, cookies, locals }) {
 	// const useWasmRanker = url.searchParams.get('useWasmRanker') === 'true';
 
 	// if (!useWasmRanker) {
-	const resultsRes = await fetch(
-		`${API_BASE}/api/v1/search/?s=` + url.searchParams.get('q')
-	);
+	const resultsRes = await serverFetch(`${API_BASE}/api/v1/search/?s=` + url.searchParams.get('q'));
 	const results: Array<{
 		title: Array<{ value: string; is_bold: boolean }>;
 		extract: Array<{ value: string; is_bold: boolean }>;
@@ -28,7 +26,7 @@ export async function load({ url, cookies, locals }) {
 			superSearch
 		};
 	}
-	const votesRes = await fetch(`${API_BASE}/api/v1/platform/search-results/votes`, {
+	const votesRes = await serverFetch(`${API_BASE}/api/v1/platform/search-results/votes`, {
 		headers: {
 			Authorization: `Bearer ${cookies.get('accessToken')}`
 		},
@@ -61,7 +59,7 @@ export async function load({ url, cookies, locals }) {
 	// 	const ranker = wasm.Ranker.new(query ?? '');
 	// 	const terms = ranker.get_query_terms();
 	// 	for (const term of terms) {
-	// 		const res = await fetch(`${API_BASE}/api/v1/search/raw?s=${term}`);
+	// 		const res = await serverFetch(`${API_BASE}/api/v1/search/raw?s=${term}`);
 	// 		const json = await res.json();
 	// 		for (const result of json.results) {
 	// 			ranker.add_search_result(result.url, result.title, result.extract);

@@ -54,6 +54,22 @@ export const load: PageServerLoad = async ({ cookies, locals }) => {
 		console.error('Error fetching user stats:', err);
 	}
 
+	// Fetch the user profile for date_joined
+	let dateJoined: string = "";
+	try {
+		const profileRes = await fetch(`${API_BASE}/api/v1/platform/user`, {
+			headers: {
+				Authorization: `Bearer ${accessToken}`
+			}
+		});
+		if (profileRes.ok) {
+			const profile = await profileRes.json();
+			dateJoined = profile.date_joined || null;
+		}
+	} catch (err) {
+		console.error('Error fetching user profile:', err);
+	}
+
 	const indexDaily = userStats.results_indexed_daily || {};
 	const totalIndexed = Object.values(indexDaily).reduce((sum, v) => sum + v, 0);
 
@@ -76,6 +92,7 @@ export const load: PageServerLoad = async ({ cookies, locals }) => {
 		chartLabels: labels,
 		chartData: {
 			indexed: indexedData
-		}
+		},
+		dateJoined
 	};
 };

@@ -6,7 +6,7 @@
 	$: scaledIndexed = data.chartData.indexed.map((v) => (v / maxIndexed) * 100);
 </script>
 
-<div class="min-h-screen bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100">
+<div class="min-h-screen text-gray-900 dark:text-gray-100">
 	<header class="bg-white dark:bg-gray-800 shadow-md">
 		<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
 			<h1 class="text-3xl font-bold">{data.username}'s stats</h1>

@@ -419,6 +419,8 @@
 			<p>No votes yet.</p>
 		{/if}
 
+		<h3 class="text-xl text-blue-600 hover:underline"><a href="/account/stats">My Stats</a></h3>
+
 		<hr class="my-4" />
 
 		<h3 class="text-xl">Email preferences</h3>

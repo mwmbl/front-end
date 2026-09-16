@@ -32,12 +32,12 @@
 					<div class="flex flex-col justify-end items-center flex-1 h-64 min-w-0" title="{label}: {data.chartData.indexed[i]}">
 						<div
 							class="w-full bg-blue-500 dark:bg-blue-600 rounded-t"
-							style="height: {scaledIndexed[i] || 0}%"
+							style="height: {scaledIndexed[i] || 0}%; min-height: 16px"
 						></div>
 					</div>
 				{/each}
 			</div>
-			<div class="flex justify-between text-xs text-gray-500 dark:text-gray-400 mt-2">
+			<div class="flex justify-between text-gray-500 dark:text-gray-400 mt-2">
 				<span>{data.chartLabels[0]}</span>
 				<span>{data.chartLabels[data.chartLabels.length - 1]}</span>
 			</div>

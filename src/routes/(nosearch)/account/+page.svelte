@@ -280,6 +280,13 @@
 							<span class="text-xs">
 								Created {new Date(key.created_on).toLocaleDateString()}
 							</span>
+							<span class="text-xs">
+								{#if key.last_used}
+									Last used {new Date(key.last_used).toLocaleString()}
+								{:else}
+									Never used
+								{/if}
+							</span>
 						</div>
 						<AlertDialog.Root>
 							<AlertDialog.Trigger>

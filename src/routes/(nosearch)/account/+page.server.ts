@@ -13,6 +13,7 @@ type ApiKey = {
 	id: number;
 	name: string;
 	created_on: string;
+	last_used: string | null;
 	scopes: string[];
 };
 

@@ -280,6 +280,13 @@
 							<span class="text-xs">
 								Created {new Date(key.created_on).toLocaleDateString()}
 							</span>
+							<span class="text-xs">
+								{#if key.last_used}
+									Last used {new Date(key.last_used).toLocaleString()}
+								{:else}
+									Never used
+								{/if}
+							</span>
 						</div>
 						<AlertDialog.Root>
 							<AlertDialog.Trigger>
@@ -418,6 +425,84 @@
 		{:else}
 			<p>No votes yet.</p>
 		{/if}
+
+		<hr class="my-4" />
+
+		<h3 class="text-xl">Devices</h3>
+
+		{#if data.devices.length > 0}
+			<ul class="mt-4 flex flex-col gap-2">
+				{#each data.devices as device}
+					<li class="bg-muted flex flex-row items-center gap-2 p-4">
+						<div class="flex flex-1 flex-col gap-1">
+							<span class="font-medium">
+								{#if device.friendly_name}
+									{device.friendly_name}
+								{:else}
+									{device.hostname} (click to rename)
+								{/if}
+							</span>
+							<span class="text-xs">Hostname: {device.hostname}</span>
+							<span class="text-xs">
+								First seen: {new Date(device.first_seen).toLocaleString()}
+							</span>
+							<span class="text-xs">
+								Last seen: {new Date(device.last_seen).toLocaleString()}
+							</span>
+						</div>
+						{#if device.friendly_name !== device.hostname}
+							<AlertDialog.Root>
+								<AlertDialog.Trigger>
+									{#snippet child({ props })}
+										<Button
+											{...props}
+											variant="ghost"
+											size="icon"
+											class="ml-auto size-9"
+										>
+											<!-- Edit icon -->
+											<svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+												<path d="M13.586 3.586a2 2 0 112.828 2.828l-.793.793-2.828-2.828.793-.793zM11.379 5.793L3 14.172V17h2.828l8.38-8.379-2.83-2.828z" />
+											</svg>
+										</Button>
+									{/snippet}
+								</AlertDialog.Trigger>
+								<AlertDialog.Content>
+									<form method="post" action="?/updateDevice">
+										<input type="hidden" name="deviceId" value={device.id} />
+										<AlertDialog.Header>
+											<AlertDialog.Title>Rename Device</AlertDialog.Title>
+											<AlertDialog.Description>
+												Give this device a friendly name (e.g., "My Laptop", "Work PC")
+											</AlertDialog.Description>
+										</AlertDialog.Header>
+										<AlertDialog.Footer>
+											<AlertDialog.Cancel>Cancel</AlertDialog.Cancel>
+											<div class="px-6 pb-2">
+												<Label for={`device-name-${device.id}`}>Device name</Label>
+												<Input
+													id={`device-name-${device.id}`}
+													name="deviceName"
+													type="text"
+													placeholder="e.g. My Laptop"
+													defaultValue={device.friendly_name}
+													class="mt-1"
+												/>
+											</div>
+											<AlertDialog.Action type="submit">Save name</AlertDialog.Action>
+										</AlertDialog.Footer>
+									</form>
+								</AlertDialog.Content>
+							</AlertDialog.Root>
+						{/if}
+					</li>
+				{/each}
+			</ul>
+		{:else if data.hasAgreedToTerms}
+			<p class="text-sm">No devices yet.</p>
+		{/if}
+
+		<h3 class="text-xl text-blue-600 hover:underline"><a href="/account/stats">My Stats</a></h3>
 
 		<hr class="my-4" />
 

@@ -502,6 +502,8 @@
 			<p class="text-sm">No devices yet.</p>
 		{/if}
 
+		<hr class="my-4" />
+
 		<h3 class="text-xl text-blue-600 hover:underline"><a href="/account/stats">My Stats</a></h3>
 
 		<hr class="my-4" />

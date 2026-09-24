@@ -78,7 +78,7 @@ const handleApiProxy: Handle = async ({ event }) => {
 
 	event.request.headers.set('Authorization', `Bearer ${event.cookies.get('accessToken')}`);
 
-	return fetch(apiURL.toString(), {
+	const apiResponse = await fetch(apiURL.toString(), {
 		// propagate the request method and body
 		body: event.request.body,
 		method: event.request.method,
@@ -88,5 +88,17 @@ const handleApiProxy: Handle = async ({ event }) => {
 	}).catch((err) => {
 		console.log('Could not proxy API request: ', err);
 		throw err;
+	});
+
+	// fetch has already decompressed the body, so these headers no longer describe it.
+	// Passing them on tells the client the plain body is gzipped.
+	const headers = new Headers(apiResponse.headers);
+	headers.delete('content-encoding');
+	headers.delete('content-length');
+
+	return new Response(apiResponse.body, {
+		status: apiResponse.status,
+		statusText: apiResponse.statusText,
+		headers
 	});
 };

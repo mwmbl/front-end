@@ -26,6 +26,16 @@
 	import { localStorageOptions } from '@/localStorageOptions.svelte';
 	let { options } = localStorageOptions;
 
+	// `google` and `user` mark how a page first entered the Mwmbl index, not where the result came from.
+	const SOURCE_LABELS: Record<string, string> = {
+		mwmbl: 'Mwmbl',
+		google: 'Mwmbl',
+		user: 'Mwmbl',
+		wikipedia: 'Wikipedia',
+		eusp: 'EUSP'
+	};
+	let sourceLabel = $derived(result.source ? (SOURCE_LABELS[result.source] ?? result.source) : '');
+
 	let urlSegments = $derived(result.url.replace(/.*:\/\//, '').split('/'));
 
 	// Favicons are fetched from DDG to preserve privacy.
@@ -43,7 +53,7 @@
 	<Card.Root class="grid w-full grid-cols-[1fr_4rem] flex-col gap-2 p-0">
 		<div class="flex flex-col gap-2 p-4">
 			<div
-				class="text-unemphasized-2 grid grid-cols-[2rem_1fr] items-center gap-2 leading-snug font-medium group-hover:underline"
+				class="text-unemphasized-2 grid grid-cols-[2rem_1fr_auto] items-center gap-2 leading-snug font-medium group-hover:underline"
 			>
 				<div class="bg-secondary mr-3 min-h-8 min-w-8 rounded-xl p-2">
 					{#if faviconUrl}
@@ -63,6 +73,17 @@
 						{/if}
 					{/each}
 				</div>
+				{#if sourceLabel}
+					<!-- inline-block stops the card's hover underline reaching the badge text -->
+					<div class="self-start">
+						<span
+							class="bg-secondary text-secondary-foreground inline-block rounded-full px-2 py-0.5 text-xs font-medium"
+							title="Result source"
+						>
+							{sourceLabel}
+						</span>
+					</div>
+				{/if}
 			</div>
 			<Card.Title class="text-accent-text leading-normal font-medium">
 				{#each result.title as titleSegment}

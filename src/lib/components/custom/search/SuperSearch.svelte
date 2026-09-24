@@ -1,6 +1,7 @@
 <script lang="ts">
 	import { onMount, onDestroy } from 'svelte';
 	import SearchResult from './SearchResult.svelte';
+	import { toSegments } from '$lib/highlight';
 	import RiLoaderLine from '~icons/ri/loader-line';
 	import RiCheckLine from '~icons/ri/check-line';
 
@@ -28,23 +29,7 @@
 
 	let abortController: AbortController | null = null;
 
-	function toSegments(text: string): Array<{ value: string; is_bold: boolean }> {
-		if (!text) return [];
-		const terms = query.toLowerCase().split(/\s+/).filter(Boolean);
-		if (terms.length === 0) return [{ value: text, is_bold: false }];
-		const termSet = new Set(terms);
-		const escaped = terms.map((t) => t.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'));
-		const pattern = new RegExp(`(${escaped.join('|')})`, 'gi');
-		// split() with a capturing group keeps the matched terms as separate parts,
-		// so a part is bold iff its lowercased value is one of the query terms.
-		return text
-			.split(pattern)
-			.filter((p) => p.length > 0)
-			.map((part) => ({
-				value: part,
-				is_bold: termSet.has(part.toLowerCase())
-			}));
-	}
+	const queryTerms = $derived(query.split(/\s+/));
 
 	async function startSearch() {
 		abortController?.abort();
@@ -184,8 +169,8 @@
 		<SearchResult
 			result={{
 				url: result.url,
-				title: toSegments(result.title),
-				extract: toSegments(result.extract),
+				title: toSegments(result.title, queryTerms),
+				extract: toSegments(result.extract, queryTerms),
 				source: result.source,
 				votes: undefined
 			}}

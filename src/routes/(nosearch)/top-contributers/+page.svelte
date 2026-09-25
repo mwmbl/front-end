@@ -1,17 +1,10 @@
 <script lang="ts">
-	import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 	import type { PageData } from './$types';
 
 	let { data }: { data: PageData } = $props();
 	
-	// Debug: log the data
-	console.log('Leaderboard data received:', data);
-	
 	const yesterdayData = data.yesterday || [];
 	const allTimeData = data.allTime || [];
-	
-	console.log('yesterdayData:', yesterdayData);
-	console.log('allTimeData:', allTimeData);
 	
 	let activeTab = $state('yesterday');
 	
@@ -21,12 +14,26 @@
 </script>
 
 <svelte:head>
-	<title>Leaderboard - MWMBL</title>
+	<title>Top Contributors - MWMBL</title>
 </svelte:head>
 
 <main class="flex w-full max-w-2xl flex-col gap-2 self-center px-6">
-	<h1 class="text-2xl font-bold mb-4">Leaderboard</h1>
-	
+	<h1 class="text-2xl font-bold mb-4">Top Contributors</h1>
+
+	<p class="mb-6 text-gray-700 dark:text-gray-300 leading-relaxed">
+		This page ranks contributors by the number of pages their web crawlers added to
+		MWMBL. “Yesterday” shows the last 24 hours; “All Time” shows cumulative totals.
+	</p>
+
+	<p class="mb-6 text-gray-700 dark:text-gray-300 leading-relaxed">
+		Want to help? Create an account, and run the crawler. See the <a href="https://book.mwmbl.org/page/community/#running-the-mwmbl-crawler-with-docker-compose"
+		class="text-blue-600 underline" target="_blank" rel="noopener">Running the Crawler page</a> for details.
+		You can also help anonymously by installing the <a href="https://addons.mozilla.org/en-US/firefox/addon/mwmbl-crawler/"
+		class="text-blue-600 underline" target="_blank" rel="noopener">Firefox add‑on</a> or the
+		<a href="https://chrome.google.com/webstore/detail/mwmbl-crawler/"
+		class="text-blue-600 underline" target="_blank" rel="noopener">Chrome extension</a>.
+	</p>
+
 	<div class="mb-4 flex space-x-4">
 		<a class={activeTab === 'yesterday' ? 'text-blue-600 font-bold' : 'text-blue-600 hover:underline'} href="#" onclick={() => { activeTab = 'yesterday'; return false; }}>
 			Yesterday

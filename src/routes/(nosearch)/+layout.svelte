@@ -33,7 +33,7 @@
 		</a>
 		<div class="hidden md:contents">
 			<Button variant="link" href="https://opencollective.com/mwmbl" class="px-2">Donate</Button>
-			<Button variant="link" href="/leaderboard" class="px-2">Leaderboard</Button>
+			<Button variant="link" href="/top-contributers" class="px-2">Top Contributors</Button>
 			<SignInButton loginStatus={data.loginStatus} />
 		</div>
 		<div class="contents">

@@ -58,6 +58,11 @@
 				</Button>
 			</div>
 			<hr class="my-2" />
+			<div class="flex flex-col gap-2 mb-4">
+				<Button variant="link" href="/leaderboard" class="text-left px-0">Leaderboard</Button>
+				<Button variant="link" href="/crawler-stats" class="text-left px-0">Crawler Stats</Button>
+				<Button variant="link" href="/stats" class="text-left px-0">Statistics</Button>
+			</div>
 			<Options />
 		</div>
 	</Sheet.Content>

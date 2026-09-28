@@ -220,11 +220,13 @@
 		}
 	}
 
-	$: {
-		if (chartInstance && isBrowser) {
+$effect.root(() => {
+	$effect(() => {
+		if (chartInstance && browser) {
 			updateChart();
 		}
-	}
+	});
+});
 </script>
 
 <svelte:head>

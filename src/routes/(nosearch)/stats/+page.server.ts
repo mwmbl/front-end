@@ -108,7 +108,15 @@ export const load: PageServerLoad = async ({ fetch }) => {
 	const latestDatasetResults = stats.dataset_results_daily[latestDate] || 0;
 	const latestBlacklistedRemoved = stats.blacklisted_results_removed_daily[latestDate] || 0;
 
+	// Top users data for horizontal bar chart (from all-time leaderboard)
+	const topUsersLabels = allTimeLeaderboard.map(u => u.username);
+	const topUsersData = allTimeLeaderboard.map(u => u.score);
+
 	return {
+		topUsers: {
+			labels: topUsersLabels,
+			data: topUsersData
+		},
 		stats,
 		yesterdayLeaderboard,
 		allTimeLeaderboard,

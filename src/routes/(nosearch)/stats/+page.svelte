@@ -466,7 +466,6 @@
 					<p><strong>Dataset Results:</strong> Search results returned for dataset queries.</p>
 					<p><strong>Index Growth:</strong> URLs, domains, and results in the search index over time.</p>
 					<p><strong>Moderation:</strong> Results removed due to blacklisted domains.</p>
-					<p><strong>Data Source:</strong> <a href="https://api.mwmbl.org/api/v1/crawler/stats" target="_blank" class="text-blue-600 hover:underline">api.mwmbl.org/api/v1/crawler/stats</a></p>
 					<p><strong>Timezone:</strong> All dates are in UTC.</p>
 				</div>
 			</div>

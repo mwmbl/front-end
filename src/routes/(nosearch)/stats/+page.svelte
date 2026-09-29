@@ -353,11 +353,10 @@
 
 	<!-- Tabs for different sections -->
 	<Tabs bind:value={activeTab} class="w-full">
-		<TabsList class="grid w-full grid-cols-4">
+		<TabsList class="grid w-full grid-cols-3">
 			<TabsTrigger value="overview">Overview</TabsTrigger>
 			<TabsTrigger value="charts">Charts</TabsTrigger>
 			<TabsTrigger value="leaderboard">Leaderboard</TabsTrigger>
-			<TabsTrigger value="details">Raw Data</TabsTrigger>
 		</TabsList>
 
 		<!-- Overview Tab -->
@@ -455,6 +454,22 @@
 					</div>
 				</div>
 			</div>
+
+			<!-- Metrics Explanations -->
+			<div class="bg-gray-50 dark:bg-gray-800 rounded-lg p-6">
+				<h2 class="text-lg font-semibold mb-3">About These Metrics</h2>
+				<div class="grid grid-cols-1 sm:grid-cols-2 gap-4 text-sm text-gray-600 dark:text-gray-400">
+					<p><strong>Active Crawlers:</strong> Unique crawler users who submitted results on each day.</p>
+					<p><strong>Results Indexed:</strong> Number of search results added to the index each day.</p>
+					<p><strong>Top Contributors:</strong> All-time leaderboard of crawlers by total results submitted.</p>
+					<p><strong>Dataset Queries:</strong> Autocomplete queries collected from the Firefox extension.</p>
+					<p><strong>Dataset Results:</strong> Search results returned for dataset queries.</p>
+					<p><strong>Index Growth:</strong> URLs, domains, and results in the search index over time.</p>
+					<p><strong>Moderation:</strong> Results removed due to blacklisted domains.</p>
+					<p><strong>Data Source:</strong> <a href="https://api.mwmbl.org/api/v1/crawler/stats" target="_blank" class="text-blue-600 hover:underline">api.mwmbl.org/api/v1/crawler/stats</a></p>
+					<p><strong>Timezone:</strong> All dates are in UTC.</p>
+				</div>
+			</div>
 		</TabsContent>
 
 		<!-- Charts Tab -->
@@ -519,22 +534,6 @@
 				<h2 class="text-xl font-semibold mb-4">Moderation Activity (Last 30 Days)</h2>
 				<div class="h-80" style="position: relative; height: 320px; width: 100%;">
 					<canvas bind:this={moderationCanvas} class="w-full h-full"></canvas>
-				</div>
-			</div>
-
-			<!-- Info Section -->
-			<div class="bg-gray-50 dark:bg-gray-800 rounded-lg p-6">
-				<h2 class="text-lg font-semibold mb-3">About These Statistics</h2>
-				<div class="grid grid-cols-1 sm:grid-cols-2 gap-4 text-sm text-gray-600 dark:text-gray-400">
-					<p><strong>Active Crawlers:</strong> Unique crawler users who submitted results on each day.</p>
-					<p><strong>Results Indexed:</strong> Number of search results added to the index each day.</p>
-					<p><strong>Top Contributors:</strong> All-time leaderboard of crawlers by total results submitted.</p>
-					<p><strong>Dataset Queries:</strong> Autocomplete queries collected from the Firefox extension.</p>
-					<p><strong>Dataset Results:</strong> Search results returned for dataset queries.</p>
-					<p><strong>Index Growth:</strong> URLs, domains, and results in the search index over time.</p>
-					<p><strong>Moderation:</strong> Results removed due to blacklisted domains.</p>
-					<p><strong>Data Source:</strong> <a href="https://api.mwmbl.org/api/v1/crawler/stats" target="_blank" class="text-blue-600 hover:underline">api.mwmbl.org/api/v1/crawler/stats</a></p>
-					<p><strong>Timezone:</strong> All dates are in UTC.</p>
 				</div>
 			</div>
 		</TabsContent>
@@ -611,16 +610,6 @@
 						</div>
 					{/if}
 				{/if}
-			</div>
-		</TabsContent>
-
-		<!-- Raw Data Tab -->
-		<TabsContent value="details" class="space-y-6">
-			<div class="bg-white dark:bg-gray-800 rounded-lg shadow p-6">
-				<h2 class="text-xl font-semibold mb-4">Raw Statistics Data</h2>
-				<div class="overflow-auto max-h-96 font-mono text-sm">
-					<pre>{JSON.stringify(data.stats, null, 2)}</pre>
-				</div>
 			</div>
 		</TabsContent>
 	</Tabs>

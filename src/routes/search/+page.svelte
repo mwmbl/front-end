@@ -107,6 +107,20 @@
 				<SuperSearch query={data.query ?? ''} />
 			{/key}
 		{:else}
+			{#if data.searchMode === 'combined'}
+				<p class="text-muted-foreground text-xs">
+					Combined search (Mwmbl + Staan + Wikipedia){#if data.combinedUsage}
+						· {data.combinedUsage.usage} of {data.combinedUsage.limit} this month{/if}
+				</p>
+			{:else if data.combinedFallback === 'quota'}
+				<p class="text-muted-foreground text-xs">
+					Combined search quota used up. Showing standard results.
+				</p>
+			{:else if data.combinedFallback === 'error'}
+				<p class="text-muted-foreground text-xs">
+					Combined search unavailable. Showing standard results.
+				</p>
+			{/if}
 			{#if wikipediaCard}
 				<WikipediaCard result={data.results[0]} query={data.query} />
 			{/if}

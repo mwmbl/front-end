@@ -1,232 +1,296 @@
 <script lang="ts">
 	import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 	import type { PageData } from './$types';
-	import { onMount } from 'svelte';
+	import { onMount, onDestroy } from 'svelte';
 	import { browser } from '$app/environment';
 
 	let { data }: { data: PageData } = $props();
 
-	// Debug: log the data
-	console.log('Stats data received:', data);
-
 	let activeTab = $state('overview');
-	let activeChartTab = $state('crawlers');
 	let showAllLeaderboard = $state(false);
 
-	function formatNumber(num: number) {
-		return new Intl.NumberFormat().format(num);
+	function formatNumber(num: number): string {
+		if (num == null) return "0";
+		return num.toString().replace(/\B(?<!\.\d*)(?=(\d{3})+(?!\d))/g, ",");
 	}
 
 	function formatDate(dateStr: string) {
 		const date = new Date(dateStr);
-		return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+		return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
 	}
 
-	// Chart.js initialization - will be implemented client-side only
-	let chartInstance: any = null;
-	let chartCanvas: HTMLCanvasElement;
+	// Chart instances
+	let resultsIndexedChart: any = null;
+	let usersCrawledChart: any = null;
+	let topUsersChart: any = null;
+	let datasetQueriesChart: any = null;
+	let datasetResultsChart: any = null;
+	let indexGrowthChart: any = null;
+	let moderationChart: any = null;
+
+	// Canvas refs
+	let resultsIndexedCanvas: HTMLCanvasElement;
+	let usersCrawledCanvas: HTMLCanvasElement;
+	let topUsersCanvas: HTMLCanvasElement;
+	let datasetQueriesCanvas: HTMLCanvasElement;
+	let datasetResultsCanvas: HTMLCanvasElement;
+	let indexGrowthCanvas: HTMLCanvasElement;
+	let moderationCanvas: HTMLCanvasElement;
+
 	let chartError: string | null = $state(null);
 
-	onMount(() => {
-		if (browser) {
-			initChart();
-		}
-	});
-
-	async function initChart() {
-		if (!chartCanvas) return;
+	async function initCharts() {
+		if (!browser) return;
 
 		try {
-			// Dynamically import Chart.js
 			const ChartModule = await import('chart.js/auto');
 			const Chart = ChartModule.default;
-			const ctx = chartCanvas.getContext('2d');
-			if (!ctx) return;
 
-			// Destroy existing chart if any
-			if (chartInstance) {
-				chartInstance.destroy();
-			}
+			// Use CSS variables for theme-aware colors
+			const isDark = document.documentElement.classList.contains('dark');
+			const textColor = isDark ? '#e5e7eb' : '#374151';
+			const gridColor = isDark ? '#374151' : '#e5e7eb';
 
-			const chartData = getChartData();
-			chartInstance = new Chart(ctx, {
-				type: 'line',
-				data: chartData,
-				options: {
-					responsive: true,
-					maintainAspectRatio: false,
-					interaction: {
-						mode: 'index',
-						intersect: false
-					},
-					plugins: {
-						legend: {
-							position: 'top' as const,
-						},
-						title: {
-							display: true,
-							text: getChartTitle()
+			Chart.defaults.font.size = 12;
+			Chart.defaults.color = textColor;
+
+			const commonOptions = {
+				responsive: true,
+				maintainAspectRatio: false,
+				plugins: {
+					legend: {
+						display: true,
+						position: 'top' as const,
+						labels: {
+							color: textColor,
+							font: { size: 11 }
 						}
 					},
-					scales: {
-						y: {
-							beginAtZero: true,
-							ticks: {
-								callback: function(value: number) {
-									return formatNumber(value);
+					title: {
+						display: true,
+						font: { size: 14, weight: 'bold' as const },
+						color: textColor
+					}
+				},
+				scales: {
+					y: {
+						beginAtZero: true,
+						ticks: {
+							color: textColor,
+							callback: (value: string | number) => formatNumber(Number(value))
+						},
+						grid: { color: gridColor }
+					},
+					x: {
+						ticks: {
+							color: textColor,
+							maxTicksLimit: 10,
+							callback: (value: string | number, index: number) => {
+								const labels = data.chartData.labels;
+								if (labels && index < labels.length) {
+									return formatDate(labels[index]);
 								}
+								return '';
 							}
 						},
-						x: {
-							ticks: {
-								maxTicksLimit: 10,
-								callback: function(value: number, index: number) {
-									const labels = chartData.labels;
-									if (labels && index < labels.length) {
-										return formatDate(labels[index]);
-									}
-									return '';
-								}
+						grid: { color: gridColor }
+					}
+				}
+			};
+
+			// Results Indexed Daily Chart
+			if (resultsIndexedCanvas) {
+				resultsIndexedChart = new Chart(resultsIndexedCanvas, {
+					type: 'line',
+					data: {
+						labels: data.chartData.labels,
+						datasets: [{
+							label: 'Results Indexed',
+							data: data.chartData.resultsIndexed,
+							borderColor: 'rgb(16, 185, 129)',
+							backgroundColor: 'rgba(16, 185, 129, 0.1)',
+							borderWidth: 2,
+							fill: true,
+							tension: 0.3
+						}]
+					},
+					options: { ...commonOptions, plugins: { ...commonOptions.plugins, title: { ...commonOptions.plugins.title, text: 'Results Indexed by Day' } } }
+				});
+			}
+
+			// Users Crawled Daily Chart
+			if (usersCrawledCanvas) {
+				usersCrawledChart = new Chart(usersCrawledCanvas, {
+					type: 'line',
+					data: {
+						labels: data.chartData.labels,
+						datasets: [{
+							label: 'Active Crawlers',
+							data: data.chartData.usersCrawled,
+							borderColor: 'rgb(59, 130, 246)',
+							backgroundColor: 'rgba(59, 130, 246, 0.1)',
+							borderWidth: 2,
+							fill: true,
+							tension: 0.3
+						}]
+					},
+					options: { ...commonOptions, plugins: { ...commonOptions.plugins, title: { ...commonOptions.plugins.title, text: 'Active Crawlers by Day' } } }
+				});
+			}
+
+			// Top Users Chart (Horizontal Bar)
+			if (topUsersCanvas) {
+				topUsersChart = new Chart(topUsersCanvas, {
+					type: 'bar',
+					data: {
+						labels: data.topUsers.labels,
+						datasets: [{
+							label: 'Top Contributors',
+							data: data.topUsers.data,
+							backgroundColor: 'rgba(139, 92, 246, 0.8)',
+							borderColor: 'rgb(139, 92, 246)',
+							borderWidth: 1
+						}]
+					},
+					options: {
+						...commonOptions,
+						indexAxis: 'y',
+						plugins: { ...commonOptions.plugins, title: { ...commonOptions.plugins.title, text: 'Top Contributors (All Time)' } },
+						scales: {
+							x: {
+								beginAtZero: true,
+								ticks: { color: textColor, callback: (value: string | number) => formatNumber(Number(value)) },
+								grid: { color: gridColor }
+							},
+							y: {
+								ticks: { color: textColor, font: { size: 11 } },
+								grid: { color: gridColor }
 							}
 						}
 					}
-				}
-			});
+				});
+			}
+
+			// Dataset Queries Daily Chart
+			if (datasetQueriesCanvas) {
+				datasetQueriesChart = new Chart(datasetQueriesCanvas, {
+					type: 'line',
+					data: {
+						labels: data.chartData.labels,
+						datasets: [{
+							label: 'Dataset Queries',
+							data: data.chartData.datasetQueries,
+							borderColor: 'rgb(234, 179, 8)',
+							backgroundColor: 'rgba(234, 179, 8, 0.1)',
+							borderWidth: 2,
+							fill: true,
+							tension: 0.3
+						}]
+					},
+					options: { ...commonOptions, plugins: { ...commonOptions.plugins, title: { ...commonOptions.plugins.title, text: 'Dataset Queries by Day' } } }
+				});
+			}
+
+			// Dataset Results Daily Chart
+			if (datasetResultsCanvas) {
+				datasetResultsChart = new Chart(datasetResultsCanvas, {
+					type: 'line',
+					data: {
+						labels: data.chartData.labels,
+						datasets: [{
+							label: 'Dataset Results',
+							data: data.chartData.datasetResults,
+							borderColor: 'rgb(20, 184, 166)',
+							backgroundColor: 'rgba(20, 184, 166, 0.1)',
+							borderWidth: 2,
+							fill: true,
+							tension: 0.3
+						}]
+					},
+					options: { ...commonOptions, plugins: { ...commonOptions.plugins, title: { ...commonOptions.plugins.title, text: 'Dataset Results by Day' } } }
+				});
+			}
+
+			// Index Growth Chart (URLs, Domains, Results)
+			if (indexGrowthCanvas) {
+				indexGrowthChart = new Chart(indexGrowthCanvas, {
+					type: 'line',
+					data: {
+						labels: data.chartData.labels,
+						datasets: [
+							{
+								label: 'URLs in Index',
+								data: data.chartData.urlsInIndex,
+								borderColor: 'rgb(139, 92, 246)',
+								backgroundColor: 'rgba(139, 92, 246, 0.1)',
+								borderWidth: 2,
+								fill: true,
+								tension: 0.3
+							},
+							{
+								label: 'Domains in Index',
+								data: data.chartData.domainsInIndex,
+								borderColor: 'rgb(236, 72, 153)',
+								backgroundColor: 'rgba(236, 72, 153, 0.1)',
+								borderWidth: 2,
+								fill: true,
+								tension: 0.3
+							},
+							{
+								label: 'Results in Index',
+								data: data.chartData.resultsInIndex,
+								borderColor: 'rgb(249, 115, 22)',
+								backgroundColor: 'rgba(249, 115, 22, 0.1)',
+								borderWidth: 2,
+								fill: true,
+								tension: 0.3
+							}
+						]
+					},
+					options: { ...commonOptions, plugins: { ...commonOptions.plugins, title: { ...commonOptions.plugins.title, text: 'Index Growth (Last 30 Days)' } } }
+				});
+			}
+
+			// Moderation Chart
+			if (moderationCanvas) {
+				moderationChart = new Chart(moderationCanvas, {
+					type: 'line',
+					data: {
+						labels: data.chartData.labels,
+						datasets: [{
+							label: 'Blacklisted Results Removed',
+							data: data.chartData.blacklistedRemoved,
+							borderColor: 'rgb(239, 68, 68)',
+							backgroundColor: 'rgba(239, 68, 68, 0.1)',
+							borderWidth: 2,
+							fill: true,
+							tension: 0.3
+						}]
+					},
+					options: { ...commonOptions, plugins: { ...commonOptions.plugins, title: { ...commonOptions.plugins.title, text: 'Moderation Activity (Last 30 Days)' } } }
+				});
+			}
 		} catch (err) {
 			console.error('Chart initialization failed:', err);
 			chartError = err instanceof Error ? err.message : 'Unknown error';
 		}
 	}
 
-	function getChartData() {
-		const { chartData } = data;
-		const labels = chartData.labels;
-
-		switch (activeChartTab) {
-			case 'crawlers':
-				return {
-					labels,
-					datasets: [
-						{
-							label: 'Active Crawlers',
-							data: chartData.usersCrawled,
-							borderColor: 'rgb(59, 130, 246)',
-							backgroundColor: 'rgba(59, 130, 246, 0.1)',
-							fill: true,
-							tension: 0.3
-						},
-						{
-							label: 'Results Indexed',
-							data: chartData.resultsIndexed,
-							borderColor: 'rgb(16, 185, 129)',
-							backgroundColor: 'rgba(16, 185, 129, 0.1)',
-							fill: true,
-							tension: 0.3
-						}
-					]
-				};
-			case 'index':
-				return {
-					labels,
-					datasets: [
-						{
-							label: 'URLs in Index',
-							data: chartData.urlsInIndex,
-							borderColor: 'rgb(139, 92, 246)',
-							backgroundColor: 'rgba(139, 92, 246, 0.1)',
-							fill: true,
-							tension: 0.3
-						},
-						{
-							label: 'Domains in Index',
-							data: chartData.domainsInIndex,
-							borderColor: 'rgb(236, 72, 153)',
-							backgroundColor: 'rgba(236, 72, 153, 0.1)',
-							fill: true,
-							tension: 0.3
-						},
-						{
-							label: 'Results in Index',
-							data: chartData.resultsInIndex,
-							borderColor: 'rgb(249, 115, 22)',
-							backgroundColor: 'rgba(249, 115, 22, 0.1)',
-							fill: true,
-							tension: 0.3
-						}
-					]
-				};
-			case 'dataset':
-				return {
-					labels,
-					datasets: [
-						{
-							label: 'Dataset Queries',
-							data: chartData.datasetQueries,
-							borderColor: 'rgb(234, 179, 8)',
-							backgroundColor: 'rgba(234, 179, 8, 0.1)',
-							fill: true,
-							tension: 0.3
-						},
-						{
-							label: 'Dataset Results',
-							data: chartData.datasetResults,
-							borderColor: 'rgb(20, 184, 166)',
-							backgroundColor: 'rgba(20, 184, 166, 0.1)',
-							fill: true,
-							tension: 0.3
-						}
-					]
-				};
-			case 'moderation':
-				return {
-					labels,
-					datasets: [
-						{
-							label: 'Blacklisted Results Removed',
-							data: chartData.blacklistedRemoved,
-							borderColor: 'rgb(239, 68, 68)',
-							backgroundColor: 'rgba(239, 68, 68, 0.1)',
-							fill: true,
-							tension: 0.3
-						}
-					]
-				};
-			default:
-				return { labels, datasets: [] };
-		}
+	function destroyCharts() {
+		[resultsIndexedChart, usersCrawledChart, topUsersChart, datasetQueriesChart, datasetResultsChart, indexGrowthChart, moderationChart].forEach(chart => {
+			if (chart) chart.destroy();
+		});
 	}
 
-	function getChartTitle() {
-		switch (activeChartTab) {
-			case 'crawlers':
-				return 'Crawler Activity (Last 30 Days)';
-			case 'index':
-				return 'Index Growth (Last 30 Days)';
-			case 'dataset':
-				return 'Dataset Statistics (Last 30 Days)';
-			case 'moderation':
-				return 'Moderation Activity (Last 30 Days)';
-			default:
-				return '';
-		}
-	}
-
-	function updateChart() {
-		if (chartInstance) {
-			const chartData = getChartData();
-			chartInstance.data = chartData;
-			chartInstance.options.plugins.title.text = getChartTitle();
-			chartInstance.update();
-		}
-	}
-
-$effect.root(() => {
-	$effect(() => {
-		if (chartInstance && browser) {
-			updateChart();
+	onMount(() => {
+		if (browser) {
+			initCharts();
 		}
 	});
-});
+
+	onDestroy(() => {
+		destroyCharts();
+	});
 </script>
 
 <svelte:head>
@@ -288,12 +352,11 @@ $effect.root(() => {
 	</div>
 
 	<!-- Tabs for different sections -->
-	<Tabs value={activeTab} onchange={(e) => (activeTab = e.detail.value)} class="w-full">
-		<TabsList class="grid w-full grid-cols-4">
+	<Tabs bind:value={activeTab} class="w-full">
+		<TabsList class="grid w-full grid-cols-3">
 			<TabsTrigger value="overview">Overview</TabsTrigger>
 			<TabsTrigger value="charts">Charts</TabsTrigger>
 			<TabsTrigger value="leaderboard">Leaderboard</TabsTrigger>
-			<TabsTrigger value="details">Raw Data</TabsTrigger>
 		</TabsList>
 
 		<!-- Overview Tab -->
@@ -391,24 +454,85 @@ $effect.root(() => {
 					</div>
 				</div>
 			</div>
+
+			<!-- Metrics Explanations -->
+			<div class="bg-gray-50 dark:bg-gray-800 rounded-lg p-6">
+				<h2 class="text-lg font-semibold mb-3">About These Metrics</h2>
+				<div class="grid grid-cols-1 sm:grid-cols-2 gap-4 text-sm text-gray-600 dark:text-gray-400">
+					<p><strong>Active Crawlers:</strong> Unique crawler users who submitted results on each day.</p>
+					<p><strong>Results Indexed:</strong> Number of search results added to the index each day.</p>
+					<p><strong>Top Contributors:</strong> All-time leaderboard of crawlers by total results submitted.</p>
+					<p><strong>Dataset Queries:</strong> Autocomplete queries collected from the Firefox extension.</p>
+					<p><strong>Dataset Results:</strong> Search results returned for dataset queries.</p>
+					<p><strong>Index Growth:</strong> URLs, domains, and results in the search index over time.</p>
+					<p><strong>Moderation:</strong> Results removed due to blacklisted domains.</p>
+					<p><strong>Timezone:</strong> All dates are in UTC.</p>
+				</div>
+			</div>
 		</TabsContent>
 
 		<!-- Charts Tab -->
 		<TabsContent value="charts" class="space-y-6">
-			<div class="bg-white dark:bg-gray-800 rounded-lg shadow p-6">
-				<div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-4">
-					<h2 class="text-xl font-semibold">Trend Charts</h2>
-					<Tabs value={activeChartTab} onchange={(e) => (activeChartTab = e.detail.value)} class="w-full sm:w-auto">
-						<TabsList class="grid grid-cols-4">
-							<TabsTrigger value="crawlers">Crawlers</TabsTrigger>
-							<TabsTrigger value="index">Index Growth</TabsTrigger>
-							<TabsTrigger value="dataset">Dataset</TabsTrigger>
-							<TabsTrigger value="moderation">Moderation</TabsTrigger>
-						</TabsList>
-					</Tabs>
+			{#if chartError}
+				<div class="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg p-4">
+					<p class="text-red-700 dark:text-red-300">Chart error: {chartError}</p>
 				</div>
+			{/if}
+
+			<!-- Crawler Activity Charts -->
+			<div class="bg-white dark:bg-gray-800 rounded-lg shadow p-6">
+				<h2 class="text-xl font-semibold mb-4">Crawler Activity (Last 30 Days)</h2>
+				<div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+					<!-- Results Indexed Daily -->
+					<div>
+						<div class="h-80" style="position: relative; height: 320px; width: 100%;">
+							<canvas bind:this={resultsIndexedCanvas} class="w-full h-full"></canvas>
+						</div>
+					</div>
+
+					<!-- Users Crawled Daily -->
+					<div>
+						<div class="h-80" style="position: relative; height: 320px; width: 100%;">
+							<canvas bind:this={usersCrawledCanvas} class="w-full h-full"></canvas>
+						</div>
+					</div>
+
+					<!-- Top Users (Horizontal Bar) -->
+					<div class="lg:col-span-2">
+						<div class="h-96" style="position: relative; height: 384px; width: 100%;">
+							<canvas bind:this={topUsersCanvas} class="w-full h-full"></canvas>
+						</div>
+					</div>
+
+					<!-- Dataset Queries Daily -->
+					<div>
+						<div class="h-80" style="position: relative; height: 320px; width: 100%;">
+							<canvas bind:this={datasetQueriesCanvas} class="w-full h-full"></canvas>
+						</div>
+					</div>
+
+					<!-- Dataset Results Daily -->
+					<div>
+						<div class="h-80" style="position: relative; height: 320px; width: 100%;">
+							<canvas bind:this={datasetResultsCanvas} class="w-full h-full"></canvas>
+						</div>
+					</div>
+				</div>
+			</div>
+
+			<!-- Index Growth Chart -->
+			<div class="bg-white dark:bg-gray-800 rounded-lg shadow p-6">
+				<h2 class="text-xl font-semibold mb-4">Index Growth (Last 30 Days)</h2>
 				<div class="h-96" style="position: relative; height: 400px; width: 100%;">
-					<canvas bind:this={chartCanvas} class="w-full h-full"></canvas>
+					<canvas bind:this={indexGrowthCanvas} class="w-full h-full"></canvas>
+				</div>
+			</div>
+
+			<!-- Moderation Chart -->
+			<div class="bg-white dark:bg-gray-800 rounded-lg shadow p-6">
+				<h2 class="text-xl font-semibold mb-4">Moderation Activity (Last 30 Days)</h2>
+				<div class="h-80" style="position: relative; height: 320px; width: 100%;">
+					<canvas bind:this={moderationCanvas} class="w-full h-full"></canvas>
 				</div>
 			</div>
 		</TabsContent>
@@ -485,16 +609,6 @@ $effect.root(() => {
 						</div>
 					{/if}
 				{/if}
-			</div>
-		</TabsContent>
-
-		<!-- Raw Data Tab -->
-		<TabsContent value="details" class="space-y-6">
-			<div class="bg-white dark:bg-gray-800 rounded-lg shadow p-6">
-				<h2 class="text-xl font-semibold mb-4">Raw Statistics Data</h2>
-				<div class="overflow-auto max-h-96 font-mono text-sm">
-					<pre>{JSON.stringify(data.stats, null, 2)}</pre>
-				</div>
 			</div>
 		</TabsContent>
 	</Tabs>

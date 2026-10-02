@@ -24,9 +24,11 @@
 	};
 	const popularTier: MembershipTierId = 'sapling';
 	// Phrases picked out in bold wherever they appear in a perk.
-	const highlights = ['1,000 Active Discovery queries', 'dedicated crawler'];
+	const highlights = ['1,000 Seed Search queries', 'dedicated crawler'];
 
-	function perkParts(perk: string): { text: string; bold: boolean }[] {
+	function perkParts(original: string): { text: string; bold: boolean }[] {
+		// Active Discovery has been renamed Seed Search; the back end may still use the old name.
+		const perk = original.replace('Active Discovery', 'Seed Search');
 		const phrase = highlights.find((h) => perk.includes(h));
 		if (!phrase) return [{ text: perk, bold: false }];
 		const [before, after] = perk.split(phrase);
@@ -227,7 +229,7 @@
 				Foundation.
 			</p>
 			<a href="/" class="link text-lg font-medium underline underline-offset-4">
-				{membership ? 'Take me to search' : 'Not now — take me to search'}
+				{membership ? 'Let me explore' : 'Not now — let me explore'}
 			</a>
 		</div>
 	</main>

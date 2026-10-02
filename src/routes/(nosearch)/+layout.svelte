@@ -15,17 +15,19 @@
 </script>
 
 <header class="w-full">
-	<aside
-		class="font-display flex h-fit w-full items-center justify-center gap-3 bg-stone-900 p-2 text-white"
-	>
-		<img src="/palestine.svg" alt="Flag of Palestine" class="h-6" />
-		<p class="hidden sm:block">
-			The Mwmbl community supports the rights of Palestinians. End the genocide. Stop the man-made
-			famine. End apartheid. Free Palestine!
-		</p>
-		<p class="sm:hidden">Mwmbl supports Palestine.</p>
-		<img src="/palestine.svg" alt="Flag of Palestine" class="hidden h-6 md:block" />
-	</aside>
+	{#if !page.url.pathname.startsWith('/membership')}
+		<aside
+			class="font-display flex h-fit w-full items-center justify-center gap-3 bg-stone-900 p-2 text-white"
+		>
+			<img src="/palestine.svg" alt="Flag of Palestine" class="h-6" />
+			<p class="hidden sm:block">
+				The Mwmbl community supports the rights of Palestinians. End the genocide. Stop the man-made
+				famine. End apartheid. Free Palestine!
+			</p>
+			<p class="sm:hidden">Mwmbl supports Palestine.</p>
+			<img src="/palestine.svg" alt="Flag of Palestine" class="hidden h-6 md:block" />
+		</aside>
+	{/if}
 	<div
 		class="mx-auto flex h-16 w-full max-w-7xl flex-row items-center gap-2 px-5 pt-10 pb-8 sm:gap-6 lg:px-8"
 	>

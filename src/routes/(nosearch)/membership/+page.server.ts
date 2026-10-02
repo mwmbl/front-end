@@ -29,7 +29,7 @@ const FALLBACK_TIERS: MembershipTier[] = [
 		tier: 'sapling',
 		name: 'Sapling',
 		monthly_price_pence: 500,
-		perks: ['Everything in Sprout', '1,000 Active Discovery queries a month to enhance our index']
+		perks: ['Everything in Sprout', '1,000 Seed Search queries a month to enhance our index']
 	},
 	{
 		tier: 'canopy',

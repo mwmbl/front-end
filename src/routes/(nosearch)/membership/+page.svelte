@@ -334,6 +334,16 @@
 		height: 3rem;
 		font-size: 1.125rem;
 	}
+	/* Polar's embed script forces `color-scheme: normal` on its iframe. When that differs from the
+	   checkout page's own scheme, the browser paints an opaque backdrop behind it instead of letting
+	   the page show through, so match the iframe to the theme we asked Polar for. */
+	:global(iframe[src*='embed=true'][src*='theme=dark']) {
+		color-scheme: dark !important;
+	}
+	:global(iframe[src*='embed=true'][src*='theme=light']) {
+		color-scheme: light !important;
+	}
+
 	.tier :global(.cta:not(.cta-gradient):hover) {
 		opacity: 0.8;
 	}

@@ -9,6 +9,8 @@
 	import MobileMenu from '@/components/custom/menu/MobileMenu.svelte';
 	import SignInButton from '@/components/custom/menu/SignInButton.svelte';
 
+	import { page } from '$app/state';
+
 	let { children, data } = $props();
 </script>
 
@@ -28,11 +30,15 @@
 		class="mx-auto flex h-16 w-full max-w-7xl flex-row items-center gap-2 px-5 pt-10 pb-8 sm:gap-6 lg:px-8"
 	>
 		<a href="/" class="col-start-1 mr-auto flex flex-row items-center gap-4">
-			<img src="/logo.svg" alt="mwmbl" class="h-12" />
+			<img
+				src={page.url.pathname.startsWith('/membership') ? '/logo-green.svg' : '/logo.svg'}
+				alt="mwmbl"
+				class="h-12"
+			/>
 			<img src="/mwmbl-text.svg" alt="" class="h-6 dark:invert" />
 		</a>
 		<div class="hidden md:contents">
-			<Button variant="link" href="https://opencollective.com/mwmbl" class="px-2">Donate</Button>
+			<Button variant="link" href="/membership" class="px-2">Membership</Button>
 			<Button variant="link" href="/leaderboard" class="px-2">Leaderboard</Button>
 			<Button variant="link" href="/crawler-stats" class="px-2">Crawler Stats</Button>
 			<Button variant="link" href="/stats" class="px-2">Statistics</Button>

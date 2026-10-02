@@ -3,7 +3,7 @@
 	import * as Sheet from '@/components/ui/sheet';
 
 	import RiMenu3Fill from '~icons/ri/menu-3-fill';
-	import RiMoneyDollarCircleFill from '~icons/ri/money-dollar-circle-fill';
+	import RiPlantLine from '~icons/ri/plant-line';
 
 	import Options from '@/components/custom/menu/Options.svelte';
 	import SignInButton from '@/components/custom/menu/SignInButton.svelte';
@@ -48,20 +48,20 @@
 				</div>
 			</div>
 			<div class="grid gap-4 min-[400px]:grid-cols-2">
-				<span> Donate to keep Mwmbl running </span>
+				<span> Become a member to help Mwmbl grow </span>
 				<Button
-					href="https://opencollective.com/mwmbl"
+					href="/membership"
 					class="max-w-min px-6 min-[400px]:justify-self-end"
 					variant="secondary"
 				>
-					<RiMoneyDollarCircleFill class="mr-2 min-h-5 min-w-5 text-black dark:text-white" /> Donate
+					<RiPlantLine class="mr-2 min-h-5 min-w-5 text-black dark:text-white" /> Membership
 				</Button>
 			</div>
 			<hr class="my-2" />
-			<div class="flex flex-col gap-2 mb-4">
-				<Button variant="link" href="/leaderboard" class="text-left px-0">Leaderboard</Button>
-				<Button variant="link" href="/crawler-stats" class="text-left px-0">Crawler Stats</Button>
-				<Button variant="link" href="/stats" class="text-left px-0">Statistics</Button>
+			<div class="mb-4 flex flex-col gap-2">
+				<Button variant="link" href="/leaderboard" class="px-0 text-left">Leaderboard</Button>
+				<Button variant="link" href="/crawler-stats" class="px-0 text-left">Crawler Stats</Button>
+				<Button variant="link" href="/stats" class="px-0 text-left">Statistics</Button>
 			</div>
 			<Options />
 		</div>

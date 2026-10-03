@@ -108,10 +108,9 @@
 			To return relevant results, Mwmbl transmits your search query to one or more third-party
 			sources at the time you perform a search. Standard searches may send your query to external
 			content sources (for example, to retrieve reference content). The optional <strong
-				>Super Search</strong
-			> feature, available to logged-in users, broadens this by sending your query to additional third-party
-			search and web-content providers and by performing live crawling of third-party websites, in order
-			to produce more comprehensive results.
+				>Seed Search</strong
+			> feature, available to logged-in users, broadens this by sending your query to an additional third-party
+			search provider, in order to produce more comprehensive results.
 		</p>
 		<p class="mb-4">
 			These queries are processed in real time to generate your search results. Mwmbl does not keep
@@ -123,7 +122,7 @@
 			own servers: <strong
 				>we forward only the text of your search query, and never your name, email address,
 				username, account identifiers, or any other information that identifies you</strong
-			>. Although Super Search requires you to be logged in, your identity is used only by Mwmbl
+			>. Although Seed Search requires you to be logged in, your identity is used only by Mwmbl
 			&ndash; for example, to apply your monthly usage limit &ndash; and is not disclosed to the
 			third-party providers. Your query is processed by these providers under their own privacy
 			policies, over which Mwmbl has no control, and because some of them operate globally it may be

@@ -59,13 +59,10 @@ export async function load({ url, cookies, locals }) {
 		combinedResults ??
 		(await (await fetch(`${API_BASE}/api/v1/search/?s=${encodeURIComponent(query)}`)).json());
 
-	const superSearch = url.searchParams.get('superSearch') === '1';
-
 	if (locals.loginStatus !== 'assumeLoggedIn') {
 		return {
 			query: url.searchParams.get('q') as string | undefined,
 			results: results,
-			superSearch,
 			searchMode,
 			combinedUsage,
 			combinedFallback,
@@ -95,7 +92,6 @@ export async function load({ url, cookies, locals }) {
 	return {
 		query: url.searchParams.get('q') as string | undefined,
 		results: resultsWithVotes,
-		superSearch,
 		searchMode,
 		combinedUsage,
 		combinedFallback,

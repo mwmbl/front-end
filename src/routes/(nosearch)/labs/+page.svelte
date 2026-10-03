@@ -15,9 +15,10 @@
 	<section class="flex flex-col gap-3">
 		<h2 class="text-xl font-semibold">Seed Search</h2>
 		<p class="text-muted-foreground">
-			Use Seed Search as your default search. It pools the Mwmbl index, Staan and Wikipedia into one
-			ranked list of results. It's limited to 100 searches a month; after that, standard search is
-			used.
+			Use Seed Search as your default search. It pools the Mwmbl index and EUSP (European Search
+			Perspective) into one ranked list of results. New pages found by EUSP are added to the Mwmbl
+			index, improving results for everyone. It's limited to 100 searches a month; after that,
+			standard search is used.
 		</p>
 		{#if data.loginStatus !== 'assumeLoggedIn'}
 			<p class="text-muted-foreground text-sm">

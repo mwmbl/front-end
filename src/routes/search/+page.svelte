@@ -109,16 +109,16 @@
 		{:else}
 			{#if data.searchMode === 'combined'}
 				<p class="text-muted-foreground text-xs">
-					Combined search (Mwmbl + Staan + Wikipedia){#if data.combinedUsage}
+					Seed Search (Mwmbl + Staan + Wikipedia){#if data.combinedUsage}
 						· {data.combinedUsage.usage} of {data.combinedUsage.limit} this month{/if}
 				</p>
 			{:else if data.combinedFallback === 'quota'}
 				<p class="text-muted-foreground text-xs">
-					Combined search quota used up. Showing standard results.
+					Seed Search quota used up. Showing standard results.
 				</p>
 			{:else if data.combinedFallback === 'error'}
 				<p class="text-muted-foreground text-xs">
-					Combined search unavailable. Showing standard results.
+					Seed Search unavailable. Showing standard results.
 				</p>
 			{/if}
 			{#if wikipediaCard}
@@ -131,6 +131,16 @@
 				<div class="flex justify-center p-4">
 					<h2 class="text-2xl font-semibold">No results found</h2>
 				</div>
+			{/if}
+			{#if data.searchMode === 'combined' && data.pagesIndexed != null}
+				<p class="text-muted-foreground text-center text-xs">
+					{#if data.pagesIndexed > 0}
+						Seed Search added {data.pagesIndexed} new {data.pagesIndexed === 1 ? 'page' : 'pages'} to
+						the Mwmbl index.
+					{:else}
+						Seed Search added no new pages to the Mwmbl index for this query.
+					{/if}
+				</p>
 			{/if}
 			<div class="flex justify-center py-4">
 				<div class="flex max-w-xs flex-col items-center gap-4 text-center">

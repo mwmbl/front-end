@@ -24,6 +24,7 @@ export async function load({ url, cookies, locals }) {
 	let searchMode: 'standard' | 'combined' = 'standard';
 	let combinedUsage: { usage: number; limit: number } | null = null;
 	let combinedFallback: 'quota' | 'error' | null = null;
+	let pagesIndexed: number | null = null;
 
 	// Opt-in via /labs. On any failure (quota, auth, outage) fall back to standard search.
 	if (locals.loginStatus === 'assumeLoggedIn' && cookies.get(COMBINED_SEARCH_COOKIE) === '1') {
@@ -37,17 +38,19 @@ export async function load({ url, cookies, locals }) {
 					results: SearchHit[];
 					monthly_usage: number | null;
 					monthly_limit: number | null;
+					pages_indexed?: number | null;
 				} = await res.json();
 				combinedResults = json.results.map(hitToResult);
 				searchMode = 'combined';
 				if (json.monthly_usage != null && json.monthly_limit != null) {
 					combinedUsage = { usage: json.monthly_usage, limit: json.monthly_limit };
 				}
+				pagesIndexed = json.pages_indexed ?? null;
 			} else {
 				combinedFallback = res.status === 429 ? 'quota' : 'error';
 			}
 		} catch (err) {
-			console.log('Combined search failed: ', err);
+			console.log('Seed search failed: ', err);
 			combinedFallback = 'error';
 		}
 	}
@@ -65,7 +68,8 @@ export async function load({ url, cookies, locals }) {
 			superSearch,
 			searchMode,
 			combinedUsage,
-			combinedFallback
+			combinedFallback,
+			pagesIndexed
 		};
 	}
 	const votesRes = await fetch(`${API_BASE}/api/v1/platform/search-results/votes`, {
@@ -94,7 +98,8 @@ export async function load({ url, cookies, locals }) {
 		superSearch,
 		searchMode,
 		combinedUsage,
-		combinedFallback
+		combinedFallback,
+		pagesIndexed
 	};
 	// }
 	// else {

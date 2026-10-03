@@ -15,6 +15,7 @@
 	import Cta from '@/components/custom/brand/CTA.svelte';
 	import BottomLinks from '@/components/custom/brand/BottomLinks.svelte';
 	import WikipediaCard from '@/components/custom/search/WikipediaCard.svelte';
+	import SeedSearchToggle from '@/components/custom/search/SeedSearchToggle.svelte';
 
 	let { data } = $props();
 
@@ -107,20 +108,23 @@
 				<SuperSearch query={data.query ?? ''} />
 			{/key}
 		{:else}
-			{#if data.searchMode === 'combined'}
+			<div class="flex flex-row flex-wrap items-center justify-between gap-x-4 gap-y-2">
 				<p class="text-muted-foreground text-xs">
-					Combined search (Mwmbl + Staan + Wikipedia){#if data.combinedUsage}
-						· {data.combinedUsage.usage} of {data.combinedUsage.limit} this month{/if}
+					{#if data.searchMode === 'seed'}
+						Using Seed Search (Mwmbl + Staan + Wikipedia){#if data.seedUsage}
+							· {data.seedUsage.usage} of {data.seedUsage.limit} this month{/if}
+					{:else if data.seedFallback === 'quota'}
+						Seed Search quota used up. Showing standard results.
+					{:else if data.seedFallback === 'error'}
+						Seed Search unavailable. Showing standard results.
+					{/if}
 				</p>
-			{:else if data.combinedFallback === 'quota'}
-				<p class="text-muted-foreground text-xs">
-					Combined search quota used up. Showing standard results.
-				</p>
-			{:else if data.combinedFallback === 'error'}
-				<p class="text-muted-foreground text-xs">
-					Combined search unavailable. Showing standard results.
-				</p>
-			{/if}
+				<SeedSearchToggle
+					loginStatus={data.loginStatus}
+					enabled={data.seedSearchEnabled}
+					quotaExhausted={data.seedSearchQuotaExhausted}
+				/>
+			</div>
 			{#if wikipediaCard}
 				<WikipediaCard result={data.results[0]} query={data.query} />
 			{/if}

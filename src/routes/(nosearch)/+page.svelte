@@ -1,7 +1,10 @@
-<script>
+<script lang="ts">
 	import Search from '@/components/custom/search/SearchBar.svelte';
 	import BottomLinks from '@/components/custom/brand/BottomLinks.svelte';
+	import SeedSearchToggle from '@/components/custom/search/SeedSearchToggle.svelte';
 	import EmojioneMagnifyingGlassTiltedRight from '~icons/emojione/magnifying-glass-tilted-right';
+
+	let { data } = $props();
 </script>
 
 <main class="flex min-h-[75svh] flex-col items-center justify-center gap-9 px-8">
@@ -21,6 +24,11 @@
 		non-profit.
 	</p>
 	<Search />
+	<SeedSearchToggle
+		loginStatus={data.loginStatus}
+		enabled={data.seedSearchEnabled}
+		quotaExhausted={data.seedSearchQuotaExhausted}
+	/>
 </main>
 
 <footer class="mt-auto flex justify-center px-8 pb-8">

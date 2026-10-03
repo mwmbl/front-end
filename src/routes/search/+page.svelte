@@ -136,7 +136,7 @@
 				<p class="text-muted-foreground text-center text-xs">
 					{#if data.pagesIndexed > 0}
 						Seed Search added {data.pagesIndexed} new {data.pagesIndexed === 1 ? 'page' : 'pages'} to
-						the Mwmbl index.
+						the Mwmbl index, improving results for everyone.
 					{:else}
 						Seed Search added no new pages to the Mwmbl index for this query.
 					{/if}

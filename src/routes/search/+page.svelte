@@ -12,6 +12,7 @@
 	import Cta from '@/components/custom/brand/CTA.svelte';
 	import BottomLinks from '@/components/custom/brand/BottomLinks.svelte';
 	import WikipediaCard from '@/components/custom/search/WikipediaCard.svelte';
+	import SeedSearchToggle from '@/components/custom/search/SeedSearchToggle.svelte';
 
 	let { data } = $props();
 
@@ -80,20 +81,23 @@
 	<hr class="absolute top-52 left-0 w-screen lg:top-36" />
 
 	<main class="mt-4 flex w-full flex-col gap-4 lg:col-start-2 lg:col-end-2">
-		{#if data.searchMode === 'combined'}
+		<div class="flex flex-row flex-wrap items-center justify-between gap-x-4 gap-y-2">
 			<p class="text-muted-foreground text-xs">
-				Seed Search (Mwmbl + EUSP){#if data.combinedUsage}
-					· {data.combinedUsage.usage} of {data.combinedUsage.limit} this month{/if}
+				{#if data.searchMode === 'seed'}
+					Using Seed Search (Mwmbl + EUSP){#if data.seedUsage}
+						· {data.seedUsage.usage} of {data.seedUsage.limit} this month{/if}
+				{:else if data.seedFallback === 'quota'}
+					Seed Search quota used up. Showing standard results.
+				{:else if data.seedFallback === 'error'}
+					Seed Search unavailable. Showing standard results.
+				{/if}
 			</p>
-		{:else if data.combinedFallback === 'quota'}
-			<p class="text-muted-foreground text-xs">
-				Seed Search quota used up. Showing standard results.
-			</p>
-		{:else if data.combinedFallback === 'error'}
-			<p class="text-muted-foreground text-xs">
-				Seed Search unavailable. Showing standard results.
-			</p>
-		{/if}
+			<SeedSearchToggle
+				loginStatus={data.loginStatus}
+				enabled={data.seedSearchEnabled}
+				quotaExhausted={data.seedSearchQuotaExhausted || data.seedQuotaHit}
+			/>
+		</div>
 		{#if wikipediaCard}
 			<WikipediaCard result={data.results[0]} query={data.query} />
 		{/if}
@@ -105,7 +109,7 @@
 				<h2 class="text-2xl font-semibold">No results found</h2>
 			</div>
 		{/if}
-		{#if data.searchMode === 'combined' && data.pagesIndexed != null}
+		{#if data.searchMode === 'seed' && data.pagesIndexed != null}
 			<p class="text-muted-foreground text-center text-xs">
 				{#if data.pagesIndexed > 0}
 					Seed Search added {data.pagesIndexed} new {data.pagesIndexed === 1 ? 'page' : 'pages'} to the
@@ -113,11 +117,6 @@
 				{:else}
 					Seed Search added no new pages to the Mwmbl index for this query.
 				{/if}
-			</p>
-		{/if}
-		{#if data.searchMode !== 'combined' && !data.combinedFallback}
-			<p class="text-muted-foreground text-center text-sm">
-				Want more results? Try <a href="/labs" class="underline">Seed Search</a>.
 			</p>
 		{/if}
 	</main>

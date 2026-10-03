@@ -1,7 +1,7 @@
 // add the ranker to dependencies to use wasm ranker ("ranker": "file:./pkg/" when testing)
 import { API_BASE } from '$lib/api';
 import { hitToResult, type SearchHit } from '$lib/highlight';
-import { COMBINED_SEARCH_COOKIE } from '$lib/labs';
+import { SEED_SEARCH_COOKIE } from '$lib/seed-search';
 
 // uncomment to use wasm ranker
 // export const ssr = false;
@@ -20,14 +20,14 @@ export async function load({ url, cookies, locals }) {
 	// if (!useWasmRanker) {
 	const query = url.searchParams.get('q') ?? '';
 
-	let combinedResults: Result[] | null = null;
-	let searchMode: 'standard' | 'combined' = 'standard';
-	let combinedUsage: { usage: number; limit: number } | null = null;
-	let combinedFallback: 'quota' | 'error' | null = null;
+	let seedResults: Result[] | null = null;
+	let searchMode: 'standard' | 'seed' = 'standard';
+	let seedUsage: { usage: number; limit: number } | null = null;
+	let seedFallback: 'quota' | 'error' | null = null;
 	let pagesIndexed: number | null = null;
 
-	// Opt-in via /labs. On any failure (quota, auth, outage) fall back to standard search.
-	if (locals.loginStatus === 'assumeLoggedIn' && cookies.get(COMBINED_SEARCH_COOKIE) === '1') {
+	// Opt-in via the Seed Search toggle. On any failure (quota, auth, outage) fall back to standard search.
+	if (locals.loginStatus === 'assumeLoggedIn' && cookies.get(SEED_SEARCH_COOKIE) === '1') {
 		try {
 			const res = await fetch(
 				`${API_BASE}/api/v2/combined-search/?q=${encodeURIComponent(query)}`,
@@ -40,23 +40,27 @@ export async function load({ url, cookies, locals }) {
 					monthly_limit: number | null;
 					pages_indexed?: number | null;
 				} = await res.json();
-				combinedResults = json.results.map(hitToResult);
-				searchMode = 'combined';
+				seedResults = json.results.map(hitToResult);
+				searchMode = 'seed';
 				if (json.monthly_usage != null && json.monthly_limit != null) {
-					combinedUsage = { usage: json.monthly_usage, limit: json.monthly_limit };
+					seedUsage = { usage: json.monthly_usage, limit: json.monthly_limit };
 				}
 				pagesIndexed = json.pages_indexed ?? null;
 			} else {
-				combinedFallback = res.status === 429 ? 'quota' : 'error';
+				seedFallback = res.status === 429 ? 'quota' : 'error';
 			}
 		} catch (err) {
 			console.log('Seed search failed: ', err);
-			combinedFallback = 'error';
+			seedFallback = 'error';
 		}
 	}
 
+	// The layout's usage figure can predate this search, so also check what this search reported.
+	const seedQuotaHit =
+		seedFallback === 'quota' || (seedUsage != null && seedUsage.usage >= seedUsage.limit);
+
 	const results: Result[] =
-		combinedResults ??
+		seedResults ??
 		(await (await fetch(`${API_BASE}/api/v1/search/?s=${encodeURIComponent(query)}`)).json());
 
 	if (locals.loginStatus !== 'assumeLoggedIn') {
@@ -64,8 +68,9 @@ export async function load({ url, cookies, locals }) {
 			query: url.searchParams.get('q') as string | undefined,
 			results: results,
 			searchMode,
-			combinedUsage,
-			combinedFallback,
+			seedUsage,
+			seedFallback,
+			seedQuotaHit,
 			pagesIndexed
 		};
 	}
@@ -93,8 +98,9 @@ export async function load({ url, cookies, locals }) {
 		query: url.searchParams.get('q') as string | undefined,
 		results: resultsWithVotes,
 		searchMode,
-		combinedUsage,
-		combinedFallback,
+		seedUsage,
+		seedFallback,
+		seedQuotaHit,
 		pagesIndexed
 	};
 	// }

@@ -53,20 +53,9 @@ export async function load({ url, cookies, locals }) {
 		}
 	}
 
-	// Remember an exhausted quota so the toggle can be greyed out on other pages this month.
-	const quotaExhausted =
+	// The layout's usage figure can predate this search, so also check what this search reported.
+	const seedQuotaHit =
 		seedFallback === 'quota' || (seedUsage != null && seedUsage.usage >= seedUsage.limit);
-	if (quotaExhausted) {
-		cookies.set(SEED_SEARCH_QUOTA_COOKIE, currentMonth(), {
-			path: '/',
-			httpOnly: true,
-			sameSite: 'lax',
-			secure: !dev,
-			maxAge: 60 * 60 * 24 * 31
-		});
-	} else if (searchMode === 'seed') {
-		cookies.delete(SEED_SEARCH_QUOTA_COOKIE, { path: '/' });
-	}
 
 	const results: Result[] =
 		seedResults ??
@@ -82,7 +71,7 @@ export async function load({ url, cookies, locals }) {
 			searchMode,
 			seedUsage,
 			seedFallback,
-			seedSearchQuotaExhausted: quotaExhausted
+			seedQuotaHit
 		};
 	}
 	const votesRes = await fetch(`${API_BASE}/api/v1/platform/search-results/votes`, {
@@ -112,7 +101,7 @@ export async function load({ url, cookies, locals }) {
 		searchMode,
 		seedUsage,
 		seedFallback,
-		seedSearchQuotaExhausted: quotaExhausted
+		seedQuotaHit
 	};
 	// }
 	// else {

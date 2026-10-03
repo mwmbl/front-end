@@ -122,7 +122,7 @@
 				<SeedSearchToggle
 					loginStatus={data.loginStatus}
 					enabled={data.seedSearchEnabled}
-					quotaExhausted={data.seedSearchQuotaExhausted}
+					quotaExhausted={data.seedSearchQuotaExhausted || data.seedQuotaHit}
 				/>
 			</div>
 			{#if wikipediaCard}

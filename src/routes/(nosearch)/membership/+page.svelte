@@ -24,7 +24,7 @@
 	};
 	const popularTier: MembershipTierId = 'sapling';
 	// Phrases picked out in bold wherever they appear in a perk.
-	const highlights = ['1,000 Seed Search queries', 'dedicated crawler'];
+	const highlights = ['300 Seed Search queries', '1,500 Seed Search queries', '1 million pages'];
 
 	function perkParts(original: string): { text: string; bold: boolean }[] {
 		// Active Discovery has been renamed Seed Search; the back end may still use the old name.
@@ -218,6 +218,10 @@
 		</section>
 
 		<div class="mt-10 flex flex-col items-center gap-6 text-center">
+			<p class="text-unemphasized-2 max-w-2xl text-lg text-pretty">
+				<b class="font-bold">Seed Search</b> uses third-party sources to provide high-quality search
+				results that are stored in our index, improving results for everyone.
+			</p>
 			{#if membership?.cancel_at_period_end && membership.current_period_end}
 				<p class="text-unemphasized-2 max-w-2xl text-lg text-pretty">
 					Your membership ends on {new Date(membership.current_period_end).toLocaleDateString()}.

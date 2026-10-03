@@ -23,13 +23,16 @@ const FALLBACK_TIERS: MembershipTier[] = [
 		tier: 'sprout',
 		name: 'Sprout',
 		monthly_price_pence: 100,
-		perks: ['Access to the members area in Matrix and Discord']
+		perks: [
+			'Access to the members area in Matrix and Discord',
+			'300 Seed Search queries a month to enhance our index'
+		]
 	},
 	{
 		tier: 'sapling',
 		name: 'Sapling',
 		monthly_price_pence: 500,
-		perks: ['Everything in Sprout', '1,000 Seed Search queries a month to enhance our index']
+		perks: ['Everything in Sprout', '1,500 Seed Search queries a month to enhance our index']
 	},
 	{
 		tier: 'canopy',
@@ -37,7 +40,7 @@ const FALLBACK_TIERS: MembershipTier[] = [
 		monthly_price_pence: 2000,
 		perks: [
 			'Everything in Sapling',
-			'A dedicated crawler, managed for you',
+			'1 million pages a month crawled against your username',
 			'Your username on the crawler leaderboard'
 		]
 	}

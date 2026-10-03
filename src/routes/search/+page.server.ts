@@ -24,6 +24,7 @@ export async function load({ url, cookies, locals }) {
 	let searchMode: 'standard' | 'seed' = 'standard';
 	let seedUsage: { usage: number; limit: number } | null = null;
 	let seedFallback: 'quota' | 'error' | null = null;
+	let pagesIndexed: number | null = null;
 
 	// Opt-in via the Seed Search toggle. On any failure (quota, auth, outage) fall back to standard search.
 	if (locals.loginStatus === 'assumeLoggedIn' && cookies.get(SEED_SEARCH_COOKIE) === '1') {
@@ -37,12 +38,14 @@ export async function load({ url, cookies, locals }) {
 					results: SearchHit[];
 					monthly_usage: number | null;
 					monthly_limit: number | null;
+					pages_indexed?: number | null;
 				} = await res.json();
 				seedResults = json.results.map(hitToResult);
 				searchMode = 'seed';
 				if (json.monthly_usage != null && json.monthly_limit != null) {
 					seedUsage = { usage: json.monthly_usage, limit: json.monthly_limit };
 				}
+				pagesIndexed = json.pages_indexed ?? null;
 			} else {
 				seedFallback = res.status === 429 ? 'quota' : 'error';
 			}
@@ -60,17 +63,15 @@ export async function load({ url, cookies, locals }) {
 		seedResults ??
 		(await (await fetch(`${API_BASE}/api/v1/search/?s=${encodeURIComponent(query)}`)).json());
 
-	const superSearch = url.searchParams.get('superSearch') === '1';
-
 	if (locals.loginStatus !== 'assumeLoggedIn') {
 		return {
 			query: url.searchParams.get('q') as string | undefined,
 			results: results,
-			superSearch,
 			searchMode,
 			seedUsage,
 			seedFallback,
-			seedQuotaHit
+			seedQuotaHit,
+			pagesIndexed
 		};
 	}
 	const votesRes = await fetch(`${API_BASE}/api/v1/platform/search-results/votes`, {
@@ -96,11 +97,11 @@ export async function load({ url, cookies, locals }) {
 	return {
 		query: url.searchParams.get('q') as string | undefined,
 		results: resultsWithVotes,
-		superSearch,
 		searchMode,
 		seedUsage,
 		seedFallback,
-		seedQuotaHit
+		seedQuotaHit,
+		pagesIndexed
 	};
 	// }
 	// else {

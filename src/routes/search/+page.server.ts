@@ -1,8 +1,7 @@
 // add the ranker to dependencies to use wasm ranker ("ranker": "file:./pkg/" when testing)
 import { API_BASE } from '$lib/api';
 import { hitToResult, type SearchHit } from '$lib/highlight';
-import { dev } from '$app/environment';
-import { SEED_SEARCH_COOKIE, SEED_SEARCH_QUOTA_COOKIE, currentMonth } from '$lib/seed-search';
+import { SEED_SEARCH_COOKIE } from '$lib/seed-search';
 
 // uncomment to use wasm ranker
 // export const ssr = false;

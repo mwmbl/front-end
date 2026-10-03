@@ -1,6 +1,4 @@
 <script lang="ts">
-	import { onMount } from 'svelte';
-	import { goto } from '$app/navigation';
 	import { Button } from '@/components/ui/button';
 	import * as Popover from '@/components/ui/popover';
 
@@ -8,7 +6,6 @@
 	import RiLinksLine from '~icons/ri/links-line';
 	import Search from '@/components/custom/search/SearchBar.svelte';
 	import SearchResult from '@/components/custom/search/SearchResult.svelte';
-	import SuperSearch from '@/components/custom/search/SuperSearch.svelte';
 	import Options from '@/components/custom/menu/Options.svelte';
 	import MobileMenu from '@/components/custom/menu/MobileMenu.svelte';
 	import SignInButton from '@/components/custom/menu/SignInButton.svelte';
@@ -23,25 +20,6 @@
 	);
 
 	const results = $derived(!wikipediaCard ? data.results : data.results.slice(1));
-
-	let superSearchActive = $state(data.loginStatus === 'assumeLoggedIn' && !!data.superSearch);
-
-	let prevQuery = data.query;
-	$effect(() => {
-		const q = data.query;
-		if (q !== prevQuery) {
-			prevQuery = q;
-			superSearchActive = false;
-		}
-	});
-
-	onMount(() => {
-		if (data.superSearch) {
-			const cleanUrl = new URL(window.location.href);
-			cleanUrl.searchParams.delete('superSearch');
-			history.replaceState({}, '', cleanUrl);
-		}
-	});
 </script>
 
 <svelte:head>
@@ -102,70 +80,45 @@
 	<hr class="absolute top-52 left-0 w-screen lg:top-36" />
 
 	<main class="mt-4 flex w-full flex-col gap-4 lg:col-start-2 lg:col-end-2">
-		{#if superSearchActive}
-			{#key data.query}
-				<SuperSearch query={data.query ?? ''} />
-			{/key}
-		{:else}
-			{#if data.searchMode === 'combined'}
-				<p class="text-muted-foreground text-xs">
-					Combined search (Mwmbl + Staan + Wikipedia){#if data.combinedUsage}
-						· {data.combinedUsage.usage} of {data.combinedUsage.limit} this month{/if}
-				</p>
-			{:else if data.combinedFallback === 'quota'}
-				<p class="text-muted-foreground text-xs">
-					Combined search quota used up. Showing standard results.
-				</p>
-			{:else if data.combinedFallback === 'error'}
-				<p class="text-muted-foreground text-xs">
-					Combined search unavailable. Showing standard results.
-				</p>
-			{/if}
-			{#if wikipediaCard}
-				<WikipediaCard result={data.results[0]} query={data.query} />
-			{/if}
-			{#each results as result}
-				<SearchResult {result} query={data.query} />
-			{/each}
-			{#if results.length === 0}
-				<div class="flex justify-center p-4">
-					<h2 class="text-2xl font-semibold">No results found</h2>
-				</div>
-			{/if}
-			<div class="flex justify-center py-4">
-				<div class="flex max-w-xs flex-col items-center gap-4 text-center">
-					<p class="text-muted-foreground text-sm">
-						{#if results.length > 0}Need more results?
-						{:else}Try Super Search!
-						{/if} Super Search sends your query to external APIs, gathers the results and crawls the
-						web just for you, in ten seconds. New results are added to our index, making Mwmbl better
-						for everyone, yay!
-					</p>
-					{#if data.loginStatus !== 'assumeLoggedIn'}
-						<p class="text-muted-foreground text-sm">Sign up/log in to use Super Search.</p>
-					{/if}
-					<!-- padding reserves space so the 1.2× scale doesn't shift surrounding content -->
-					<div class="p-5">
-						<Button
-							onclick={() => {
-								if (data.loginStatus === 'assumeLoggedIn') {
-									superSearchActive = true;
-								} else {
-									goto(
-										`/account?next=${encodeURIComponent(`/search?q=${encodeURIComponent(data.query ?? '')}&superSearch=1`)}`
-									);
-								}
-							}}
-							class="group bg-brand-gradient text-foreground relative h-12 overflow-visible px-8 text-base font-semibold transition-transform duration-300 ease-[cubic-bezier(0.34,1.56,0.64,1)] hover:scale-[1.2]"
-						>
-							<span
-								class="pointer-events-none absolute inset-0 rounded-[inherit] bg-black/20 transition-opacity duration-300 group-hover:opacity-0"
-							></span>
-							<span class="relative">Super Search</span>
-						</Button>
-					</div>
-				</div>
+		{#if data.searchMode === 'combined'}
+			<p class="text-muted-foreground text-xs">
+				Seed Search (Mwmbl + EUSP){#if data.combinedUsage}
+					· {data.combinedUsage.usage} of {data.combinedUsage.limit} this month{/if}
+			</p>
+		{:else if data.combinedFallback === 'quota'}
+			<p class="text-muted-foreground text-xs">
+				Seed Search quota used up. Showing standard results.
+			</p>
+		{:else if data.combinedFallback === 'error'}
+			<p class="text-muted-foreground text-xs">
+				Seed Search unavailable. Showing standard results.
+			</p>
+		{/if}
+		{#if wikipediaCard}
+			<WikipediaCard result={data.results[0]} query={data.query} />
+		{/if}
+		{#each results as result}
+			<SearchResult {result} query={data.query} />
+		{/each}
+		{#if results.length === 0}
+			<div class="flex justify-center p-4">
+				<h2 class="text-2xl font-semibold">No results found</h2>
 			</div>
+		{/if}
+		{#if data.searchMode === 'combined' && data.pagesIndexed != null}
+			<p class="text-muted-foreground text-center text-xs">
+				{#if data.pagesIndexed > 0}
+					Seed Search added {data.pagesIndexed} new {data.pagesIndexed === 1 ? 'page' : 'pages'} to the
+					Mwmbl index, improving results for everyone.
+				{:else}
+					Seed Search added no new pages to the Mwmbl index for this query.
+				{/if}
+			</p>
+		{/if}
+		{#if data.searchMode !== 'combined' && !data.combinedFallback}
+			<p class="text-muted-foreground text-center text-sm">
+				Want more results? Try <a href="/labs" class="underline">Seed Search</a>.
+			</p>
 		{/if}
 	</main>
 

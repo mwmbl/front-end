@@ -41,8 +41,6 @@
 		</a>
 		<div class="hidden md:contents">
 			<Button variant="link" href="/membership" class="px-2">Membership</Button>
-			<Button variant="link" href="/leaderboard" class="px-2">Leaderboard</Button>
-			<Button variant="link" href="/crawler-stats" class="px-2">Crawler Stats</Button>
 			<Button variant="link" href="/stats" class="px-2">Statistics</Button>
 			<SignInButton loginStatus={data.loginStatus} />
 		</div>

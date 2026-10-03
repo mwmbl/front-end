@@ -109,8 +109,10 @@
 			sources at the time you perform a search. Standard searches may send your query to external
 			content sources (for example, to retrieve reference content). The optional <strong
 				>Seed Search</strong
-			> feature, available to logged-in users, broadens this by sending your query to an additional third-party
-			search provider, in order to produce more comprehensive results.
+			> feature, available to logged-in users, broadens this by sending your query to EUSP (European
+			Search Perspective), a third-party search provider, in order to produce more comprehensive results.
+			To order these results, your query and the candidate results are also sent to TypeSafe AI, whose
+			Jev model ranks them by relevance and quality.
 		</p>
 		<p class="mb-4">
 			These queries are processed in real time to generate your search results. Mwmbl does not keep

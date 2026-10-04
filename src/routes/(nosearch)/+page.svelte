@@ -28,11 +28,8 @@
 		loginStatus={data.loginStatus}
 		enabled={data.seedSearchEnabled}
 		quotaExhausted={data.seedSearchQuotaExhausted}
+		showDescription
 	/>
-	<p class="text-muted-foreground -mt-6 max-w-full px-6 text-center text-sm md:max-w-184">
-		Seed Search - help build our index with high quality results from EUSP and ranking from Typesafe
-		AI
-	</p>
 </main>
 
 <footer class="mt-auto flex justify-center px-8 pb-8">

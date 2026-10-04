@@ -7,8 +7,14 @@
 	let {
 		loginStatus,
 		enabled,
-		quotaExhausted
-	}: { loginStatus: string; enabled: boolean; quotaExhausted: boolean } = $props();
+		quotaExhausted,
+		showDescription = false
+	}: {
+		loginStatus: string;
+		enabled: boolean;
+		quotaExhausted: boolean;
+		showDescription?: boolean;
+	} = $props();
 
 	const loggedIn = $derived(loginStatus === 'assumeLoggedIn');
 	const disabled = $derived(!loggedIn || quotaExhausted);
@@ -63,6 +69,13 @@
 			Seed Search quota used up
 		</Label>
 	{:else}
-		<Label for="seed-search-switch" class="text-sm">Seed Search</Label>
+		<Label for="seed-search-switch" class="text-sm leading-snug">
+			{#if showDescription}
+				Seed Search — help build our index with high quality results from EUSP and ranking from
+				Typesafe AI
+			{:else}
+				Seed Search
+			{/if}
+		</Label>
 	{/if}
 </div>

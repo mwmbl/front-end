@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { page } from '$app/state';
-	import { invalidateAll } from '$app/navigation';
+	import { goto, invalidateAll } from '$app/navigation';
 	import { Switch } from '@/components/ui/switch';
 	import { Label } from '@/components/ui/label';
 
@@ -12,6 +12,9 @@
 
 	const loggedIn = $derived(loginStatus === 'assumeLoggedIn');
 	const disabled = $derived(!loggedIn || quotaExhausted);
+	const loginHref = $derived(
+		`/account?next=${encodeURIComponent(page.url.pathname + page.url.search)}`
+	);
 
 	let checked = $state(false);
 	$effect.pre(() => {
@@ -20,6 +23,12 @@
 
 	let saving = $state(false);
 	async function onCheckedChange(value: boolean) {
+		// Logged-out users are sent to log in, same as the link next to the switch.
+		if (!loggedIn) {
+			checked = false;
+			await goto(loginHref);
+			return;
+		}
 		saving = true;
 		try {
 			const res = await fetch('/seed-search', {
@@ -36,10 +45,6 @@
 			saving = false;
 		}
 	}
-
-	const loginHref = $derived(
-		`/account?next=${encodeURIComponent(page.url.pathname + page.url.search)}`
-	);
 </script>
 
 <div class="flex shrink-0 flex-row items-center gap-2">
@@ -47,7 +52,7 @@
 		id="seed-search-switch"
 		bind:checked
 		{onCheckedChange}
-		disabled={disabled || saving}
+		disabled={quotaExhausted || saving}
 		class="data-[state=checked]:bg-brand-gradient"
 	/>
 	{#if !loggedIn}

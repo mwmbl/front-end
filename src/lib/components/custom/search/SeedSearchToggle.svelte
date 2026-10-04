@@ -39,7 +39,8 @@
 		try {
 			const res = await fetch('/seed-search', {
 				method: 'POST',
-				headers: { 'Content-Type': 'application/json' },
+				// The Accept header routes this to +server.ts rather than the /seed-search page.
+				headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
 				body: JSON.stringify({ enabled: value })
 			});
 			if (!res.ok) checked = !value;

@@ -30,6 +30,8 @@
 		quotaExhausted={data.seedSearchQuotaExhausted}
 		showDescription
 	/>
+	<a href="/seed-search" class="text-unemphasized-2 -mt-6 text-sm underline">What is Seed Search?</a
+	>
 </main>
 
 <footer class="mt-auto flex justify-center px-8 pb-8">

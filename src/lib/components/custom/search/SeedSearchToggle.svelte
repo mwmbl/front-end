@@ -61,7 +61,12 @@
 		disabled={quotaExhausted || saving}
 		class="data-[state=checked]:bg-brand-gradient"
 	/>
-	{#if !loggedIn}
+	{#if !loggedIn && showDescription}
+		<p class="text-sm leading-snug font-bold">
+			<a href={loginHref} class="underline">Log in to use Seed Search</a> — help build our index with
+			high quality results from EUSP and ranking from Typesafe AI
+		</p>
+	{:else if !loggedIn}
 		<a href={loginHref} class="text-muted-foreground text-sm underline">Log in to use Seed Search</a
 		>
 	{:else if quotaExhausted}
@@ -69,7 +74,10 @@
 			Seed Search quota used up
 		</Label>
 	{:else}
-		<Label for="seed-search-switch" class="text-sm leading-snug">
+		<Label
+			for="seed-search-switch"
+			class={['text-sm leading-snug', showDescription && 'font-bold']}
+		>
 			{#if showDescription}
 				Seed Search — help build our index with high quality results from EUSP and ranking from
 				Typesafe AI

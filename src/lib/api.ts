@@ -1,1 +1,1 @@
-export const API_BASE = 'https://beta.mwmbl.org';
+export const API_BASE = 'https://api.mwmbl.org';

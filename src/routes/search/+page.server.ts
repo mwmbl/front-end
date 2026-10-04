@@ -1,7 +1,7 @@
 // add the ranker to dependencies to use wasm ranker ("ranker": "file:./pkg/" when testing)
 import { API_BASE } from '$lib/api';
 import { hitToResult, type SearchHit } from '$lib/highlight';
-import { SEED_SEARCH_COOKIE } from '$lib/seed-search';
+import { SEED_SEARCH_COOKIE, seedSearchState } from '$lib/seed-search';
 
 // uncomment to use wasm ranker
 // export const ssr = false;
@@ -19,6 +19,7 @@ export async function load({ url, cookies, locals }) {
 
 	// if (!useWasmRanker) {
 	const query = url.searchParams.get('q') ?? '';
+	const seedState = seedSearchState(cookies, locals.loginStatus === 'assumeLoggedIn');
 
 	let seedResults: Result[] | null = null;
 	let searchMode: 'standard' | 'seed' = 'standard';
@@ -55,7 +56,7 @@ export async function load({ url, cookies, locals }) {
 		}
 	}
 
-	// The layout's usage figure can predate this search, so also check what this search reported.
+	// The usage figure can predate this search, so also check what this search reported.
 	const seedQuotaHit =
 		seedFallback === 'quota' || (seedUsage != null && seedUsage.usage >= seedUsage.limit);
 
@@ -71,7 +72,8 @@ export async function load({ url, cookies, locals }) {
 			seedUsage,
 			seedFallback,
 			seedQuotaHit,
-			pagesIndexed
+			pagesIndexed,
+			...(await seedState)
 		};
 	}
 	const votesRes = await fetch(`${API_BASE}/api/v1/platform/search-results/votes`, {
@@ -101,7 +103,8 @@ export async function load({ url, cookies, locals }) {
 		seedUsage,
 		seedFallback,
 		seedQuotaHit,
-		pagesIndexed
+		pagesIndexed,
+		...(await seedState)
 	};
 	// }
 	// else {

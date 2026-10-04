@@ -29,6 +29,9 @@
 			});
 			if (!res.ok) checked = !value;
 			await invalidateAll();
+		} catch (err) {
+			console.log('Saving Seed Search setting failed: ', err);
+			checked = !value;
 		} finally {
 			saving = false;
 		}

@@ -1,8 +1,5 @@
-import { seedSearchState } from '$lib/seed-search';
-
-export async function load({ locals, cookies }) {
+export async function load({ locals }) {
 	return {
-		loginStatus: locals.loginStatus,
-		...(await seedSearchState(cookies, locals.loginStatus === 'assumeLoggedIn'))
+		loginStatus: locals.loginStatus
 	};
 }

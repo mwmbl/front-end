@@ -167,7 +167,7 @@
 						bind:checked={seedSearchOn}
 						onCheckedChange={onSeedSearchChange}
 						disabled={quotaExhausted || savingSeedSearch}
-						class="data-[state=checked]:bg-brand-gradient"
+						class="data-[state=checked]:bg-(image:--mv-grad)"
 					/>
 				</div>
 			</div>

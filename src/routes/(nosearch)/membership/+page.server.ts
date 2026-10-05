@@ -24,7 +24,7 @@ const FALLBACK_TIERS: MembershipTier[] = [
 		name: 'Sprout',
 		monthly_price_pence: 100,
 		perks: [
-			'Access to the members area in Matrix and Discord',
+			'Access to the members area on Discord',
 			'300 Seed Search queries a month to enhance our index'
 		]
 	},

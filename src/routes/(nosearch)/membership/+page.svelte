@@ -8,49 +8,19 @@
 	import BottomLinks from '@/components/custom/brand/BottomLinks.svelte';
 
 	import RiCheckLine from '~icons/ri/check-line';
-	import RiSeedlingLine from '~icons/ri/seedling-line';
 	import RiPlantLine from '~icons/ri/plant-line';
-	import RiTreeLine from '~icons/ri/tree-line';
 	import RiLoader4Line from '~icons/ri/loader-4-line';
 
 	import type { MembershipTierId } from './+page.server';
+	import { formatPrice, perkParts, tierIcons as icons } from './tiers';
+	import MemberView from './MemberView.svelte';
 
 	let { data, form } = $props();
 
-	const icons: Record<MembershipTierId, typeof RiPlantLine> = {
-		sprout: RiSeedlingLine,
-		sapling: RiPlantLine,
-		canopy: RiTreeLine
-	};
 	const popularTier: MembershipTierId = 'sapling';
-	// Phrases picked out in bold wherever they appear in a perk.
-	const highlights = ['300 Seed Search queries', '1,500 Seed Search queries', '1 million pages'];
-
-	function perkParts(original: string): { text: string; bold: boolean }[] {
-		// Active Discovery has been renamed Seed Search, and the members area is now on Discord only;
-		// the back end may still use the old wording.
-		const perk = original
-			.replace('Active Discovery', 'Seed Search')
-			.replace('in Matrix and Discord', 'on Discord');
-		const phrase = highlights.find((h) => perk.includes(h));
-		if (!phrase) return [{ text: perk, bold: false }];
-		const [before, after] = perk.split(phrase);
-		return [
-			{ text: before, bold: false },
-			{ text: phrase, bold: true },
-			{ text: after, bold: false }
-		];
-	}
-
-	function formatPrice(pence: number): string {
-		return pence % 100 === 0 ? `£${pence / 100}` : `£${(pence / 100).toFixed(2)}`;
-	}
 
 	const loggedIn = $derived(data.loginStatus === 'assumeLoggedIn');
 	const membership = $derived(data.membership);
-	const memberTierName = $derived(
-		membership ? data.tiers.find((t) => t.tier === membership.tier)?.name : undefined
-	);
 	const justPaid = $derived(page.url.searchParams.get('checkout') === 'success');
 
 	let pendingTier = $state<MembershipTierId | null>(null);
@@ -98,148 +68,140 @@
 </svelte:head>
 
 <div class="membership-page flex flex-col">
-	<section
-		class="mx-auto flex max-w-3xl flex-col items-center gap-5 px-4 pt-10 text-center sm:px-8 sm:pt-16"
-	>
-		{#if waitingForWebhook}
-			<span class="pill">
-				<RiLoader4Line class="animate-spin" /> Thank you! Setting up your membership…
-			</span>
-		{:else if membership}
-			<span class="pill"><RiCheckLine class="check" /> You're a {memberTierName} member</span>
-		{:else if justPaid}
-			<span class="pill">
-				<RiCheckLine class="check" /> Thank you! Your membership will appear here shortly
-			</span>
-		{:else if loggedIn}
-			<span class="pill"><RiCheckLine class="check" /> Your account is ready</span>
-		{/if}
-		<h1 class="text-4xl leading-snug! font-bold text-balance md:text-5xl lg:text-6xl">
-			We need you to help Mwmbl grow
-		</h1>
-		<p class="text-unemphasized-2 text-lg text-pretty sm:text-xl">
-			Members are our roots, supporting ethical, free search — built in the open, by and for the
-			people who use it.
-		</p>
-	</section>
-
-	<main class="mx-auto w-full max-w-6xl px-4 pb-10 sm:px-8 sm:pb-16">
-		<div class="text-unemphasized-2 mt-16 mb-6 text-center text-sm font-semibold tracking-[0.12em]">
-			PLANT YOUR SUPPORT
-		</div>
-
-		{#if error}
-			<div role="alert" class="bg-card text-destructive mb-6 rounded-2xl p-4 text-center">
-				{error}
-			</div>
-		{/if}
-
+	{#if membership}
+		<MemberView {data} {membership} {form} />
+	{:else}
 		<section
-			class="grid grid-cols-[repeat(auto-fit,minmax(17rem,1fr))] gap-6"
-			aria-label="Membership levels"
+			class="mx-auto flex max-w-3xl flex-col items-center gap-5 px-4 pt-10 text-center sm:px-8 sm:pt-16"
 		>
-			{#each data.tiers as tier (tier.tier)}
-				{@const Icon = icons[tier.tier] ?? RiPlantLine}
-				{@const popular = tier.tier === popularTier}
-				{@const current = membership?.tier === tier.tier}
-				<article class="tier bg-card flex flex-col gap-6 rounded-2xl p-6 sm:p-8" class:popular>
-					<div class="flex items-center gap-4">
-						<span class="tier-icon"><Icon /></span>
-						<h2 class="font-display text-2xl font-bold">{tier.name}</h2>
-						{#if current}
-							<span class="chip">Your level</span>
-						{:else if popular && !membership}
-							<span class="chip">Popular</span>
-						{/if}
-					</div>
-					<div class="flex items-baseline gap-2">
-						<b class="font-display text-5xl leading-none font-extrabold">
-							{formatPrice(tier.monthly_price_pence)}
-						</b>
-						<span class="text-unemphasized-2 text-lg">/ month</span>
-					</div>
-					<ul class="flex flex-1 flex-col gap-4">
-						{#each tier.perks as perk}
-							<li class="grid grid-cols-[1.25rem_1fr] gap-3 text-lg leading-[1.45] text-pretty">
-								<RiCheckLine class="check mt-0.5 size-5" />
-								<span>
-									{#each perkParts(perk) as part}
-										{#if part.bold}<b class="font-bold">{part.text}</b>{:else}{part.text}{/if}
-									{/each}
-								</span>
-							</li>
-						{/each}
-					</ul>
-					{#if membership}
-						<Button variant="secondary" class="cta" disabled>
-							{current ? 'Your current level' : `Join as ${tier.name}`}
-						</Button>
-					{:else if !loggedIn}
-						<Button
-							variant="secondary"
-							class={popular ? 'cta cta-gradient' : 'cta'}
-							href="/account?next=/membership"
-						>
-							Join as {tier.name}
-						</Button>
-					{:else}
-						<form
-							method="post"
-							action="?/checkout"
-							use:enhance={({ formData }) => {
-								formData.set('embedOrigin', window.location.origin);
-								pendingTier = tier.tier;
-								checkoutError = null;
-								return async ({ result, update }) => {
-									if (result.type === 'success' && result.data?.checkoutUrl) {
-										await openEmbeddedCheckout(result.data.checkoutUrl as string);
-									} else if (result.type === 'failure') {
-										checkoutError = (result.data?.error as string) ?? null;
-									} else {
-										await update();
-									}
-									pendingTier = null;
-								};
-							}}
-						>
-							<input type="hidden" name="tier" value={tier.tier} />
-							<Button
-								type="submit"
-								variant="secondary"
-								class={popular ? 'cta cta-gradient w-full' : 'cta w-full'}
-								disabled={pendingTier !== null}
-							>
-								{#if pendingTier === tier.tier}
-									<RiLoader4Line class="animate-spin" />
-								{/if}
-								Join as {tier.name}
-							</Button>
-						</form>
-					{/if}
-				</article>
-			{/each}
+			{#if waitingForWebhook}
+				<span class="pill">
+					<RiLoader4Line class="animate-spin" /> Thank you! Setting up your membership…
+				</span>
+			{:else if justPaid}
+				<span class="pill">
+					<RiCheckLine class="check" /> Thank you! Your membership will appear here shortly
+				</span>
+			{:else if loggedIn}
+				<span class="pill"><RiCheckLine class="check" /> Your account is ready</span>
+			{/if}
+			<h1 class="text-4xl leading-snug! font-bold text-balance md:text-5xl lg:text-6xl">
+				We need you to help Mwmbl grow
+			</h1>
+			<p class="text-unemphasized-2 text-lg text-pretty sm:text-xl">
+				Members are our roots, supporting ethical, free search — built in the open, by and for the
+				people who use it.
+			</p>
 		</section>
 
-		<div class="mt-10 flex flex-col items-center gap-6 text-center">
-			<p class="text-unemphasized-2 max-w-2xl text-lg text-pretty">
-				<b class="font-bold">Seed Search</b> uses third-party sources to provide high-quality search
-				results that are stored in our index, improving results for everyone.
-			</p>
-			{#if membership?.cancel_at_period_end && membership.current_period_end}
-				<p class="text-unemphasized-2 max-w-2xl text-lg text-pretty">
-					Your membership ends on {new Date(membership.current_period_end).toLocaleDateString()}.
-				</p>
+		<main class="mx-auto w-full max-w-6xl px-4 pb-10 sm:px-8 sm:pb-16">
+			<div
+				class="text-unemphasized-2 mt-16 mb-6 text-center text-sm font-semibold tracking-[0.12em]"
+			>
+				PLANT YOUR SUPPORT
+			</div>
+
+			{#if error}
+				<div role="alert" class="bg-card text-destructive mb-6 rounded-2xl p-4 text-center">
+					{error}
+				</div>
 			{/if}
-			<p class="text-unemphasized-2 max-w-2xl text-lg text-pretty">
-				Cancel anytime. Mwmbl stays free for everyone — membership keeps it independent and ad-free.
-				All funds go to support the development of free search through the non-profit Mwmbl
-				Foundation.
-			</p>
-			<a href="/" class="link text-lg font-medium underline underline-offset-4">
-				{membership ? 'Let me explore' : 'Not now — let me explore'}
-			</a>
-		</div>
-	</main>
+
+			<section
+				class="grid grid-cols-[repeat(auto-fit,minmax(17rem,1fr))] gap-6"
+				aria-label="Membership levels"
+			>
+				{#each data.tiers as tier (tier.tier)}
+					{@const Icon = icons[tier.tier] ?? RiPlantLine}
+					{@const popular = tier.tier === popularTier}
+					<article class="tier bg-card flex flex-col gap-6 rounded-2xl p-6 sm:p-8" class:popular>
+						<div class="flex items-center gap-4">
+							<span class="tier-icon"><Icon /></span>
+							<h2 class="font-display text-2xl font-bold">{tier.name}</h2>
+							{#if popular}
+								<span class="chip">Popular</span>
+							{/if}
+						</div>
+						<div class="flex items-baseline gap-2">
+							<b class="font-display text-5xl leading-none font-extrabold">
+								{formatPrice(tier.monthly_price_pence)}
+							</b>
+							<span class="text-unemphasized-2 text-lg">/ month</span>
+						</div>
+						<ul class="flex flex-1 flex-col gap-4">
+							{#each tier.perks as perk}
+								<li class="grid grid-cols-[1.25rem_1fr] gap-3 text-lg leading-[1.45] text-pretty">
+									<RiCheckLine class="check mt-0.5 size-5" />
+									<span>
+										{#each perkParts(perk) as part}
+											{#if part.bold}<b class="font-bold">{part.text}</b>{:else}{part.text}{/if}
+										{/each}
+									</span>
+								</li>
+							{/each}
+						</ul>
+						{#if !loggedIn}
+							<Button
+								variant="secondary"
+								class={popular ? 'cta cta-gradient' : 'cta'}
+								href="/account?next=/membership"
+							>
+								Join as {tier.name}
+							</Button>
+						{:else}
+							<form
+								method="post"
+								action="?/checkout"
+								use:enhance={({ formData }) => {
+									formData.set('embedOrigin', window.location.origin);
+									pendingTier = tier.tier;
+									checkoutError = null;
+									return async ({ result, update }) => {
+										if (result.type === 'success' && result.data?.checkoutUrl) {
+											await openEmbeddedCheckout(result.data.checkoutUrl as string);
+										} else if (result.type === 'failure') {
+											checkoutError = (result.data?.error as string) ?? null;
+										} else {
+											await update();
+										}
+										pendingTier = null;
+									};
+								}}
+							>
+								<input type="hidden" name="tier" value={tier.tier} />
+								<Button
+									type="submit"
+									variant="secondary"
+									class={popular ? 'cta cta-gradient w-full' : 'cta w-full'}
+									disabled={pendingTier !== null}
+								>
+									{#if pendingTier === tier.tier}
+										<RiLoader4Line class="animate-spin" />
+									{/if}
+									Join as {tier.name}
+								</Button>
+							</form>
+						{/if}
+					</article>
+				{/each}
+			</section>
+
+			<div class="mt-10 flex flex-col items-center gap-6 text-center">
+				<p class="text-unemphasized-2 max-w-2xl text-lg text-pretty">
+					<b class="font-bold">Seed Search</b> uses third-party sources to provide high-quality search
+					results that are stored in our index, improving results for everyone.
+				</p>
+				<p class="text-unemphasized-2 max-w-2xl text-lg text-pretty">
+					Cancel anytime. Mwmbl stays free for everyone — membership keeps it independent and
+					ad-free. All funds go to support the development of free search through the non-profit
+					Mwmbl Foundation.
+				</p>
+				<a href="/" class="link text-lg font-medium underline underline-offset-4">
+					Not now — let me explore
+				</a>
+			</div>
+		</main>
+	{/if}
 </div>
 
 <footer class="mt-auto flex justify-center px-8 pb-8">
@@ -256,6 +218,7 @@
 
 		--mv-green: #009639;
 		--mv-green-soft: oklch(0.94 0.045 150);
+		--mv-panel: oklch(0.97 0.015 145);
 		--mv-check: #009639;
 		--mv-link: #007a2e;
 		--mv-chip-fg: #fff;
@@ -274,6 +237,7 @@
 		--border: oklch(0.3 0.02 150);
 
 		--mv-green-soft: oklch(0.32 0.06 150);
+		--mv-panel: oklch(0.21 0.017 150);
 		--mv-check: oklch(0.72 0.16 150);
 		--mv-link: oklch(0.8 0.13 150);
 	}

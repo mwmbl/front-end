@@ -1,6 +1,7 @@
 import type { Actions, PageServerLoad } from './$types';
 import { fail, redirect } from '@sveltejs/kit';
 import { API_BASE as API } from '$lib/api';
+import { SEED_SEARCH_COOKIE } from '$lib/seed-search';
 
 export type MembershipTierId = 'sprout' | 'sapling' | 'canopy';
 
@@ -69,14 +70,69 @@ async function getMembership(accessToken: string | undefined): Promise<Membershi
 	return null;
 }
 
+export type SeedSearchUsage = { monthly_usage: number; monthly_limit: number };
+
+async function getSeedSearchUsage(
+	accessToken: string | undefined
+): Promise<SeedSearchUsage | null> {
+	try {
+		const res = await fetch(`${API}/api/v1/platform/combined-search/usage`, {
+			headers: { Authorization: 'Bearer ' + accessToken }
+		});
+		if (res.ok) return await res.json();
+	} catch (err) {
+		console.log('Could not fetch Seed Search usage: ', err);
+	}
+	return null;
+}
+
+async function errorMessage(res: Response, fallback: string): Promise<string> {
+	try {
+		const json = await res.json();
+		if (typeof json.message === 'string') return json.message;
+		if (typeof json.detail === 'string') return json.detail;
+	} catch {
+		// Keep the fallback message
+	}
+	return fallback;
+}
+
 export const load: PageServerLoad = async ({ cookies, locals }) => {
 	const loggedIn = locals.loginStatus === 'assumeLoggedIn';
-	const [tiers, membership] = await Promise.all([
+	const accessToken = cookies.get('accessToken');
+	const [tiers, membership, seedSearchUsage] = await Promise.all([
 		getTiers(),
-		loggedIn ? getMembership(cookies.get('accessToken')) : Promise.resolve(null)
+		loggedIn ? getMembership(accessToken) : Promise.resolve(null),
+		loggedIn ? getSeedSearchUsage(accessToken) : Promise.resolve(null)
 	]);
-	return { tiers, membership };
+	return {
+		tiers,
+		membership,
+		seedSearchUsage,
+		seedSearchEnabled: cookies.get(SEED_SEARCH_COOKIE) === '1'
+	};
 };
+
+// Posts to one of the endpoints that change an existing membership.
+async function updateMembership(
+	path: 'change' | 'cancel' | 'uncancel',
+	accessToken: string | undefined,
+	body: object | undefined,
+	failure: string
+) {
+	const res = await fetch(`${API}/api/v1/platform/membership/${path}`, {
+		method: 'POST',
+		headers: {
+			Authorization: 'Bearer ' + accessToken,
+			...(body ? { 'Content-Type': 'application/json' } : {})
+		},
+		body: body ? JSON.stringify(body) : undefined
+	});
+	if (!res.ok) {
+		return fail(res.status, { error: await errorMessage(res, failure) });
+	}
+	return { updated: path };
+}
 
 export const actions: Actions = {
 	checkout: async ({ request, cookies, locals, url }) => {
@@ -103,14 +159,7 @@ export const actions: Actions = {
 		});
 
 		if (!res.ok) {
-			let message = 'Could not start checkout. Please try again.';
-			try {
-				const json = await res.json();
-				if (typeof json.message === 'string') message = json.message;
-				else if (typeof json.detail === 'string') message = json.detail;
-			} catch {
-				// Keep the generic message
-			}
+			let message = await errorMessage(res, 'Could not start checkout. Please try again.');
 			if (res.status === 403 && message === 'Email address is not verified') {
 				message = 'Please confirm your email address before becoming a member.';
 			}
@@ -122,5 +171,36 @@ export const actions: Actions = {
 			return { checkoutUrl: checkoutUrl as string };
 		}
 		redirect(303, checkoutUrl);
+	},
+
+	change: async ({ request, cookies, locals }) => {
+		if (locals.loginStatus !== 'assumeLoggedIn') redirect(303, '/account?next=/membership');
+		const tier = (await request.formData()).get('tier');
+		return updateMembership(
+			'change',
+			cookies.get('accessToken'),
+			{ tier },
+			'Could not change your membership. Please try again.'
+		);
+	},
+
+	cancel: async ({ cookies, locals }) => {
+		if (locals.loginStatus !== 'assumeLoggedIn') redirect(303, '/account?next=/membership');
+		return updateMembership(
+			'cancel',
+			cookies.get('accessToken'),
+			undefined,
+			'Could not cancel your membership. Please try again.'
+		);
+	},
+
+	uncancel: async ({ cookies, locals }) => {
+		if (locals.loginStatus !== 'assumeLoggedIn') redirect(303, '/account?next=/membership');
+		return updateMembership(
+			'uncancel',
+			cookies.get('accessToken'),
+			undefined,
+			'Could not keep your membership. Please try again.'
+		);
 	}
 };

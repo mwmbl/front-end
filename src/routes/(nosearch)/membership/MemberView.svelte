@@ -60,10 +60,13 @@
 	const error = $derived(actionError ?? form?.error ?? null);
 
 	let submitting = $state(false);
-	let changeTo = $state<MembershipTier | null>(null);
+	// Both tiers are captured when the dialog opens, so its text stays put while it animates closed,
+	// even after a successful change has reloaded `tier`.
+	let change = $state<{ from: MembershipTier | undefined; to: MembershipTier } | null>(null);
+	let changeOpen = $state(false);
 	let cancelOpen = $state(false);
 	const upgrading = $derived(
-		!!changeTo && !!tier && changeTo.monthly_price_pence > tier.monthly_price_pence
+		!!change?.from && change.to.monthly_price_pence > change.from.monthly_price_pence
 	);
 
 	const submit: SubmitFunction = () => {
@@ -75,7 +78,7 @@
 			}
 			await update();
 			submitting = false;
-			changeTo = null;
+			changeOpen = false;
 			cancelOpen = false;
 		};
 	};
@@ -316,7 +319,10 @@
 						<Button
 							variant="secondary"
 							class={higher ? 'action cta-gradient' : 'action'}
-							onclick={() => (changeTo = t)}
+							onclick={() => {
+								change = { from: tier, to: t };
+								changeOpen = true;
+							}}
 						>
 							{higher ? 'Upgrade' : 'Downgrade'} to {t.name}
 						</Button>
@@ -341,22 +347,22 @@
 </main>
 
 <AlertDialog.Root
-	open={changeTo !== null}
+	open={changeOpen}
 	onOpenChange={(open) => {
-		if (!open && !submitting) changeTo = null;
+		if (!submitting) changeOpen = open;
 	}}
 >
 	<AlertDialog.Content class="bg-card rounded-2xl">
 		<AlertDialog.Header>
 			<AlertDialog.Title class="font-display text-2xl font-bold">
-				{upgrading ? 'Upgrade' : 'Downgrade'} to {changeTo?.name}?
+				{upgrading ? 'Upgrade' : 'Downgrade'} to {change?.to.name}?
 			</AlertDialog.Title>
 			<AlertDialog.Description class="text-base">
-				You'll move from {tier?.name}{tier
-					? ` (${formatPrice(tier.monthly_price_pence)} a month)`
+				You'll move from {change?.from?.name}{change?.from
+					? ` (${formatPrice(change.from.monthly_price_pence)} a month)`
 					: ''}
-				to {changeTo?.name}{changeTo
-					? ` (${formatPrice(changeTo.monthly_price_pence)} a month)`
+				to {change?.to.name}{change
+					? ` (${formatPrice(change.to.monthly_price_pence)} a month)`
 					: ''}
 				straight away. Your next invoice will be adjusted for the rest of this billing period.
 			</AlertDialog.Description>
@@ -364,10 +370,10 @@
 		<AlertDialog.Footer>
 			<AlertDialog.Cancel disabled={submitting}>Not now</AlertDialog.Cancel>
 			<form method="post" action="?/change" use:enhance={submit} class="max-sm:w-full">
-				<input type="hidden" name="tier" value={changeTo?.tier} />
+				<input type="hidden" name="tier" value={change?.to.tier} />
 				<AlertDialog.Action type="submit" class="confirm max-sm:w-full" disabled={submitting}>
 					{#if submitting}<RiLoader4Line class="animate-spin" />{/if}
-					{upgrading ? 'Upgrade' : 'Downgrade'} to {changeTo?.name}
+					{upgrading ? 'Upgrade' : 'Downgrade'} to {change?.to.name}
 				</AlertDialog.Action>
 			</form>
 		</AlertDialog.Footer>

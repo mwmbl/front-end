@@ -64,7 +64,7 @@
 </script>
 
 <svelte:head>
-	<title>Become a member – Mwmbl</title>
+	<title>{membership ? 'Your membership' : 'Become a member'} – Mwmbl</title>
 </svelte:head>
 
 <div class="membership-page flex flex-col">

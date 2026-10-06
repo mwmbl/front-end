@@ -27,6 +27,7 @@
 	let datasetResultsChart: any = null;
 	let indexGrowthChart: any = null;
 	let moderationChart: any = null;
+	let registeredWeeklyChart: any = null;
 
 	// Canvas refs
 	let resultsIndexedCanvas: HTMLCanvasElement;
@@ -36,6 +37,7 @@
 	let datasetResultsCanvas: HTMLCanvasElement;
 	let indexGrowthCanvas: HTMLCanvasElement;
 	let moderationCanvas: HTMLCanvasElement;
+	let registeredWeeklyCanvas: HTMLCanvasElement;
 
 	let chartError: string | null = $state(null);
 
@@ -135,6 +137,46 @@
 						}]
 					},
 					options: { ...commonOptions, plugins: { ...commonOptions.plugins, title: { ...commonOptions.plugins.title, text: 'Active Crawlers by Day' } } }
+				});
+			}
+
+			// Users Registered Weekly Chart
+			if (registeredWeeklyCanvas) {
+				registeredWeeklyChart = new Chart(registeredWeeklyCanvas, {
+					type: 'bar',
+					data: {
+						labels: data.registeredWeekly.labels,
+						datasets: [{
+							label: 'Users Registered',
+							data: data.registeredWeekly.data,
+							backgroundColor: 'rgba(99, 102, 241, 0.8)',
+							borderColor: 'rgb(99, 102, 241)',
+							borderWidth: 1
+						}]
+					},
+					options: {
+						...commonOptions,
+						plugins: {
+							...commonOptions.plugins,
+							title: { ...commonOptions.plugins.title, text: 'Users Registered by Week' },
+							tooltip: {
+								callbacks: {
+									title: (items: any[]) => `Week of ${formatDate(data.registeredWeekly.labels[items[0].dataIndex])}`
+								}
+							}
+						},
+						scales: {
+							...commonOptions.scales,
+							x: {
+								...commonOptions.scales.x,
+								ticks: {
+									...commonOptions.scales.x.ticks,
+									maxTicksLimit: 13,
+									callback: (value: string | number, index: number) => formatDate(data.registeredWeekly.labels[index])
+								}
+							}
+						}
+					}
 				});
 			}
 
@@ -277,7 +319,7 @@
 	}
 
 	function destroyCharts() {
-		[resultsIndexedChart, usersCrawledChart, topUsersChart, datasetQueriesChart, datasetResultsChart, indexGrowthChart, moderationChart].forEach(chart => {
+		[resultsIndexedChart, usersCrawledChart, registeredWeeklyChart, topUsersChart, datasetQueriesChart, datasetResultsChart, indexGrowthChart, moderationChart].forEach(chart => {
 			if (chart) chart.destroy();
 		});
 	}
@@ -461,6 +503,7 @@
 				<div class="grid grid-cols-1 sm:grid-cols-2 gap-4 text-sm text-gray-600 dark:text-gray-400">
 					<p><strong>Active Crawlers:</strong> Unique crawler users who submitted results on each day.</p>
 					<p><strong>Results Indexed:</strong> Number of search results added to the index each day.</p>
+					<p><strong>Users Registered:</strong> New user accounts registered each week (weeks start on Monday).</p>
 					<p><strong>Top Contributors:</strong> All-time leaderboard of crawlers by total results submitted.</p>
 					<p><strong>Dataset Queries:</strong> Autocomplete queries collected from the Firefox extension.</p>
 					<p><strong>Dataset Results:</strong> Search results returned for dataset queries.</p>
@@ -494,6 +537,13 @@
 					<div>
 						<div class="h-80" style="position: relative; height: 320px; width: 100%;">
 							<canvas bind:this={usersCrawledCanvas} class="w-full h-full"></canvas>
+						</div>
+					</div>
+
+					<!-- Users Registered Weekly -->
+					<div class="lg:col-span-2">
+						<div class="h-80" style="position: relative; height: 320px; width: 100%;">
+							<canvas bind:this={registeredWeeklyCanvas} class="w-full h-full"></canvas>
 						</div>
 					</div>
 

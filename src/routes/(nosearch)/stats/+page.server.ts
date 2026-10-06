@@ -13,6 +13,7 @@ export const load: PageServerLoad = async ({ fetch }) => {
 		dataset_queries_daily: Record<string, number>;
 		dataset_results_daily: Record<string, number>;
 		blacklisted_results_removed_daily: Record<string, number>;
+		users_registered_weekly: Record<string, number>;
 	} = {
 		users_crawled_daily: {},
 		results_indexed_daily: {},
@@ -22,7 +23,8 @@ export const load: PageServerLoad = async ({ fetch }) => {
 		results_in_index_daily: {},
 		dataset_queries_daily: {},
 		dataset_results_daily: {},
-		blacklisted_results_removed_daily: {}
+		blacklisted_results_removed_daily: {},
+		users_registered_weekly: {}
 	};
 
 	try {
@@ -87,6 +89,19 @@ export const load: PageServerLoad = async ({ fetch }) => {
 		blacklistedRemovedData.push(stats.blacklisted_results_removed_daily[dateStr] || 0);
 	}
 
+	// Weekly registrations, keyed by week start date; fill in any missing weeks with zero
+	const registeredWeeks = Object.keys(stats.users_registered_weekly ?? {}).sort();
+	const registeredWeeklyLabels: string[] = [];
+	const registeredWeeklyData: number[] = [];
+	if (registeredWeeks.length > 0) {
+		const end = new Date(registeredWeeks[registeredWeeks.length - 1]);
+		for (let date = new Date(registeredWeeks[0]); date <= end; date.setUTCDate(date.getUTCDate() + 7)) {
+			const dateStr = date.toISOString().split('T')[0];
+			registeredWeeklyLabels.push(dateStr);
+			registeredWeeklyData.push(stats.users_registered_weekly[dateStr] || 0);
+		}
+	}
+
 	// Calculate totals
 	const totalUsersCrawled = Object.values(stats.users_crawled_daily).reduce((sum, v) => sum + v, 0);
 	const totalResultsIndexed = Object.values(stats.results_indexed_daily).reduce((sum, v) => sum + v, 0);
@@ -130,6 +145,10 @@ export const load: PageServerLoad = async ({ fetch }) => {
 			datasetQueries: datasetQueriesData,
 			datasetResults: datasetResultsData,
 			blacklistedRemoved: blacklistedRemovedData
+		},
+		registeredWeekly: {
+			labels: registeredWeeklyLabels,
+			data: registeredWeeklyData
 		},
 		totals: {
 			usersCrawled: totalUsersCrawled,

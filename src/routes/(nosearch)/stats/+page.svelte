@@ -6,7 +6,7 @@
 
 	let { data }: { data: PageData } = $props();
 
-	let activeTab = $state('overview');
+	let activeTab = $state('charts');
 	let showAllLeaderboard = $state(false);
 
 	function formatNumber(num: number): string {
@@ -396,10 +396,83 @@
 	<!-- Tabs for different sections -->
 	<Tabs bind:value={activeTab} class="w-full">
 		<TabsList class="grid w-full grid-cols-3">
-			<TabsTrigger value="overview">Overview</TabsTrigger>
 			<TabsTrigger value="charts">Charts</TabsTrigger>
+			<TabsTrigger value="overview">Overview</TabsTrigger>
 			<TabsTrigger value="leaderboard">Leaderboard</TabsTrigger>
 		</TabsList>
+
+		<!-- Charts Tab -->
+		<TabsContent value="charts" class="space-y-6">
+			{#if chartError}
+				<div class="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg p-4">
+					<p class="text-red-700 dark:text-red-300">Chart error: {chartError}</p>
+				</div>
+			{/if}
+
+			<!-- Crawler Activity Charts -->
+			<div class="bg-white dark:bg-gray-800 rounded-lg shadow p-6">
+				<h2 class="text-xl font-semibold mb-4">Crawler Activity (Last 30 Days)</h2>
+				<div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+					<!-- Results Indexed Daily -->
+					<div>
+						<div class="h-80" style="position: relative; height: 320px; width: 100%;">
+							<canvas bind:this={resultsIndexedCanvas} class="w-full h-full"></canvas>
+						</div>
+					</div>
+
+					<!-- Users Crawled Daily -->
+					<div>
+						<div class="h-80" style="position: relative; height: 320px; width: 100%;">
+							<canvas bind:this={usersCrawledCanvas} class="w-full h-full"></canvas>
+						</div>
+					</div>
+
+					<!-- Users Registered Weekly -->
+					<div class="lg:col-span-2">
+						<div class="h-80" style="position: relative; height: 320px; width: 100%;">
+							<canvas bind:this={registeredWeeklyCanvas} class="w-full h-full"></canvas>
+						</div>
+					</div>
+
+					<!-- Top Users (Horizontal Bar) -->
+					<div class="lg:col-span-2">
+						<div class="h-96" style="position: relative; height: 384px; width: 100%;">
+							<canvas bind:this={topUsersCanvas} class="w-full h-full"></canvas>
+						</div>
+					</div>
+
+					<!-- Dataset Queries Daily -->
+					<div>
+						<div class="h-80" style="position: relative; height: 320px; width: 100%;">
+							<canvas bind:this={datasetQueriesCanvas} class="w-full h-full"></canvas>
+						</div>
+					</div>
+
+					<!-- Dataset Results Daily -->
+					<div>
+						<div class="h-80" style="position: relative; height: 320px; width: 100%;">
+							<canvas bind:this={datasetResultsCanvas} class="w-full h-full"></canvas>
+						</div>
+					</div>
+				</div>
+			</div>
+
+			<!-- Index Growth Chart -->
+			<div class="bg-white dark:bg-gray-800 rounded-lg shadow p-6">
+				<h2 class="text-xl font-semibold mb-4">Index Growth (Last 30 Days)</h2>
+				<div class="h-96" style="position: relative; height: 400px; width: 100%;">
+					<canvas bind:this={indexGrowthCanvas} class="w-full h-full"></canvas>
+				</div>
+			</div>
+
+			<!-- Moderation Chart -->
+			<div class="bg-white dark:bg-gray-800 rounded-lg shadow p-6">
+				<h2 class="text-xl font-semibold mb-4">Moderation Activity (Last 30 Days)</h2>
+				<div class="h-80" style="position: relative; height: 320px; width: 100%;">
+					<canvas bind:this={moderationCanvas} class="w-full h-full"></canvas>
+				</div>
+			</div>
+		</TabsContent>
 
 		<!-- Overview Tab -->
 		<TabsContent value="overview" class="space-y-6">
@@ -510,79 +583,6 @@
 					<p><strong>Index Growth:</strong> URLs, domains, and results in the search index over time.</p>
 					<p><strong>Moderation:</strong> Results removed due to blacklisted domains.</p>
 					<p><strong>Timezone:</strong> All dates are in UTC.</p>
-				</div>
-			</div>
-		</TabsContent>
-
-		<!-- Charts Tab -->
-		<TabsContent value="charts" class="space-y-6">
-			{#if chartError}
-				<div class="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg p-4">
-					<p class="text-red-700 dark:text-red-300">Chart error: {chartError}</p>
-				</div>
-			{/if}
-
-			<!-- Crawler Activity Charts -->
-			<div class="bg-white dark:bg-gray-800 rounded-lg shadow p-6">
-				<h2 class="text-xl font-semibold mb-4">Crawler Activity (Last 30 Days)</h2>
-				<div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
-					<!-- Results Indexed Daily -->
-					<div>
-						<div class="h-80" style="position: relative; height: 320px; width: 100%;">
-							<canvas bind:this={resultsIndexedCanvas} class="w-full h-full"></canvas>
-						</div>
-					</div>
-
-					<!-- Users Crawled Daily -->
-					<div>
-						<div class="h-80" style="position: relative; height: 320px; width: 100%;">
-							<canvas bind:this={usersCrawledCanvas} class="w-full h-full"></canvas>
-						</div>
-					</div>
-
-					<!-- Users Registered Weekly -->
-					<div class="lg:col-span-2">
-						<div class="h-80" style="position: relative; height: 320px; width: 100%;">
-							<canvas bind:this={registeredWeeklyCanvas} class="w-full h-full"></canvas>
-						</div>
-					</div>
-
-					<!-- Top Users (Horizontal Bar) -->
-					<div class="lg:col-span-2">
-						<div class="h-96" style="position: relative; height: 384px; width: 100%;">
-							<canvas bind:this={topUsersCanvas} class="w-full h-full"></canvas>
-						</div>
-					</div>
-
-					<!-- Dataset Queries Daily -->
-					<div>
-						<div class="h-80" style="position: relative; height: 320px; width: 100%;">
-							<canvas bind:this={datasetQueriesCanvas} class="w-full h-full"></canvas>
-						</div>
-					</div>
-
-					<!-- Dataset Results Daily -->
-					<div>
-						<div class="h-80" style="position: relative; height: 320px; width: 100%;">
-							<canvas bind:this={datasetResultsCanvas} class="w-full h-full"></canvas>
-						</div>
-					</div>
-				</div>
-			</div>
-
-			<!-- Index Growth Chart -->
-			<div class="bg-white dark:bg-gray-800 rounded-lg shadow p-6">
-				<h2 class="text-xl font-semibold mb-4">Index Growth (Last 30 Days)</h2>
-				<div class="h-96" style="position: relative; height: 400px; width: 100%;">
-					<canvas bind:this={indexGrowthCanvas} class="w-full h-full"></canvas>
-				</div>
-			</div>
-
-			<!-- Moderation Chart -->
-			<div class="bg-white dark:bg-gray-800 rounded-lg shadow p-6">
-				<h2 class="text-xl font-semibold mb-4">Moderation Activity (Last 30 Days)</h2>
-				<div class="h-80" style="position: relative; height: 320px; width: 100%;">
-					<canvas bind:this={moderationCanvas} class="w-full h-full"></canvas>
 				</div>
 			</div>
 		</TabsContent>

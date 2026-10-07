@@ -60,8 +60,8 @@
 	const features = [
 		{
 			icon: RiToggleLine,
-			title: 'On when you log in',
-			body: "Seed Search is on by default for logged-in users. Turn off the switch next to the search bar if you'd rather not use it."
+			title: 'One switch, saved to your account',
+			body: "Seed Search is on for new accounts. Turn it on or off with the switch next to the search bar, and the setting follows you to every device."
 		},
 		{
 			icon: RiCalendarLine,

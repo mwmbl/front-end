@@ -1,7 +1,7 @@
 // add the ranker to dependencies to use wasm ranker ("ranker": "file:./pkg/" when testing)
 import { API_BASE } from '$lib/api';
 import { hitToResult, type SearchHit } from '$lib/highlight';
-import { SEED_SEARCH_COOKIE, seedSearchState } from '$lib/seed-search';
+import { seedSearchOn, seedSearchState } from '$lib/seed-search';
 
 // uncomment to use wasm ranker
 // export const ssr = false;
@@ -28,7 +28,7 @@ export async function load({ url, cookies, locals }) {
 	let pagesIndexed: number | null = null;
 
 	// Opt-in via the Seed Search toggle. On any failure (quota, auth, outage) fall back to standard search.
-	if (locals.loginStatus === 'assumeLoggedIn' && cookies.get(SEED_SEARCH_COOKIE) === '1') {
+	if (locals.loginStatus === 'assumeLoggedIn' && seedSearchOn(cookies)) {
 		try {
 			const res = await fetch(
 				`${API_BASE}/api/v2/combined-search/?q=${encodeURIComponent(query)}`,

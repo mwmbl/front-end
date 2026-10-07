@@ -4,6 +4,11 @@ import { API_BASE } from '$lib/api';
 // Cookie name predates the rename from Combined Search, kept so existing opt-ins survive.
 export const SEED_SEARCH_COOKIE = 'labs_combined';
 
+// Seed Search is on by default for logged-in users; turning it off stores '0'.
+export function seedSearchOn(cookies: Cookies) {
+	return cookies.get(SEED_SEARCH_COOKIE) !== '0';
+}
+
 async function fetchQuotaExhausted(cookies: Cookies) {
 	try {
 		const res = await fetch(`${API_BASE}/api/v1/platform/combined-search/usage`, {
@@ -20,7 +25,7 @@ async function fetchQuotaExhausted(cookies: Cookies) {
 
 export async function seedSearchState(cookies: Cookies, loggedIn: boolean) {
 	return {
-		seedSearchEnabled: cookies.get(SEED_SEARCH_COOKIE) === '1',
+		seedSearchEnabled: seedSearchOn(cookies),
 		seedSearchQuotaExhausted: loggedIn ? await fetchQuotaExhausted(cookies) : false
 	};
 }

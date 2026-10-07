@@ -7,16 +7,12 @@ export async function POST({ request, cookies, locals }) {
 		error(401, 'Log in to use Seed Search');
 	}
 	const { enabled } = await request.json();
-	if (enabled) {
-		cookies.set(SEED_SEARCH_COOKIE, '1', {
-			path: '/',
-			httpOnly: true,
-			sameSite: 'lax',
-			secure: !dev,
-			maxAge: 60 * 60 * 24 * 365 // 1 year
-		});
-	} else {
-		cookies.delete(SEED_SEARCH_COOKIE, { path: '/' });
-	}
+	cookies.set(SEED_SEARCH_COOKIE, enabled ? '1' : '0', {
+		path: '/',
+		httpOnly: true,
+		sameSite: 'lax',
+		secure: !dev,
+		maxAge: 60 * 60 * 24 * 365 // 1 year
+	});
 	return json({ enabled: !!enabled });
 }

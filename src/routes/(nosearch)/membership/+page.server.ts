@@ -1,7 +1,7 @@
 import type { Actions, PageServerLoad } from './$types';
 import { fail, redirect } from '@sveltejs/kit';
 import { API_BASE as API } from '$lib/api';
-import { SEED_SEARCH_COOKIE } from '$lib/seed-search';
+import { seedSearchOn } from '$lib/seed-search';
 
 export type MembershipTierId = 'sprout' | 'sapling' | 'canopy';
 
@@ -109,7 +109,7 @@ export const load: PageServerLoad = async ({ cookies, locals }) => {
 		tiers,
 		membership,
 		seedSearchUsage,
-		seedSearchEnabled: cookies.get(SEED_SEARCH_COOKIE) === '1'
+		seedSearchEnabled: seedSearchOn(cookies)
 	};
 };
 

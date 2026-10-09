@@ -2,6 +2,7 @@
 import { API_BASE } from '$lib/api';
 import { hitToResult, type SearchHit } from '$lib/highlight';
 import { SEED_SEARCH_COOKIE, seedSearchState } from '$lib/seed-search';
+import { fetchSeedCrawl, type SeedCrawl } from '$lib/seed-crawl';
 
 // uncomment to use wasm ranker
 // export const ssr = false;
@@ -26,6 +27,7 @@ export async function load({ url, cookies, locals }) {
 	let seedUsage: { usage: number; limit: number } | null = null;
 	let seedFallback: 'quota' | 'error' | null = null;
 	let pagesIndexed: number | null = null;
+	let seedCrawl: SeedCrawl | null = null;
 
 	// Opt-in via the Seed Search toggle. On any failure (quota, auth, outage) fall back to standard search.
 	if (locals.loginStatus === 'assumeLoggedIn' && cookies.get(SEED_SEARCH_COOKIE) === '1') {
@@ -47,6 +49,7 @@ export async function load({ url, cookies, locals }) {
 					seedUsage = { usage: json.monthly_usage, limit: json.monthly_limit };
 				}
 				pagesIndexed = json.pages_indexed ?? null;
+				seedCrawl = await fetchSeedCrawl(cookies.get('accessToken'), query);
 			} else {
 				seedFallback = res.status === 429 ? 'quota' : 'error';
 			}
@@ -73,6 +76,7 @@ export async function load({ url, cookies, locals }) {
 			seedFallback,
 			seedQuotaHit,
 			pagesIndexed,
+			seedCrawl,
 			...(await seedState)
 		};
 	}
@@ -104,6 +108,7 @@ export async function load({ url, cookies, locals }) {
 		seedFallback,
 		seedQuotaHit,
 		pagesIndexed,
+		seedCrawl,
 		...(await seedState)
 	};
 	// }

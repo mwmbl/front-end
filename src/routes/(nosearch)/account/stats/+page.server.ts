@@ -29,10 +29,12 @@ export const load: PageServerLoad = async ({ cookies, locals }) => {
 		username: string;
 		results_indexed_today: number;
 		results_indexed_daily: Record<string, number>;
+		seed_search_pages_indexed?: number;
 	} = {
 		username,
 		results_indexed_today: 0,
-		results_indexed_daily: {}
+		results_indexed_daily: {},
+		seed_search_pages_indexed: 0
 	};
 	try {
 		const statsRes = await fetch(`${API_BASE}/api/v1/platform/user/stats`, {
@@ -84,6 +86,7 @@ export const load: PageServerLoad = async ({ cookies, locals }) => {
 		username: userStats.username || username,
 		myIndexedToday: userStats.results_indexed_today,
 		totalIndexed,
+		seedCrawlPagesIndexed: userStats.seed_search_pages_indexed ?? 0,
 		chartLabels: labels,
 		chartData: {
 			indexed: indexedData

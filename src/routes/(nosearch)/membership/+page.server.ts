@@ -1,7 +1,7 @@
 import type { Actions, PageServerLoad } from './$types';
 import { fail, redirect } from '@sveltejs/kit';
 import { API_BASE as API } from '$lib/api';
-import { SEED_SEARCH_COOKIE } from '$lib/seed-search';
+import { fetchSeedSearchEnabled } from '$lib/seed-search';
 
 export type MembershipTierId = 'sprout' | 'sapling' | 'canopy';
 
@@ -100,16 +100,17 @@ async function errorMessage(res: Response, fallback: string): Promise<string> {
 export const load: PageServerLoad = async ({ cookies, locals }) => {
 	const loggedIn = locals.loginStatus === 'assumeLoggedIn';
 	const accessToken = cookies.get('accessToken');
-	const [tiers, membership, seedSearchUsage] = await Promise.all([
+	const [tiers, membership, seedSearchUsage, seedSearchEnabled] = await Promise.all([
 		getTiers(),
 		loggedIn ? getMembership(accessToken) : Promise.resolve(null),
-		loggedIn ? getSeedSearchUsage(accessToken) : Promise.resolve(null)
+		loggedIn ? getSeedSearchUsage(accessToken) : Promise.resolve(null),
+		loggedIn ? fetchSeedSearchEnabled(cookies) : Promise.resolve(false)
 	]);
 	return {
 		tiers,
 		membership,
 		seedSearchUsage,
-		seedSearchEnabled: cookies.get(SEED_SEARCH_COOKIE) === '1'
+		seedSearchEnabled
 	};
 };
 

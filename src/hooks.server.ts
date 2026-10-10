@@ -1,15 +1,10 @@
 import type { Handle } from '@sveltejs/kit';
-import { error } from '@sveltejs/kit';
 import { API_BASE } from '$lib/api';
 import { clearAuthCookies, isPersistentLogin, setAuthCookies } from '$lib/server/auth-cookies';
+import { isExpired, refreshTokens } from '$lib/server/auth-tokens';
 
 const MWMBL_API_BASE_URL = API_BASE;
 const PROXY_PATH = '/api';
-
-function isExpired(token: string): boolean {
-	const payload = JSON.parse(atob(token.split('.')[1].replace(/-/g, '+').replace(/_/g, '/')));
-	return payload.exp < Date.now() / 1000;
-}
 
 export const handle: Handle = async ({ event, resolve }) => {
 	const accessToken = event.cookies.get('accessToken');
@@ -19,24 +14,20 @@ export const handle: Handle = async ({ event, resolve }) => {
 		event.locals.loginStatus = 'assumeLoggedIn';
 	} else if (refreshToken) {
 		// Access token is missing or expired, let's do a refresh
-		const res = await fetch(`${API_BASE}/api/v1/platform/token/refresh`, {
-			method: 'POST',
-			headers: { 'Content-Type': 'application/json' },
-			body: JSON.stringify({ refresh: refreshToken })
-		});
-		if (res.ok) {
-			const json = await res.json();
-			setAuthCookies(event.cookies, json, isPersistentLogin(event.cookies));
+		const result = await refreshTokens(refreshToken);
+		if (result.status === 'ok') {
+			setAuthCookies(event.cookies, result, isPersistentLogin(event.cookies));
 			event.locals.loginStatus = 'assumeLoggedIn';
 		} else {
 			event.locals.loginStatus = 'assumeLoggedOut';
+			// Only a rejected refresh token ends the login. After a temporary failure,
+			// keep the cookies so the next request can try again.
+			if (result.status === 'invalid') {
+				clearAuthCookies(event.cookies);
+			}
 		}
 	} else {
 		event.locals.loginStatus = 'assumeLoggedOut';
-	}
-
-	// Delete cookies if logged out
-	if (event.locals.loginStatus === 'assumeLoggedOut') {
 		clearAuthCookies(event.cookies);
 	}
 

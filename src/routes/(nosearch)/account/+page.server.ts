@@ -36,6 +36,7 @@ export const actions: Actions = {
 		const data = await request.formData();
 		const res = await fetch(`${API}/api/v1/platform/token/pair`, {
 			method: 'POST',
+			headers: { 'Content-Type': 'application/json' },
 			body: JSON.stringify({
 				username: data.get('username'),
 				password: data.get('password')

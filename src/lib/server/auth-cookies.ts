@@ -6,8 +6,9 @@ import type { Cookies } from '@sveltejs/kit';
 const PERSISTENT_MAX_AGE = 60 * 60 * 24 * 365; // 1 year
 
 // Records whether the user ticked "Keep me logged in", so token refreshes keep the
-// same cookie lifetime. Without it, auth cookies are session cookies that the
-// browser drops when it closes (for shared machines).
+// same cookie lifetime. If they didn't, it is '0' and auth cookies are session
+// cookies that the browser drops when it closes (for shared machines). Logins from
+// before this cookie existed don't have it and count as persistent.
 const PERSISTENT_COOKIE = 'persistentLogin';
 
 type CookieOptions = Parameters<Cookies['set']>[2];
@@ -23,24 +24,27 @@ function cookieOptions(persistent: boolean, httpOnly: boolean): CookieOptions {
 }
 
 export function isPersistentLogin(cookies: Cookies): boolean {
-	return cookies.get(PERSISTENT_COOKIE) === '1';
+	return cookies.get(PERSISTENT_COOKIE) !== '0';
 }
 
 export function setAuthCookies(
 	cookies: Cookies,
-	tokens: { access: string; refresh: string; username?: string },
+	tokens: { access: string; refresh?: string; username?: string },
 	persistent: boolean
 ) {
+	// A token refresh returns no username, and no refresh token if rotation is off.
+	// Keep the existing values so their cookies are renewed along with the access token.
+	const refresh = tokens.refresh ?? cookies.get('refreshToken');
+	const username = tokens.username ?? cookies.get('username');
+
 	cookies.set('accessToken', tokens.access, cookieOptions(persistent, true));
-	cookies.set('refreshToken', tokens.refresh, cookieOptions(persistent, true));
-	if (tokens.username) {
-		cookies.set('username', tokens.username, cookieOptions(persistent, false));
+	if (refresh) {
+		cookies.set('refreshToken', refresh, cookieOptions(persistent, true));
 	}
-	if (persistent) {
-		cookies.set(PERSISTENT_COOKIE, '1', cookieOptions(true, true));
-	} else {
-		cookies.delete(PERSISTENT_COOKIE, { path: '/' });
+	if (username) {
+		cookies.set('username', username, cookieOptions(persistent, false));
 	}
+	cookies.set(PERSISTENT_COOKIE, persistent ? '1' : '0', cookieOptions(persistent, true));
 }
 
 export function clearAuthCookies(cookies: Cookies) {

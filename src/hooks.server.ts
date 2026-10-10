@@ -1,55 +1,35 @@
-import { dev } from '$app/environment';
 import type { Handle } from '@sveltejs/kit';
 import { error } from '@sveltejs/kit';
 import { API_BASE } from '$lib/api';
+import { clearAuthCookies, isPersistentLogin, setAuthCookies } from '$lib/server/auth-cookies';
 
 const MWMBL_API_BASE_URL = API_BASE;
 const PROXY_PATH = '/api';
 
+function isExpired(token: string): boolean {
+	const payload = JSON.parse(atob(token.split('.')[1].replace(/-/g, '+').replace(/_/g, '/')));
+	return payload.exp < Date.now() / 1000;
+}
+
 export const handle: Handle = async ({ event, resolve }) => {
 	const accessToken = event.cookies.get('accessToken');
+	const refreshToken = event.cookies.get('refreshToken');
 
-	if (accessToken) {
-		// Parse access token to see if it's expired
-		const parsedJWT = JSON.parse(
-			atob(accessToken.split('.')[1].replace(/-/g, '+').replace(/_/g, '/'))
-		);
-
-		if (parsedJWT.exp < Date.now() / 1000) {
-			// Access token is expired, let's do a refresh
-			const refreshToken = event.cookies.get('refreshToken');
-			if (refreshToken) {
-				const res = await fetch(`${API_BASE}/api/v1/platform/token/refresh`, {
-					method: 'POST',
-					body: JSON.stringify({
-						refresh: refreshToken
-					})
-				});
-				if (res.ok) {
-					const json = await res.json();
-					event.cookies.set('accessToken', json.access, {
-						path: '/',
-						httpOnly: false,
-						sameSite: 'strict',
-						secure: !dev,
-						maxAge: 60 * 60 * 24 // 1 day
-					});
-					event.cookies.set('refreshToken', json.refresh, {
-						path: '/',
-						httpOnly: true,
-						sameSite: 'strict',
-						secure: !dev,
-						maxAge: 60 * 60 * 24 * 30 // 30 days
-					});
-					event.locals.loginStatus = 'assumeLoggedIn';
-				} else {
-					event.locals.loginStatus = 'assumeLoggedOut';
-				}
-			} else {
-				event.locals.loginStatus = 'assumeLoggedOut';
-			}
-		} else {
+	if (accessToken && !isExpired(accessToken)) {
+		event.locals.loginStatus = 'assumeLoggedIn';
+	} else if (refreshToken) {
+		// Access token is missing or expired, let's do a refresh
+		const res = await fetch(`${API_BASE}/api/v1/platform/token/refresh`, {
+			method: 'POST',
+			headers: { 'Content-Type': 'application/json' },
+			body: JSON.stringify({ refresh: refreshToken })
+		});
+		if (res.ok) {
+			const json = await res.json();
+			setAuthCookies(event.cookies, json, isPersistentLogin(event.cookies));
 			event.locals.loginStatus = 'assumeLoggedIn';
+		} else {
+			event.locals.loginStatus = 'assumeLoggedOut';
 		}
 	} else {
 		event.locals.loginStatus = 'assumeLoggedOut';
@@ -57,8 +37,7 @@ export const handle: Handle = async ({ event, resolve }) => {
 
 	// Delete cookies if logged out
 	if (event.locals.loginStatus === 'assumeLoggedOut') {
-		event.cookies.delete('refreshToken', { path: '/' });
-		event.cookies.delete('accessToken', { path: '/' });
+		clearAuthCookies(event.cookies);
 	}
 
 	// intercept requests to `/api/` and handle them with `handleApiProxy`

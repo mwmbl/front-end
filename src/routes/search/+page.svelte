@@ -128,7 +128,7 @@
 			<SeedCrawlPanel
 				query={data.query}
 				initialCrawl={data.seedCrawl}
-				canStart={!data.seedQuotaHit}
+				attempt={data.seedCrawlAttempt}
 			/>
 		{/if}
 		<Cta />

@@ -17,6 +17,18 @@ export type SeedCrawl = {
 	pages: SeedCrawlPage[];
 };
 
+// What a Seed Search's crawl=true did: started a crawl, or why it didn't.
+export type SeedCrawlOutcome =
+	| 'scheduled'
+	| 'no_results'
+	| 'already_indexed'
+	| 'already_running'
+	| 'queue_full';
+
+// activeQuery is the query of the user's crawl still queued or running, with already_running.
+// outcome is null if the API predates crawl_outcome.
+export type SeedCrawlAttempt = { outcome: SeedCrawlOutcome | null; activeQuery: string | null };
+
 // How many of the newest pages to send to the page unless all of them are asked for, since a
 // crawl can add hundreds.
 export const LATEST_PAGES = 5;

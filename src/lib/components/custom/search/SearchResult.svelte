@@ -24,6 +24,7 @@
 	} = $props();
 
 	import { localStorageOptions } from '@/localStorageOptions.svelte';
+	import { faviconUrl } from '$lib/utils';
 	let { options } = localStorageOptions;
 
 	// `google` and `user` mark how a page first entered the Mwmbl index, not where the result came from.
@@ -38,11 +39,9 @@
 
 	let urlSegments = $derived(result.url.replace(/.*:\/\//, '').split('/'));
 
-	// Favicons are fetched from DDG to preserve privacy.
-	// Making our own Favicon API would be possible too if we want that in the future.
-	let faviconUrl = $derived.by(() => {
+	let favicon = $derived.by(() => {
 		try {
-			return `https://icons.duckduckgo.com/ip2/${new URL(result.url).hostname}.ico`;
+			return faviconUrl(new URL(result.url).hostname);
 		} catch {
 			return '';
 		}
@@ -56,8 +55,8 @@
 				class="text-unemphasized-2 grid grid-cols-[2rem_1fr_auto] items-center gap-2 leading-snug font-medium group-hover:underline"
 			>
 				<div class="bg-secondary mr-3 min-h-8 min-w-8 rounded-xl p-2">
-					{#if faviconUrl}
-						<img src={faviconUrl} alt="" class="h-4 w-4" />
+					{#if favicon}
+						<img src={favicon} alt="" class="h-4 w-4" />
 					{/if}
 				</div>
 				<div class="flex flex-row flex-wrap items-center">

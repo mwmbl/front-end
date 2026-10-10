@@ -5,6 +5,7 @@ export const load: PageServerLoad = async ({ fetch }) => {
 	// Fetch comprehensive stats from the API
 	let stats: {
 		users_crawled_daily: Record<string, number>;
+		users_crawled_30d?: number;
 		results_indexed_daily: Record<string, number>;
 		top_user_results: Array<[string, number]>;
 		urls_in_index_daily: Record<string, number>;
@@ -103,7 +104,9 @@ export const load: PageServerLoad = async ({ fetch }) => {
 	}
 
 	// Calculate totals
-	const totalUsersCrawled = Object.values(stats.users_crawled_daily).reduce((sum, v) => sum + v, 0);
+	// Use the new users_crawled_30d field from the API which gives unique crawlers over 30 days
+	// (not the sum of daily active crawlers which double-counts users active on multiple days)
+	const totalUsersCrawled = stats.users_crawled_30d ?? Object.values(stats.users_crawled_daily).reduce((sum, v) => sum + v, 0);
 	const totalResultsIndexed = Object.values(stats.results_indexed_daily).reduce((sum, v) => sum + v, 0);
 	const totalUrlsInIndex = Object.values(stats.urls_in_index_daily).reduce((sum, v) => sum + v, 0);
 	const totalDomainsInIndex = Object.values(stats.domains_in_index_daily).reduce((sum, v) => sum + v, 0);

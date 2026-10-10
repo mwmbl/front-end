@@ -2,6 +2,12 @@
 import { API_BASE } from '$lib/api';
 import { hitToResult, type SearchHit } from '$lib/highlight';
 import { seedSearchState } from '$lib/seed-search';
+import {
+	fetchSeedCrawl,
+	type SeedCrawl,
+	type SeedCrawlAttempt,
+	type SeedCrawlOutcome
+} from '$lib/seed-crawl';
 
 // uncomment to use wasm ranker
 // export const ssr = false;
@@ -27,12 +33,15 @@ export async function load({ url, cookies, locals }) {
 	let seedUsage: { usage: number; limit: number } | null = null;
 	let seedFallback: 'quota' | 'error' | null = null;
 	let pagesIndexed: number | null = null;
+	let seedCrawl: SeedCrawl | null = null;
+	let seedCrawlAttempt: SeedCrawlAttempt | null = null;
 
 	// Set by the Seed Search toggle. On any failure (quota, auth, outage) fall back to standard search.
+	// Every Seed Search also starts a background crawl of the EUSP results the index lacks.
 	if (seedState.seedSearchEnabled) {
 		try {
 			const res = await fetch(
-				`${API_BASE}/api/v2/combined-search/?q=${encodeURIComponent(query)}`,
+				`${API_BASE}/api/v2/combined-search/?q=${encodeURIComponent(query)}&crawl=true`,
 				{ headers: { Authorization: `Bearer ${cookies.get('accessToken')}` } }
 			);
 			if (res.ok) {
@@ -41,6 +50,8 @@ export async function load({ url, cookies, locals }) {
 					monthly_usage: number | null;
 					monthly_limit: number | null;
 					pages_indexed?: number | null;
+					crawl_outcome?: SeedCrawlOutcome | null;
+					active_crawl_query?: string | null;
 				} = await res.json();
 				seedResults = json.results.map(hitToResult);
 				searchMode = 'seed';
@@ -48,6 +59,11 @@ export async function load({ url, cookies, locals }) {
 					seedUsage = { usage: json.monthly_usage, limit: json.monthly_limit };
 				}
 				pagesIndexed = json.pages_indexed ?? null;
+				seedCrawlAttempt = {
+					outcome: json.crawl_outcome ?? null,
+					activeQuery: json.active_crawl_query ?? null
+				};
+				seedCrawl = await fetchSeedCrawl(cookies.get('accessToken'), query);
 			} else {
 				seedFallback = res.status === 429 ? 'quota' : 'error';
 			}
@@ -74,6 +90,8 @@ export async function load({ url, cookies, locals }) {
 			seedFallback,
 			seedQuotaHit,
 			pagesIndexed,
+			seedCrawl,
+			seedCrawlAttempt,
 			...seedState
 		};
 	}
@@ -105,6 +123,8 @@ export async function load({ url, cookies, locals }) {
 		seedFallback,
 		seedQuotaHit,
 		pagesIndexed,
+		seedCrawl,
+		seedCrawlAttempt,
 		...seedState
 	};
 	// }

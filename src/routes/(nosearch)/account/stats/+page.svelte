@@ -14,7 +14,7 @@
 	</header>
 
 	<main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-		<div class="grid gap-6 sm:grid-cols-3">
+		<div class="grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
 			<div class="bg-white dark:bg-gray-800 rounded-lg shadow p-6">
 				<h2 class="text-lg font-medium text-gray-500 dark:text-gray-400 mb-2">Member Since</h2>
 				<p class="text-3xl font-bold">{new Date(data.dateJoined).getFullYear()}</p>
@@ -26,6 +26,18 @@
 			<div class="bg-white dark:bg-gray-800 rounded-lg shadow p-6">
 				<h2 class="text-lg font-medium text-gray-500 dark:text-gray-400 mb-2">Indexed Today</h2>
 				<p class="text-3xl font-bold">{data.myIndexedToday.toLocaleString()}</p>
+			</div>
+			<div class="bg-brand-gradient rounded-lg p-[3px] shadow">
+				<div class="h-full rounded-[5px] bg-white p-6 dark:bg-gray-800">
+					<h2 class="mb-2 text-lg font-medium text-gray-500 dark:text-gray-400">
+						Planted by Seed Crawls
+					</h2>
+					<p class="text-3xl font-bold">{data.seedCrawlPagesIndexed.toLocaleString()}</p>
+					<p class="mt-1 text-sm text-gray-500 dark:text-gray-400">
+						New pages your <a href="/seed-search" class="underline">Seed Search</a> crawls added to
+						Mwmbl, all time
+					</p>
+				</div>
 			</div>
 		</div>
 

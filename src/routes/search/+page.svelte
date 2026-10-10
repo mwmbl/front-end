@@ -13,6 +13,7 @@
 	import BottomLinks from '@/components/custom/brand/BottomLinks.svelte';
 	import WikipediaCard from '@/components/custom/search/WikipediaCard.svelte';
 	import SeedSearchToggle from '@/components/custom/search/SeedSearchToggle.svelte';
+	import SeedCrawlPanel from '@/components/custom/search/SeedCrawlPanel.svelte';
 
 	let { data } = $props();
 
@@ -123,6 +124,13 @@
 
 	<section class="max-w-sm lg:col-start-3 lg:col-end-3 lg:mt-4">
 		<hr class="mt-3 mb-6 lg:hidden" />
+		{#if data.searchMode === 'seed' && data.query}
+			<SeedCrawlPanel
+				query={data.query}
+				initialCrawl={data.seedCrawl}
+				attempt={data.seedCrawlAttempt}
+			/>
+		{/if}
 		<Cta />
 		<BottomLinks class="lg:justify-end" />
 	</section>

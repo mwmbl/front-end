@@ -23,6 +23,7 @@ export type SeedCrawlOutcome =
 	| 'no_results'
 	| 'already_indexed'
 	| 'already_running'
+	| 'already_crawled'
 	| 'queue_full';
 
 // activeQuery is the query of the user's crawl still queued or running, with already_running.

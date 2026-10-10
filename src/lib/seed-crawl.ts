@@ -7,6 +7,30 @@ export type SeedCrawlStatus = 'queued' | 'crawling' | 'done' | 'failed';
 
 export type SeedCrawlPage = { url: string; title: string; extract: string };
 
+// A domain EUSP returned for the crawl's query, which the crawl stays within. See
+// mwmbl.indexer.seed_domains.
+export type SeedCrawlDomain = {
+	domain: string;
+	// Whether this crawl was the first to meet the domain.
+	newly_discovered: boolean;
+	pages_indexed: number;
+	// pages_indexed as a share of the most a crawl takes from one domain, from 0 to 1.
+	new_page_score: number;
+	recent_new_page_score: number;
+	staan_results: number;
+	score: number;
+};
+
+// The most pages a crawl takes from one domain (SEED_CRAWL_MAX_PAGES_PER_DOMAIN).
+export const MAX_PAGES_PER_DOMAIN = 100;
+
+// A find: a domain this crawl discovered that turned out to be almost all new pages.
+export const FIND_SCORE = 0.9;
+
+export function isFind(domain: SeedCrawlDomain) {
+	return domain.newly_discovered && domain.new_page_score > FIND_SCORE;
+}
+
 export type SeedCrawl = {
 	query: string;
 	status: SeedCrawlStatus;
@@ -14,6 +38,10 @@ export type SeedCrawl = {
 	finished_at: string | null;
 	pages_crawled: number;
 	pages_indexed: number;
+	// From 0 (queued) to 1 (done or failed).
+	progress: number;
+	// Most new pages first; empty until the crawl starts.
+	domains: SeedCrawlDomain[];
 	pages: SeedCrawlPage[];
 };
 
@@ -51,7 +79,14 @@ export async function fetchSeedCrawl(
 		const crawl: SeedCrawl = await res.json();
 		// Newest first.
 		const pages = crawl.pages.slice().reverse();
-		return { ...crawl, pages: all ? pages : pages.slice(0, LATEST_PAGES) };
+		return {
+			...crawl,
+			// Absent from APIs that predate seed domains.
+			progress:
+				crawl.progress ?? (crawl.status === 'queued' || crawl.status === 'crawling' ? 0 : 1),
+			domains: crawl.domains ?? [],
+			pages: all ? pages : pages.slice(0, LATEST_PAGES)
+		};
 	} catch (err) {
 		console.log('Seed crawl lookup failed: ', err);
 		return null;

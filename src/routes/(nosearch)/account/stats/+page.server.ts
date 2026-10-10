@@ -1,4 +1,5 @@
 import { API_BASE } from '$lib/api';
+import { decodeJwtPayload } from '$lib/server/auth-tokens';
 import { redirect } from '@sveltejs/kit';
 import type { PageServerLoad } from './$types';
 
@@ -18,15 +19,9 @@ export const load: PageServerLoad = async ({ cookies, locals }) => {
 	// decoding the JWT, which may not carry a username claim.
 	let username = cookies.get('username') || 'User';
 	if (username === 'User') {
-		try {
-			const payload = accessToken.split('.')[1];
-			const decoded = atob(payload.replace(/-/g, '+').replace(/_/g, '/'));
-			const parsed = JSON.parse(decoded);
-			username = parsed.username || parsed.email || parsed.sub || 'User';
-		} catch (e) {
-			console.warn('Failed to decode token', e);
-			username = 'User';
-		}
+		const payload = decodeJwtPayload(accessToken);
+		const claim = payload?.username || payload?.email || payload?.sub;
+		username = typeof claim === 'string' && claim ? claim : 'User';
 	}
 
 	// Fetch the logged-in user's per-user contribution stats.

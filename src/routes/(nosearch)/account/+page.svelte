@@ -109,6 +109,18 @@
 						placeholder="Password"
 						autocomplete="current-password"
 					/>
+					<div class="flex items-center gap-2">
+						<input
+							id="keep-logged-in"
+							type="checkbox"
+							name="keepLoggedIn"
+							checked
+							class="h-4 w-4"
+						/>
+						<Label for="keep-logged-in" class="text-sm font-normal">
+							Keep me logged in (untick on a shared computer)
+						</Label>
+					</div>
 					<Button class="max-w-32" type="submit">Log in</Button>
 				</form>
 			</Tabs.Content>

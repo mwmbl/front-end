@@ -1,7 +1,7 @@
 import type { Actions, PageServerLoad } from './$types';
-import { dev } from '$app/environment';
 import { redirect } from '@sveltejs/kit';
 import { API_BASE as API } from '$lib/api';
+import { clearAuthCookies, setAuthCookies } from '$lib/server/auth-cookies';
 
 type Agreement = {
 	agreement_type: string;
@@ -36,6 +36,7 @@ export const actions: Actions = {
 		const data = await request.formData();
 		const res = await fetch(`${API}/api/v1/platform/token/pair`, {
 			method: 'POST',
+			headers: { 'Content-Type': 'application/json' },
 			body: JSON.stringify({
 				username: data.get('username'),
 				password: data.get('password')
@@ -43,27 +44,7 @@ export const actions: Actions = {
 		});
 		const json = await res.json();
 		if (res.ok) {
-			cookies.set('refreshToken', json.refresh, {
-				path: '/',
-				httpOnly: true,
-				sameSite: 'strict',
-				secure: !dev,
-				maxAge: 60 * 60 * 24 * 30 // 30 days
-			});
-			cookies.set('accessToken', json.access, {
-				path: '/',
-				httpOnly: true,
-				sameSite: 'strict',
-				secure: !dev,
-				maxAge: 60 * 60 * 24 // 1 day
-			});
-			cookies.set('username', json.username, {
-				path: '/',
-				httpOnly: false,
-				sameSite: 'strict',
-				secure: !dev,
-				maxAge: 60 * 60 * 24 * 30 // 30 days
-			});
+			setAuthCookies(cookies, json, data.get('keepLoggedIn') === 'on');
 
 			locals.loginStatus = 'assumeLoggedIn';
 			const next = data.get('next') as string | null;
@@ -97,8 +78,7 @@ export const actions: Actions = {
 		}
 	},
 	logout: async ({ cookies, locals }) => {
-		cookies.delete('refreshToken', { path: '/' });
-		cookies.delete('accessToken', { path: '/' });
+		clearAuthCookies(cookies);
 		locals.loginStatus = 'assumeLoggedOut';
 		locals.accountMessage = 'Logged out.';
 	},
@@ -110,8 +90,7 @@ export const actions: Actions = {
 			}
 		});
 		if (res.ok) {
-			cookies.delete('refreshToken', { path: '/' });
-			cookies.delete('accessToken', { path: '/' });
+			clearAuthCookies(cookies);
 
 			locals.loginStatus = 'accountDeleted';
 			locals.accountMessage = 'Your account has been deleted.';

@@ -159,8 +159,9 @@
 
 {#snippet newBadge()}
 	<span
+		title="New to Mwmbl"
 		class="bg-accent text-accent-text shrink-0 rounded-full px-2 py-0.5 text-[11px] font-bold tracking-wide"
-		>NEW TO MWMBL</span
+		>NEW</span
 	>
 {/snippet}
 

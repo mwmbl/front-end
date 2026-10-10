@@ -165,7 +165,7 @@
 	<section
 		bind:this={panel}
 		aria-labelledby="seed-crawl-heading"
-		class="bg-card text-card-foreground mb-6 flex scroll-mt-4 flex-col gap-5 rounded-2xl p-5 shadow-sm"
+		class="bg-card text-card-foreground @container mb-6 flex scroll-mt-4 flex-col gap-5 rounded-2xl p-5 shadow-sm"
 	>
 		<div class="flex flex-row items-center gap-3">
 			<span
@@ -219,7 +219,7 @@
 							? 'a site'
 							: `${finds.length} sites`} Mwmbl was missing
 					</p>
-					<ul class="grid grid-cols-1 gap-3 sm:grid-cols-2">
+					<ul class="grid grid-cols-1 gap-3 @lg:grid-cols-2">
 						{#each finds as find (find.domain)}
 							<li class="bg-brand-gradient rounded-2xl p-0.5">
 								<div class="bg-card flex h-full flex-col gap-1 rounded-[14px] px-4 py-3">
@@ -272,14 +272,14 @@
 				<div aria-live="polite">
 					{#key finds[0].domain}
 						<div class="find-in bg-brand-gradient rounded-2xl p-0.5">
-							<div class="bg-card flex items-center gap-4 rounded-[14px] p-4 sm:gap-5 sm:p-5">
-								<div class="relative size-16 shrink-0 sm:size-19" aria-hidden="true">
+							<div class="bg-card flex items-center gap-4 rounded-[14px] p-4 @lg:gap-5 @lg:p-5">
+								<div class="relative size-16 shrink-0 @lg:size-19" aria-hidden="true">
 									<div class="find-ring absolute inset-0 rounded-full"></div>
 									<div class="bg-card absolute inset-1 rounded-full"></div>
 									<div
 										class="find-sprout text-foreground absolute inset-0 flex items-center justify-center"
 									>
-										{@render sprout('size-8 sm:size-9')}
+										{@render sprout('size-8 @lg:size-9')}
 									</div>
 									<span class="find-spark" style="--dx: -26px; --dy: -24px; background: #ffc700"
 									></span>
@@ -385,12 +385,12 @@
 					<ul class="flex flex-col">
 						{#each shownDomains as domain (domain.domain)}
 							<li
-								class="border-muted grid grid-cols-[minmax(0,1fr)_2.5rem] items-center gap-x-3 gap-y-1.5 border-b py-2.5 sm:grid-cols-[minmax(0,1fr)_10rem_2.5rem]"
+								class="border-muted grid grid-cols-[minmax(0,1fr)_2.5rem] items-center gap-x-3 gap-y-1.5 border-b py-2.5"
 							>
 								<div class="flex min-w-0 items-center gap-2">
 									<a
 										href="https://{domain.domain}"
-										class="text-accent-text truncate font-semibold hover:underline"
+										class="text-accent-text min-w-16 truncate font-semibold hover:underline"
 										>{domain.domain}</a
 									>
 									{#if isFind(domain)}
@@ -399,8 +399,12 @@
 										{@render newBadge()}
 									{/if}
 								</div>
+								<span
+									class="font-display text-right font-extrabold"
+									aria-label={plural(domain.pages_indexed, 'new page')}>{domain.pages_indexed}</span
+								>
 								<div
-									class="bg-muted col-span-2 row-start-2 h-1.5 overflow-hidden rounded-full sm:col-span-1 sm:col-start-2 sm:row-start-1"
+									class="bg-muted col-span-2 row-start-2 h-1.5 overflow-hidden rounded-full"
 									aria-hidden="true"
 								>
 									<div
@@ -411,10 +415,6 @@
 										style="width: {Math.min(100, domain.new_page_score * 100)}%"
 									></div>
 								</div>
-								<span
-									class="font-display text-right font-extrabold sm:col-start-3"
-									aria-label={plural(domain.pages_indexed, 'new page')}>{domain.pages_indexed}</span
-								>
 							</li>
 						{/each}
 					</ul>

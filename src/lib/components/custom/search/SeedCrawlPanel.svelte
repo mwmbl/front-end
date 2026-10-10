@@ -107,6 +107,9 @@
 		return `${n.toLocaleString()} ${n === 1 ? one : many}`;
 	}
 
+	// Domains whose favicon failed to load, which show their initial instead.
+	let missingFavicons = $state(new Set<string>());
+
 	function barClass(domain: SeedCrawlDomain) {
 		if (isFind(domain)) return 'bg-brand-gradient';
 		return domain.newly_discovered ? 'bg-accent-text' : 'bg-unemphasized-1';
@@ -385,8 +388,36 @@
 					<ul class="flex flex-col">
 						{#each shownDomains as domain (domain.domain)}
 							<li
-								class="border-muted grid grid-cols-[minmax(0,1fr)_2.5rem] items-center gap-x-3 gap-y-1.5 border-b py-2.5"
+								class="border-muted grid grid-cols-[2rem_minmax(0,1fr)_2.5rem] items-center gap-x-3 gap-y-1.5 border-b py-2.5"
 							>
+								<span
+									class={[
+										'row-span-2 size-8 rounded-xl',
+										isFind(domain) ? 'bg-brand-gradient p-0.5' : 'bg-secondary'
+									]}
+									aria-hidden="true"
+								>
+									<span
+										class={[
+											'font-display text-unemphasized-2 flex size-full items-center justify-center rounded-[10px] text-sm font-extrabold',
+											isFind(domain) && 'bg-card'
+										]}
+									>
+										{#if missingFavicons.has(domain.domain)}
+											{domain.domain.replace(/^www\./, '')[0]?.toUpperCase()}
+										{:else}
+											<!-- From DDG to preserve privacy, as on search results. -->
+											<img
+												src="https://icons.duckduckgo.com/ip2/{domain.domain}.ico"
+												alt=""
+												class="size-4"
+												loading="lazy"
+												onerror={() =>
+													(missingFavicons = new Set([...missingFavicons, domain.domain]))}
+											/>
+										{/if}
+									</span>
+								</span>
 								<div class="flex min-w-0 items-center gap-2">
 									<a
 										href="https://{domain.domain}"
@@ -404,7 +435,7 @@
 									aria-label={plural(domain.pages_indexed, 'new page')}>{domain.pages_indexed}</span
 								>
 								<div
-									class="bg-muted col-span-2 row-start-2 h-1.5 overflow-hidden rounded-full"
+									class="bg-muted col-span-2 col-start-2 row-start-2 h-1.5 overflow-hidden rounded-full"
 									aria-hidden="true"
 								>
 									<div

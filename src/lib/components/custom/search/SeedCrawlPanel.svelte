@@ -1,7 +1,9 @@
 <script lang="ts">
 	import RiSeedlingLine from '~icons/ri/seedling-line';
 	import RiCloseLine from '~icons/ri/close-line';
+	import { faviconUrl } from '$lib/utils';
 	import {
+		FIND_SCORE,
 		isFind,
 		MAX_PAGES_PER_DOMAIN,
 		type SeedCrawl,
@@ -21,6 +23,8 @@
 	);
 
 	const POLL_MS = 4000;
+	// The fewest new pages that make a new site a find.
+	const FIND_PAGES = Math.round(MAX_PAGES_PER_DOMAIN * FIND_SCORE);
 	// How many sites to list before "Show all".
 	const SITES_SHOWN = 10;
 	const TOAST_MS = 8000;
@@ -61,12 +65,20 @@
 		return () => observer.disconnect();
 	});
 
+	// Requests can resolve out of order, so a poll sent just before showPages mustn't replace
+	// its full list of pages with the latest few.
+	let requested = 0;
+	let applied = 0;
+
 	async function refresh(all = showingPages) {
+		const id = ++requested;
 		const res = await fetch(
 			`/search/seed-crawl?q=${encodeURIComponent(query)}${all ? '&all=1' : ''}`
 		);
 		if (!res.ok) return;
 		const next: SeedCrawl | null = await res.json();
+		if (id < applied) return;
+		applied = id;
 		const fresh = (next?.domains ?? []).filter((d) => isFind(d) && !knownFinds.has(d.domain));
 		if (fresh.length > 0) {
 			knownFinds = new Set([...knownFinds, ...fresh.map((d) => d.domain)]);
@@ -169,7 +181,7 @@
 	<section
 		bind:this={panel}
 		aria-labelledby="seed-crawl-heading"
-		class="bg-card text-card-foreground @container mb-6 flex scroll-mt-4 flex-col gap-5 rounded-2xl p-5 shadow-sm"
+		class="bg-card text-card-foreground mb-6 flex scroll-mt-4 flex-col gap-5 rounded-2xl p-5 shadow-sm"
 	>
 		<div class="flex flex-row items-center gap-3">
 			<span
@@ -223,7 +235,7 @@
 							? 'a site'
 							: `${finds.length} sites`} Mwmbl was missing
 					</p>
-					<ul class="grid grid-cols-1 gap-3 @lg:grid-cols-2">
+					<ul class="flex flex-col gap-3">
 						{#each finds as find (find.domain)}
 							<li class="bg-brand-gradient rounded-2xl p-0.5">
 								<div class="bg-card flex h-full flex-col gap-1 rounded-[14px] px-4 py-3">
@@ -245,8 +257,8 @@
 						{/each}
 					</ul>
 					<p class="text-muted-foreground text-sm">
-						Finds are sites that were new to Mwmbl and gave more than {MAX_PAGES_PER_DOMAIN * 0.9} new
-						pages. Crawlers will keep coming back to them.
+						Finds are sites that were new to Mwmbl and gave more than {FIND_PAGES} new pages. Crawlers
+						will keep coming back to them.
 					</p>
 				</div>
 			{:else if crawl.status === 'done'}
@@ -274,53 +286,53 @@
 
 			{#if crawl.status === 'crawling' && finds.length > 0}
 				<div aria-live="polite">
-					{#key finds[0].domain}
-						<div class="find-in bg-brand-gradient rounded-2xl p-0.5">
-							<div class="bg-card flex items-center gap-4 rounded-[14px] p-4 @lg:gap-5 @lg:p-5">
-								<div class="relative size-16 shrink-0 @lg:size-19" aria-hidden="true">
-									<div class="find-ring absolute inset-0 rounded-full"></div>
-									<div class="bg-card absolute inset-1 rounded-full"></div>
-									<div
-										class="find-sprout text-foreground absolute inset-0 flex items-center justify-center"
-									>
-										{@render sprout('size-8 @lg:size-9')}
-									</div>
-									<span class="find-spark" style="--dx: -26px; --dy: -24px; background: #ffc700"
-									></span>
-									<span
-										class="find-spark"
-										style="--dx: 30px; --dy: -20px; animation-delay: .3s; background: #c45bf0"
-									></span>
-									<span
-										class="find-spark"
-										style="--dx: 28px; --dy: 26px; animation-delay: .6s; background: #3fa7f5"
-									></span>
-									<span
-										class="find-spark"
-										style="--dx: -30px; --dy: 22px; animation-delay: .9s; background: #ffc700"
-									></span>
+					<div class="find-in bg-brand-gradient rounded-2xl p-0.5">
+						<div class="bg-card flex items-center gap-4 rounded-[14px] p-4">
+							<div class="relative size-16 shrink-0" aria-hidden="true">
+								<div class="find-ring absolute inset-0 rounded-full"></div>
+								<div class="bg-card absolute inset-1 rounded-full"></div>
+								<div
+									class="find-sprout text-foreground absolute inset-0 flex items-center justify-center"
+								>
+									{@render sprout('size-8')}
 								</div>
-								<div class="flex min-w-0 flex-col gap-1">
-									<span
-										class="find-sheen font-display self-start rounded-full px-2.5 py-0.5 text-xs font-black tracking-widest text-black"
-										>NEW FIND</span
-									>
-									<p class="font-display text-xl leading-tight font-extrabold">
-										You found <a
-											href="https://{finds[0].domain}"
-											class="text-accent-text break-words hover:underline">{finds[0].domain}</a
-										>{#if finds.length > 1}<span class="text-muted-foreground">
-												and {plural(finds.length - 1, 'other')}</span
-											>{/if}
-									</p>
-									<p class="text-muted-foreground">
-										Mwmbl had never seen this site, and {finds[0].pages_indexed} of the {MAX_PAGES_PER_DOMAIN}
-										pages we took from it were new. Crawlers will keep coming back to it, thanks to you.
-									</p>
-								</div>
+								<span class="find-spark" style="--dx: -26px; --dy: -24px; background: #ffc700"
+								></span>
+								<span
+									class="find-spark"
+									style="--dx: 30px; --dy: -20px; animation-delay: .3s; background: #c45bf0"
+								></span>
+								<span
+									class="find-spark"
+									style="--dx: 28px; --dy: 26px; animation-delay: .6s; background: #3fa7f5"
+								></span>
+								<span
+									class="find-spark"
+									style="--dx: -30px; --dy: 22px; animation-delay: .9s; background: #ffc700"
+								></span>
+							</div>
+							<div class="flex min-w-0 flex-col gap-1">
+								<span
+									class="find-sheen font-display self-start rounded-full px-2.5 py-0.5 text-xs font-black tracking-widest text-black"
+									>NEW FIND</span
+								>
+								<p class="font-display text-xl leading-tight font-extrabold">
+									You found <a
+										href="https://{finds[0].domain}"
+										class="text-accent-text break-words hover:underline">{finds[0].domain}</a
+									>{#if finds.length > 1}<span class="text-muted-foreground">
+											and {plural(finds.length - 1, 'other')}</span
+										>{/if}
+								</p>
+								<p class="text-muted-foreground">
+									Mwmbl had never seen this site, and your crawl added {plural(
+										finds[0].pages_indexed,
+										'new page'
+									)} from it. Crawlers will keep coming back to it, thanks to you.
+								</p>
 							</div>
 						</div>
-					{/key}
+					</div>
 				</div>
 			{/if}
 
@@ -367,12 +379,11 @@
 						leave this page
 					</p>
 				</div>
-			{:else if crawl.status === 'done' && crawl.finished_at}
+			{:else if crawl.finished_at}
 				<p class="text-muted-foreground -mt-2 text-sm">
-					Finished in {minutes(crawl.started_at, crawl.finished_at)} min · {plural(
-						crawl.pages_crawled,
-						'page'
-					)} fetched
+					{crawl.status === 'done' ? 'Finished in' : 'Stopped after'}
+					{minutes(crawl.started_at, crawl.finished_at)} min · {plural(crawl.pages_crawled, 'page')}
+					fetched
 				</p>
 			{/if}
 
@@ -407,9 +418,8 @@
 										{#if missingFavicons.has(domain.domain)}
 											{domain.domain.replace(/^www\./, '')[0]?.toUpperCase()}
 										{:else}
-											<!-- From DDG to preserve privacy, as on search results. -->
 											<img
-												src="https://icons.duckduckgo.com/ip2/{domain.domain}.ico"
+												src={faviconUrl(domain.domain)}
 												alt=""
 												class="size-4"
 												loading="lazy"
@@ -464,7 +474,7 @@
 
 			{#if crawl.status === 'crawling' && finds.length === 0 && domains.length > 0}
 				<p class="text-muted-foreground text-sm">
-					A site that is new to Mwmbl and gives more than {MAX_PAGES_PER_DOMAIN * 0.9} new pages is a
+					A site that is new to Mwmbl and gives more than {FIND_PAGES} new pages is a
 					<strong class="text-foreground">find</strong>: crawlers will keep coming back to it.
 				</p>
 			{/if}

@@ -47,7 +47,7 @@
 		class="bg-brand-gradient absolute inset-0 opacity-0 transition-opacity duration-300 group-hover:opacity-15 group-focus-visible:opacity-15"
 		aria-hidden="true"
 	></span>
-	<span class="bg-brand-gradient relative block h-1.5"></span>
+	<span class="brand-bar relative block h-1.5"></span>
 	<span class="relative block p-5">
 		<span class="font-display mb-2 block text-xl font-extrabold">Try Seed Search</span>
 		<span class="text-foreground/80 block leading-relaxed">
@@ -56,13 +56,9 @@
 		</span>
 		<!-- Styled like a Button; a real one can't nest inside the box's button. -->
 		<span
-			class="bg-primary text-primary-foreground relative mt-4 inline-flex h-10 items-center overflow-hidden rounded-md px-4 text-sm font-medium transition-colors duration-300 group-hover:text-black group-focus-visible:text-black"
+			class="try-it text-primary-foreground mt-4 inline-flex h-10 items-center rounded-md px-4 text-sm font-medium transition-colors duration-300 group-hover:text-black group-focus-visible:text-black"
 		>
-			<span
-				class="bg-brand-gradient absolute inset-0 -translate-x-full transition-transform duration-300 ease-out group-hover:translate-x-0 group-focus-visible:translate-x-0"
-				aria-hidden="true"
-			></span>
-			<span class="relative">{saving ? 'Turning on…' : 'Try it'}</span>
+			{saving ? 'Turning on…' : 'Try it'}
 		</span>
 		{#if failed}
 			<span class="text-muted-foreground mt-2 block text-sm"
@@ -71,3 +67,59 @@
 		{/if}
 	</span>
 </button>
+
+<style>
+	/* Starts on the solid half; moving the position reveals the brand gradient underneath. Both are
+	   backgrounds of one element so no colour fringes show at the rounded corners. */
+	.try-it {
+		background-image:
+			linear-gradient(to right, transparent 50%, var(--primary) 50%),
+			linear-gradient(130deg, hsl(48, 100%, 61%), hsl(283, 100%, 77%), hsl(206, 100%, 73%));
+		background-size:
+			200% 100%,
+			100% 100%;
+		background-position:
+			100% 0,
+			0 0;
+		transition:
+			background-position 300ms ease-out,
+			color 300ms;
+	}
+	:global(.group:hover) .try-it,
+	:global(.group:focus-visible) .try-it {
+		background-position:
+			0 0,
+			0 0;
+	}
+
+	/* Mirrored so the 200%-wide tile loops seamlessly. */
+	.brand-bar {
+		background-image: linear-gradient(
+			90deg,
+			hsl(48, 100%, 61%),
+			hsl(283, 100%, 77%),
+			hsl(206, 100%, 73%),
+			hsl(283, 100%, 77%),
+			hsl(48, 100%, 61%)
+		);
+		background-size: 200% 100%;
+	}
+	:global(.group:hover) .brand-bar,
+	:global(.group:focus-visible) .brand-bar {
+		animation: flow 2s linear infinite;
+	}
+	@keyframes flow {
+		to {
+			background-position: -200% 0;
+		}
+	}
+	@media (prefers-reduced-motion: reduce) {
+		.try-it {
+			transition: none;
+		}
+		:global(.group:hover) .brand-bar,
+		:global(.group:focus-visible) .brand-bar {
+			animation: none;
+		}
+	}
+</style>

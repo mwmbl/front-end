@@ -37,7 +37,9 @@
 	}
 </script>
 
-<div class="bg-card overflow-hidden rounded-2xl shadow-sm">
+<div
+	class="bg-card overflow-hidden rounded-2xl border border-black/12 shadow-md dark:border-transparent dark:shadow-none"
+>
 	<div class="bg-brand-gradient h-1.5"></div>
 	<div class="p-5">
 		<h2 class="font-display mb-2 text-xl font-extrabold">Try Seed Search</h2>

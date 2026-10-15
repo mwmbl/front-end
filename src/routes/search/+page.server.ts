@@ -1,7 +1,7 @@
 // add the ranker to dependencies to use wasm ranker ("ranker": "file:./pkg/" when testing)
 import { API_BASE } from '$lib/api';
 import { hitToResult, type SearchHit } from '$lib/highlight';
-import { SEED_SEARCH_COOKIE, seedSearchState } from '$lib/seed-search';
+import { seedSearchState } from '$lib/seed-search';
 import {
 	fetchSeedCrawl,
 	type SeedCrawl,
@@ -25,7 +25,8 @@ export async function load({ url, cookies, locals }) {
 
 	// if (!useWasmRanker) {
 	const query = url.searchParams.get('q') ?? '';
-	const seedState = seedSearchState(cookies, locals.loginStatus === 'assumeLoggedIn');
+	// Awaited before searching because the preference decides which search to run.
+	const seedState = await seedSearchState(cookies, locals.loginStatus === 'assumeLoggedIn');
 
 	let seedResults: Result[] | null = null;
 	let searchMode: 'standard' | 'seed' = 'standard';
@@ -35,9 +36,9 @@ export async function load({ url, cookies, locals }) {
 	let seedCrawl: SeedCrawl | null = null;
 	let seedCrawlAttempt: SeedCrawlAttempt | null = null;
 
-	// Opt-in via the Seed Search toggle. On any failure (quota, auth, outage) fall back to standard search.
+	// Set by the Seed Search toggle. On any failure (quota, auth, outage) fall back to standard search.
 	// Every Seed Search also starts a background crawl of the EUSP results the index lacks.
-	if (locals.loginStatus === 'assumeLoggedIn' && cookies.get(SEED_SEARCH_COOKIE) === '1') {
+	if (seedState.seedSearchEnabled) {
 		try {
 			const res = await fetch(
 				`${API_BASE}/api/v2/combined-search/?q=${encodeURIComponent(query)}&crawl=true`,
@@ -91,7 +92,7 @@ export async function load({ url, cookies, locals }) {
 			pagesIndexed,
 			seedCrawl,
 			seedCrawlAttempt,
-			...(await seedState)
+			...seedState
 		};
 	}
 	const votesRes = await fetch(`${API_BASE}/api/v1/platform/search-results/votes`, {
@@ -124,7 +125,7 @@ export async function load({ url, cookies, locals }) {
 		pagesIndexed,
 		seedCrawl,
 		seedCrawlAttempt,
-		...(await seedState)
+		...seedState
 	};
 	// }
 	// else {

@@ -70,7 +70,8 @@
 
 <style>
 	/* Starts on the solid half; moving the position reveals the brand gradient underneath. Both are
-	   backgrounds of one element so no colour fringes show at the rounded corners. */
+	   backgrounds of one element so no colour fringes show at the rounded corners. On hover the solid
+	   layer overshoots by a few px (no-repeat, so nothing wraps back in) to avoid a rounding sliver. */
 	.try-it {
 		background-image:
 			linear-gradient(to right, transparent 50%, var(--primary) 50%),
@@ -78,6 +79,7 @@
 		background-size:
 			200% 100%,
 			100% 100%;
+		background-repeat: no-repeat;
 		background-position:
 			100% 0,
 			0 0;
@@ -88,38 +90,31 @@
 	:global(.group:hover) .try-it,
 	:global(.group:focus-visible) .try-it {
 		background-position:
-			0 0,
+			4px 0,
 			0 0;
 	}
 
-	/* Mirrored so the 200%-wide tile loops seamlessly. */
+	/* Wider than the bar, so shifting it slides the colours along a little. */
 	.brand-bar {
 		background-image: linear-gradient(
 			90deg,
 			hsl(48, 100%, 61%),
 			hsl(283, 100%, 77%),
-			hsl(206, 100%, 73%),
-			hsl(283, 100%, 77%),
-			hsl(48, 100%, 61%)
+			hsl(206, 100%, 73%)
 		);
-		background-size: 200% 100%;
+		background-size: 150% 100%;
+		background-position: 0 0;
+		transition: background-position 600ms ease-out;
 	}
 	:global(.group:hover) .brand-bar,
 	:global(.group:focus-visible) .brand-bar {
-		animation: flow 2s linear infinite;
+		background-position: 100% 0;
 	}
-	@keyframes flow {
-		to {
-			background-position: -200% 0;
-		}
-	}
+
 	@media (prefers-reduced-motion: reduce) {
-		.try-it {
+		.try-it,
+		.brand-bar {
 			transition: none;
-		}
-		:global(.group:hover) .brand-bar,
-		:global(.group:focus-visible) .brand-bar {
-			animation: none;
 		}
 	}
 </style>

@@ -10,6 +10,7 @@
 	import MobileMenu from '@/components/custom/menu/MobileMenu.svelte';
 	import SignInButton from '@/components/custom/menu/SignInButton.svelte';
 	import Cta from '@/components/custom/brand/CTA.svelte';
+	import SeedSearchCta from '@/components/custom/brand/SeedSearchCTA.svelte';
 	import BottomLinks from '@/components/custom/brand/BottomLinks.svelte';
 	import WikipediaCard from '@/components/custom/search/WikipediaCard.svelte';
 	import SeedSearchToggle from '@/components/custom/search/SeedSearchToggle.svelte';
@@ -131,7 +132,11 @@
 				attempt={data.seedCrawlAttempt}
 			/>
 		{/if}
-		<Cta />
+		{#if data.seedSearchEnabled || data.seedSearchQuotaExhausted || data.seedQuotaHit}
+			<Cta />
+		{:else}
+			<SeedSearchCta loginStatus={data.loginStatus} />
+		{/if}
 		<BottomLinks class="lg:justify-end" />
 	</section>
 </div>

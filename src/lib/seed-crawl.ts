@@ -22,7 +22,7 @@ export type SeedCrawlDomain = {
 };
 
 // The most pages a crawl takes from one domain (SEED_CRAWL_MAX_PAGES_PER_DOMAIN).
-export const MAX_PAGES_PER_DOMAIN = 100;
+export const MAX_PAGES_PER_DOMAIN = 20;
 
 // A find: a domain this crawl discovered that turned out to be almost all new pages.
 export const FIND_SCORE = 0.9;

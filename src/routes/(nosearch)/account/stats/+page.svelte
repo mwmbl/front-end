@@ -14,7 +14,7 @@
 	</header>
 
 	<main class="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
-		<div class="grid gap-6 sm:grid-cols-2 lg:grid-cols-5">
+		<div class="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
 			<div class="rounded-lg bg-white p-6 shadow dark:bg-gray-800">
 				<h2 class="mb-2 text-lg font-medium text-gray-500 dark:text-gray-400">Member Since</h2>
 				<p class="text-3xl font-bold">{new Date(data.dateJoined).getFullYear()}</p>
@@ -44,6 +44,15 @@
 					<p class="text-3xl font-bold">{data.seedCrawlPagesIndexed.toLocaleString()}</p>
 					<p class="mt-1 text-sm text-gray-500 dark:text-gray-400">
 						New pages your Seed Searches added to the Mwmbl index, all time
+					</p>
+				</div>
+			</div>
+			<div class="bg-brand-gradient rounded-lg p-[3px] shadow">
+				<div class="h-full rounded-[5px] bg-white p-6 dark:bg-gray-800">
+					<h2 class="mb-2 text-lg font-medium text-gray-500 dark:text-gray-400">New Sites Found</h2>
+					<p class="text-3xl font-bold">{data.seedSitesDiscovered.toLocaleString()}</p>
+					<p class="mt-1 text-sm text-gray-500 dark:text-gray-400">
+						Sites your Seed Searches were the first to bring to Mwmbl, all time
 					</p>
 				</div>
 			</div>

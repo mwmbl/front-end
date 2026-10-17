@@ -14,6 +14,7 @@
 	import type { MembershipTierId } from './+page.server';
 	import { formatPrice, perkParts, tierIcons as icons } from './tiers';
 	import MemberView from './MemberView.svelte';
+	import VolunteerView from './VolunteerView.svelte';
 
 	let { data, form } = $props();
 
@@ -21,6 +22,7 @@
 
 	const loggedIn = $derived(data.loginStatus === 'assumeLoggedIn');
 	const membership = $derived(data.membership);
+	const volunteer = $derived(data.volunteer);
 	const justPaid = $derived(page.url.searchParams.get('checkout') === 'success');
 
 	let pendingTier = $state<MembershipTierId | null>(null);
@@ -64,41 +66,56 @@
 </script>
 
 <svelte:head>
-	<title>{membership ? 'Your membership' : 'Become a member'} – Mwmbl</title>
+	<title>{membership || volunteer ? 'Your membership' : 'Become a member'} – Mwmbl</title>
 </svelte:head>
 
 <div class="membership-page flex flex-col">
+	{#snippet status()}
+		{#if waitingForWebhook}
+			<span class="pill">
+				<RiLoader4Line class="animate-spin" /> Thank you! Setting up your membership…
+			</span>
+		{:else if justPaid}
+			<span class="pill">
+				<RiCheckLine class="check" /> Thank you! Your membership will appear here shortly
+			</span>
+		{:else if loggedIn && !volunteer}
+			<span class="pill"><RiCheckLine class="check" /> Your account is ready</span>
+		{/if}
+	{/snippet}
+
 	{#if membership}
-		<MemberView {data} {membership} {form} />
+		<MemberView {data} {membership} {volunteer} {form} />
 	{:else}
-		<section
-			class="mx-auto flex max-w-3xl flex-col items-center gap-5 px-4 pt-10 text-center sm:px-8 sm:pt-16"
-		>
-			{#if waitingForWebhook}
-				<span class="pill">
-					<RiLoader4Line class="animate-spin" /> Thank you! Setting up your membership…
-				</span>
-			{:else if justPaid}
-				<span class="pill">
-					<RiCheckLine class="check" /> Thank you! Your membership will appear here shortly
-				</span>
-			{:else if loggedIn}
-				<span class="pill"><RiCheckLine class="check" /> Your account is ready</span>
-			{/if}
-			<h1 class="text-4xl leading-snug! font-bold text-balance md:text-5xl lg:text-6xl">
-				We need you to help Mwmbl grow
-			</h1>
-			<p class="text-unemphasized-2 text-lg text-pretty sm:text-xl">
-				Members are our roots, supporting ethical, free search — built in the open, by and for the
-				people who use it.
-			</p>
-		</section>
+		{#if volunteer}
+			<VolunteerView
+				{volunteer}
+				tier={data.volunteerTier}
+				seedSearchUsage={data.seedSearchUsage}
+				seedSearchEnabled={data.seedSearchEnabled}
+				{status}
+			/>
+		{:else}
+			<section
+				class="mx-auto flex max-w-3xl flex-col items-center gap-5 px-4 pt-10 text-center sm:px-8 sm:pt-16"
+			>
+				{@render status()}
+				<h1 class="text-4xl leading-snug! font-bold text-balance md:text-5xl lg:text-6xl">
+					We need you to help Mwmbl grow
+				</h1>
+				<p class="text-unemphasized-2 text-lg text-pretty sm:text-xl">
+					Members are our roots, supporting ethical, free search — built in the open, by and for the
+					people who use it.
+				</p>
+			</section>
+		{/if}
 
 		<main class="mx-auto w-full max-w-6xl px-4 pb-10 sm:px-8 sm:pb-16">
 			<div
-				class="text-unemphasized-2 mt-16 mb-6 text-center text-sm font-semibold tracking-[0.12em]"
+				id="join"
+				class="text-unemphasized-2 mt-16 mb-6 scroll-mt-8 text-center text-sm font-semibold tracking-[0.12em]"
 			>
-				PLANT YOUR SUPPORT
+				{volunteer ? 'BECOME A PAYING MEMBER TOO' : 'PLANT YOUR SUPPORT'}
 			</div>
 
 			{#if error}

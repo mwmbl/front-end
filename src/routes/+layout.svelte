@@ -10,8 +10,9 @@
 	import { ModeWatcher } from 'mode-watcher';
 
 	import { navigating } from '$app/state';
+	import VolunteerThankYou from '$lib/components/custom/notifications/VolunteerThankYou.svelte';
 
-	let { children } = $props();
+	let { data, children } = $props();
 </script>
 
 <svelte:head>
@@ -36,6 +37,9 @@
 	{/if}
 	{@render children()}
 </div>
+{#if data.loginStatus === 'assumeLoggedIn'}
+	<VolunteerThankYou />
+{/if}
 
 <style>
 	@keyframes loading {

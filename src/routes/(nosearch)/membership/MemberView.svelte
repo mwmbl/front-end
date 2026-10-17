@@ -1,22 +1,26 @@
 <script lang="ts">
-	import { untrack } from 'svelte';
 	import { enhance } from '$app/forms';
-	import { invalidateAll } from '$app/navigation';
 	import type { SubmitFunction } from '@sveltejs/kit';
 	import { Button } from '@/components/ui/button';
-	import { Switch } from '@/components/ui/switch';
 	import * as AlertDialog from '$lib/components/ui/alert-dialog';
 
 	import RiCheckLine from '~icons/ri/check-line';
-	import RiSearchLine from '~icons/ri/search-line';
 	import RiDiscordLine from '~icons/ri/discord-line';
 	import RiGlobalLine from '~icons/ri/global-line';
 	import RiArrowRightLine from '~icons/ri/arrow-right-line';
 	import RiExternalLinkLine from '~icons/ri/external-link-line';
 	import RiLoader4Line from '~icons/ri/loader-4-line';
 
-	import type { Membership, MembershipTier, SeedSearchUsage } from './+page.server';
-	import { formatPrice, perkParts, tierIcons } from './tiers';
+	import type {
+		Membership,
+		MembershipTier,
+		SeedSearchUsage,
+		VolunteerMembership,
+		VolunteerTier
+	} from './+page.server';
+	import { formatDate, formatPrice, perkParts, tierIcons } from './tiers';
+	import SeedSearchCard from './SeedSearchCard.svelte';
+	import VolunteerCard from './VolunteerCard.svelte';
 
 	// Members connect their Discord account from Polar's customer portal, which grants the members role.
 	const POLAR_PORTAL_URL = 'https://polar.sh/mwmbl-foundation/portal';
@@ -25,35 +29,27 @@
 	let {
 		data,
 		membership,
+		volunteer,
 		form
 	}: {
 		data: {
 			tiers: MembershipTier[];
+			volunteerTier: VolunteerTier | null;
 			seedSearchUsage: SeedSearchUsage | null;
 			seedSearchEnabled: boolean;
 		};
 		membership: Membership;
+		volunteer: VolunteerMembership | null;
 		form: { error?: string } | null;
 	} = $props();
 
 	const tier = $derived(data.tiers.find((t) => t.tier === membership.tier));
 	const TierIcon = $derived(tierIcons[membership.tier]);
 	const cancelling = $derived(membership.cancel_at_period_end);
-	const usage = $derived(data.seedSearchUsage);
-	const quotaExhausted = $derived(!!usage && usage.monthly_usage >= usage.monthly_limit);
 	const canUpgrade = $derived(
 		!!tier && data.tiers.some((t) => t.monthly_price_pence > tier.monthly_price_pence)
 	);
 
-	function formatDate(iso: string | null): string | null {
-		if (!iso) return null;
-		return new Date(iso).toLocaleDateString('en-GB', {
-			day: 'numeric',
-			month: 'long',
-			year: 'numeric',
-			timeZone: 'UTC'
-		});
-	}
 	const periodEnd = $derived(formatDate(membership.current_period_end));
 
 	let actionError = $state<string | null>(null);
@@ -82,31 +78,6 @@
 			cancelOpen = false;
 		};
 	};
-
-	// Seeded from the props so the server render shows the right position; kept in sync afterwards.
-	let seedSearchOn = $state(untrack(() => data.seedSearchEnabled && !quotaExhausted));
-	$effect.pre(() => {
-		seedSearchOn = data.seedSearchEnabled && !quotaExhausted;
-	});
-	let savingSeedSearch = $state(false);
-	async function onSeedSearchChange(value: boolean) {
-		savingSeedSearch = true;
-		try {
-			const res = await fetch('/seed-search', {
-				method: 'POST',
-				// The Accept header routes this to +server.ts rather than the /seed-search page.
-				headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
-				body: JSON.stringify({ enabled: value })
-			});
-			if (!res.ok) seedSearchOn = !value;
-			await invalidateAll();
-		} catch (err) {
-			console.log('Saving Seed Search setting failed: ', err);
-			seedSearchOn = !value;
-		} finally {
-			savingSeedSearch = false;
-		}
-	}
 </script>
 
 <section
@@ -157,71 +128,11 @@
 	</h2>
 
 	<div class="grid grid-cols-[repeat(auto-fit,minmax(min(100%,20rem),1fr))] gap-6">
-		<article class="bg-card flex flex-col gap-5 rounded-2xl p-6 sm:p-8">
-			<div class="flex items-center gap-4">
-				<span class="tile"><RiSearchLine /></span>
-				<h3 class="font-display flex-1 text-2xl font-bold">Seed Search</h3>
-				<div class="flex items-center gap-2">
-					<label for="member-seed-search" class="text-unemphasized-2 font-medium">
-						{seedSearchOn ? 'On' : 'Off'}
-					</label>
-					<Switch
-						id="member-seed-search"
-						bind:checked={seedSearchOn}
-						onCheckedChange={onSeedSearchChange}
-						disabled={quotaExhausted || savingSeedSearch}
-						class="data-[state=checked]:bg-(image:--mv-grad)"
-					/>
-				</div>
-			</div>
-			<p class="text-pretty">
-				Searches the wider web alongside Mwmbl's own index and adds the pages it finds, so the index
-				grows with every query you make.
-			</p>
-			{#if usage}
-				<div class="panel flex flex-col gap-2.5 rounded-xl p-5">
-					<div class="flex flex-wrap items-baseline justify-between gap-3">
-						<span>
-							<b class="font-display text-3xl font-extrabold">
-								{usage.monthly_usage.toLocaleString('en-GB')}
-							</b>
-							<span class="text-unemphasized-2">
-								of {usage.monthly_limit.toLocaleString('en-GB')} queries used this month
-							</span>
-						</span>
-						<span class="link font-semibold">
-							{Math.max(usage.monthly_limit - usage.monthly_usage, 0).toLocaleString('en-GB')} left
-						</span>
-					</div>
-					<div
-						class="meter"
-						role="progressbar"
-						aria-label="Seed Search queries used"
-						aria-valuemin={0}
-						aria-valuemax={usage.monthly_limit}
-						aria-valuenow={usage.monthly_usage}
-					>
-						<div
-							style:width="{Math.min(
-								100,
-								(usage.monthly_usage / Math.max(usage.monthly_limit, 1)) * 100
-							)}%"
-						></div>
-					</div>
-					{#if quotaExhausted}
-						<p class="text-unemphasized-2 text-sm">
-							You've used all your queries this month.
-							{#if canUpgrade && !cancelling}
-								<a href="#change-level" class="link font-semibold underline">Upgrade for more</a>
-							{/if}
-						</p>
-					{/if}
-				</div>
-			{/if}
-			<a href="/seed-search" class="link mt-auto inline-flex items-center gap-1.5 font-semibold">
-				How Seed Search works <RiArrowRightLine />
-			</a>
-		</article>
+		<SeedSearchCard
+			usage={data.seedSearchUsage}
+			enabled={data.seedSearchEnabled}
+			upgradeHref={canUpgrade && !cancelling ? '#change-level' : null}
+		/>
 
 		<article class="bg-card flex flex-col gap-5 rounded-2xl p-6 sm:p-8">
 			<div class="flex items-center gap-4">
@@ -271,6 +182,10 @@
 					See the leaderboard <RiArrowRightLine />
 				</a>
 			</article>
+		{/if}
+
+		{#if volunteer}
+			<VolunteerCard {volunteer} tier={data.volunteerTier} />
 		{/if}
 	</div>
 
@@ -464,18 +379,6 @@
 
 	.panel {
 		background: var(--mv-panel);
-	}
-
-	.meter {
-		height: 0.625rem;
-		border-radius: 999px;
-		background: var(--secondary);
-		overflow: hidden;
-	}
-	.meter > div {
-		height: 100%;
-		border-radius: 999px;
-		background: var(--mv-check);
 	}
 
 	.link {

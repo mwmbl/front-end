@@ -2,12 +2,17 @@ import RiSeedlingLine from '~icons/ri/seedling-line';
 import RiPlantLine from '~icons/ri/plant-line';
 import RiTreeLine from '~icons/ri/tree-line';
 
-import type { MembershipTierId } from './+page.server';
+import type { MembershipTierId, VolunteerTierId } from './+page.server';
 
 export const tierIcons: Record<MembershipTierId, typeof RiPlantLine> = {
 	sprout: RiSeedlingLine,
 	sapling: RiPlantLine,
 	canopy: RiTreeLine
+};
+
+// Volunteer tiers have pictures rather than icons; the bee is from Noto Emoji (Apache 2.0).
+export const volunteerTierImages: Record<VolunteerTierId, string> = {
+	pollinator: '/pollinator-bee.svg'
 };
 
 // Phrases picked out in bold wherever they appear in a perk.
@@ -31,4 +36,14 @@ export function perkParts(original: string): { text: string; bold: boolean }[] {
 
 export function formatPrice(pence: number): string {
 	return pence % 100 === 0 ? `£${pence / 100}` : `£${(pence / 100).toFixed(2)}`;
+}
+
+export function formatDate(iso: string | null): string | null {
+	if (!iso) return null;
+	return new Date(iso).toLocaleDateString('en-GB', {
+		day: 'numeric',
+		month: 'long',
+		year: 'numeric',
+		timeZone: 'UTC'
+	});
 }

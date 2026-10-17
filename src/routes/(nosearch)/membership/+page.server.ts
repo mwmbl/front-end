@@ -14,42 +14,83 @@ export type MembershipTier = {
 
 export type Membership = {
 	tier: MembershipTierId;
+	name: string;
 	current_period_end: string | null;
 	cancel_at_period_end: boolean;
 };
 
-// Mirrors the back end's tiers, used if /membership/tiers can't be reached.
-const FALLBACK_TIERS: MembershipTier[] = [
-	{
-		tier: 'sprout',
-		name: 'Sprout',
-		monthly_price_pence: 100,
-		perks: [
-			'Access to the members area on Discord',
-			'300 Seed Search queries a month to enhance our index'
-		]
-	},
-	{
-		tier: 'sapling',
-		name: 'Sapling',
-		monthly_price_pence: 500,
-		perks: ['Everything in Sprout', '1,500 Seed Search queries a month to enhance our index']
-	},
-	{
-		tier: 'canopy',
-		name: 'Canopy',
-		monthly_price_pence: 2000,
-		perks: [
-			'Everything in Sapling',
-			'1 million pages a month crawled against your username',
-			'Your username on the crawler leaderboard'
-		]
-	}
-];
+export type VolunteerTierId = 'pollinator';
 
-async function getTiers(): Promise<MembershipTier[]> {
+// Earned by crawling rather than bought, so they're only shown to users who hold one.
+export type VolunteerTier = {
+	tier: VolunteerTierId;
+	name: string;
+	days_per_month: number;
+	min_results_per_day: number;
+	perks: string[];
+};
+
+export type VolunteerMembership = {
+	tier: VolunteerTierId;
+	name: string;
+	// The last day it's valid (a date, no time), unless it's earned again before then.
+	valid_until: string;
+};
+
+export type SeedSearchUsage = { monthly_usage: number; monthly_limit: number };
+
+type MembershipV2 = {
+	paid: Membership | null;
+	volunteer: VolunteerMembership | null;
+	combined_search: SeedSearchUsage;
+};
+
+// Mirrors the back end's tiers, used if /membership/tiers can't be reached.
+const FALLBACK_TIERS: { paid: MembershipTier[]; volunteer: VolunteerTier[] } = {
+	paid: [
+		{
+			tier: 'sprout',
+			name: 'Sprout',
+			monthly_price_pence: 100,
+			perks: [
+				'Access to the members area on Discord',
+				'300 Seed Search queries a month to enhance our index'
+			]
+		},
+		{
+			tier: 'sapling',
+			name: 'Sapling',
+			monthly_price_pence: 500,
+			perks: ['Everything in Sprout', '1,500 Seed Search queries a month to enhance our index']
+		},
+		{
+			tier: 'canopy',
+			name: 'Canopy',
+			monthly_price_pence: 2000,
+			perks: [
+				'Everything in Sapling',
+				'1 million pages a month crawled against your username',
+				'Your username on the crawler leaderboard'
+			]
+		}
+	],
+	volunteer: [
+		{
+			tier: 'pollinator',
+			name: 'Pollinator',
+			days_per_month: 3,
+			min_results_per_day: 100,
+			perks: [
+				'Access to the members area on Discord',
+				'300 Seed Search queries a month to enhance our index'
+			]
+		}
+	]
+};
+
+async function getTiers(): Promise<typeof FALLBACK_TIERS> {
 	try {
-		const res = await fetch(`${API}/api/v1/platform/membership/tiers`);
+		const res = await fetch(`${API}/api/v2/membership/tiers`);
 		if (res.ok) return await res.json();
 	} catch (err) {
 		console.log('Could not fetch membership tiers: ', err);
@@ -57,31 +98,15 @@ async function getTiers(): Promise<MembershipTier[]> {
 	return FALLBACK_TIERS;
 }
 
-async function getMembership(accessToken: string | undefined): Promise<Membership | null> {
+async function getMembership(accessToken: string | undefined): Promise<MembershipV2 | null> {
 	if (!accessToken) return null;
 	try {
-		const res = await fetch(`${API}/api/v1/platform/membership`, {
+		const res = await fetch(`${API}/api/v2/membership/`, {
 			headers: { Authorization: 'Bearer ' + accessToken }
 		});
 		if (res.ok) return await res.json();
 	} catch (err) {
 		console.log('Could not fetch membership: ', err);
-	}
-	return null;
-}
-
-export type SeedSearchUsage = { monthly_usage: number; monthly_limit: number };
-
-async function getSeedSearchUsage(
-	accessToken: string | undefined
-): Promise<SeedSearchUsage | null> {
-	try {
-		const res = await fetch(`${API}/api/v1/platform/combined-search/usage`, {
-			headers: { Authorization: 'Bearer ' + accessToken }
-		});
-		if (res.ok) return await res.json();
-	} catch (err) {
-		console.log('Could not fetch Seed Search usage: ', err);
 	}
 	return null;
 }
@@ -100,16 +125,21 @@ async function errorMessage(res: Response, fallback: string): Promise<string> {
 export const load: PageServerLoad = async ({ cookies, locals }) => {
 	const loggedIn = locals.loginStatus === 'assumeLoggedIn';
 	const accessToken = cookies.get('accessToken');
-	const [tiers, membership, seedSearchUsage, seedSearchEnabled] = await Promise.all([
+	const [tiers, membership, seedSearchEnabled] = await Promise.all([
 		getTiers(),
 		loggedIn ? getMembership(accessToken) : Promise.resolve(null),
-		loggedIn ? getSeedSearchUsage(accessToken) : Promise.resolve(null),
 		loggedIn ? fetchSeedSearchEnabled(cookies) : Promise.resolve(false)
 	]);
+	const volunteer = membership?.volunteer ?? null;
 	return {
-		tiers,
-		membership,
-		seedSearchUsage,
+		tiers: tiers.paid,
+		membership: membership?.paid ?? null,
+		volunteer,
+		// Only the tier the user holds: volunteer tiers aren't advertised to anyone else.
+		volunteerTier: volunteer
+			? (tiers.volunteer.find((t) => t.tier === volunteer.tier) ?? null)
+			: null,
+		seedSearchUsage: membership?.combined_search ?? null,
 		seedSearchEnabled
 	};
 };

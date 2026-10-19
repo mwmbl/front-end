@@ -27,8 +27,13 @@ type Result = {
 async function fetchStandardResults(query: string): Promise<Result[] | null> {
 	try {
 		const res = await fetch(`${API_BASE}/api/v1/search/?s=${encodeURIComponent(query)}`);
-		if (res.ok) return await res.json();
-		console.log('Search failed with status', res.status);
+		if (res.ok) {
+			const json = await res.json();
+			if (Array.isArray(json)) return json;
+			console.log('Search returned a non-array body');
+		} else {
+			console.log('Search failed with status', res.status);
+		}
 	} catch (err) {
 		console.log('Search failed: ', err);
 	}
@@ -37,7 +42,7 @@ async function fetchStandardResults(query: string): Promise<Result[] | null> {
 
 async function fetchVotes(
 	accessToken: string | undefined,
-	query: string | null,
+	query: string,
 	urls: string[]
 ): Promise<{ votes: Record<string, Votes> } | null> {
 	try {
@@ -46,15 +51,20 @@ async function fetchVotes(
 			method: 'POST',
 			body: JSON.stringify({ query, urls })
 		});
-		if (res.ok) return await res.json();
-		console.log('Fetching votes failed with status', res.status);
+		if (res.ok) {
+			const json = await res.json();
+			if (json?.votes != null) return json;
+			console.log('Votes response has no votes');
+		} else {
+			console.log('Fetching votes failed with status', res.status);
+		}
 	} catch (err) {
 		console.log('Fetching votes failed: ', err);
 	}
 	return null;
 }
 
-export async function load({ url, cookies, locals }) {
+export async function load({ url, cookies, locals, setHeaders }) {
 	// const useWasmRanker = url.searchParams.get('useWasmRanker') === 'true';
 
 	// if (!useWasmRanker) {
@@ -111,49 +121,30 @@ export async function load({ url, cookies, locals }) {
 	const seedQuotaHit =
 		seedFallback === 'quota' || (seedUsage != null && seedUsage.usage >= seedUsage.limit);
 
-	const standardResults = seedResults ? null : await fetchStandardResults(query);
+	const standardResults = seedResults == null ? await fetchStandardResults(query) : null;
 	const searchFailed = seedResults == null && standardResults == null;
 	const results: Result[] = seedResults ?? standardResults ?? [];
+	// Don't let a cache keep serving the error page after the API recovers.
+	if (searchFailed) setHeaders({ 'cache-control': 'no-store' });
 
 	const votes =
 		locals.loginStatus === 'assumeLoggedIn' && results.length > 0
 			? await fetchVotes(
 					cookies.get('accessToken'),
-					url.searchParams.get('q'),
+					query,
 					results.map((r) => r.url)
 				)
 			: null;
 
-	// Without votes, results go out as they do to a logged-out user.
-	if (votes == null) {
-		return {
-			query: url.searchParams.get('q') as string | undefined,
-			results: results,
-			searchFailed,
-			searchMode,
-			seedUsage,
-			seedFallback,
-			seedQuotaHit,
-			pagesIndexed,
-			seedCrawl,
-			seedCrawlAttempt,
-			...seedState
-		};
-	}
-	const resultsWithVotes: Array<{
-		title: Array<{ value: string; is_bold: boolean }>;
-		extract: Array<{ value: string; is_bold: boolean }>;
-		url: string;
-		source: string;
-		votes: Votes;
-	}> = results.map((result) => ({
-		...result,
-		votes: votes.votes[result.url]
-	}));
-
 	return {
 		query: url.searchParams.get('q') as string | undefined,
-		results: resultsWithVotes,
+		// Without votes, results go out as they do to a logged-out user.
+		results: votes
+			? results.map((result) => ({
+					...result,
+					votes: votes.votes[result.url] as Votes | undefined
+				}))
+			: results,
 		searchFailed,
 		searchMode,
 		seedUsage,

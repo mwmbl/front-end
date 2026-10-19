@@ -88,9 +88,9 @@
 				{#if data.searchMode === 'seed'}
 					Using Seed Search (Mwmbl + EUSP){#if data.seedUsage}
 						· {data.seedUsage.usage} of {data.seedUsage.limit} this month{/if}
-				{:else if data.seedFallback === 'quota'}
+				{:else if data.seedFallback === 'quota' && !data.searchFailed}
 					Seed Search quota used up. Showing standard results.
-				{:else if data.seedFallback === 'error'}
+				{:else if data.seedFallback === 'error' && !data.searchFailed}
 					Seed Search unavailable. Showing standard results.
 				{/if}
 			</p>

@@ -12,6 +12,8 @@ import {
 // uncomment to use wasm ranker
 // export const ssr = false;
 
+type Votes = { upvotes: number; downvotes: number; user_vote: null | 'upvote' | 'downvote' };
+
 type Result = {
 	title: Array<{ value: string; is_bold: boolean }>;
 	extract: Array<{ value: string; is_bold: boolean }>;
@@ -19,6 +21,38 @@ type Result = {
 	source: string;
 	votes: undefined;
 };
+
+// The API's error pages are HTML, so a failed search is caught here rather than left to throw
+// on parsing: thrown, it fails the whole page, which is what users see while the API restarts.
+async function fetchStandardResults(query: string): Promise<Result[] | null> {
+	try {
+		const res = await fetch(`${API_BASE}/api/v1/search/?s=${encodeURIComponent(query)}`);
+		if (res.ok) return await res.json();
+		console.log('Search failed with status', res.status);
+	} catch (err) {
+		console.log('Search failed: ', err);
+	}
+	return null;
+}
+
+async function fetchVotes(
+	accessToken: string | undefined,
+	query: string | null,
+	urls: string[]
+): Promise<{ votes: Record<string, Votes> } | null> {
+	try {
+		const res = await fetch(`${API_BASE}/api/v1/platform/search-results/votes`, {
+			headers: { Authorization: `Bearer ${accessToken}` },
+			method: 'POST',
+			body: JSON.stringify({ query, urls })
+		});
+		if (res.ok) return await res.json();
+		console.log('Fetching votes failed with status', res.status);
+	} catch (err) {
+		console.log('Fetching votes failed: ', err);
+	}
+	return null;
+}
 
 export async function load({ url, cookies, locals }) {
 	// const useWasmRanker = url.searchParams.get('useWasmRanker') === 'true';
@@ -77,14 +111,25 @@ export async function load({ url, cookies, locals }) {
 	const seedQuotaHit =
 		seedFallback === 'quota' || (seedUsage != null && seedUsage.usage >= seedUsage.limit);
 
-	const results: Result[] =
-		seedResults ??
-		(await (await fetch(`${API_BASE}/api/v1/search/?s=${encodeURIComponent(query)}`)).json());
+	const standardResults = seedResults ? null : await fetchStandardResults(query);
+	const searchFailed = seedResults == null && standardResults == null;
+	const results: Result[] = seedResults ?? standardResults ?? [];
 
-	if (locals.loginStatus !== 'assumeLoggedIn') {
+	const votes =
+		locals.loginStatus === 'assumeLoggedIn' && results.length > 0
+			? await fetchVotes(
+					cookies.get('accessToken'),
+					url.searchParams.get('q'),
+					results.map((r) => r.url)
+				)
+			: null;
+
+	// Without votes, results go out as they do to a logged-out user.
+	if (votes == null) {
 		return {
 			query: url.searchParams.get('q') as string | undefined,
 			results: results,
+			searchFailed,
 			searchMode,
 			seedUsage,
 			seedFallback,
@@ -95,21 +140,12 @@ export async function load({ url, cookies, locals }) {
 			...seedState
 		};
 	}
-	const votesRes = await fetch(`${API_BASE}/api/v1/platform/search-results/votes`, {
-		headers: {
-			Authorization: `Bearer ${cookies.get('accessToken')}`
-		},
-		method: 'POST',
-		body: JSON.stringify({ query: url.searchParams.get('q'), urls: results.map((r) => r.url) })
-	});
-	const votes = await votesRes.json();
-
 	const resultsWithVotes: Array<{
 		title: Array<{ value: string; is_bold: boolean }>;
 		extract: Array<{ value: string; is_bold: boolean }>;
 		url: string;
 		source: string;
-		votes: { upvotes: number; downvotes: number; user_vote: null | 'upvote' | 'downvote' };
+		votes: Votes;
 	}> = results.map((result) => ({
 		...result,
 		votes: votes.votes[result.url]
@@ -118,6 +154,7 @@ export async function load({ url, cookies, locals }) {
 	return {
 		query: url.searchParams.get('q') as string | undefined,
 		results: resultsWithVotes,
+		searchFailed,
 		searchMode,
 		seedUsage,
 		seedFallback,

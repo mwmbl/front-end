@@ -106,7 +106,13 @@
 		{#each results as result}
 			<SearchResult {result} query={data.query} />
 		{/each}
-		{#if results.length === 0}
+		{#if data.searchFailed}
+			<div class="flex justify-center p-4">
+				<h2 class="text-2xl font-semibold">
+					Search is unavailable right now. Try again in a minute.
+				</h2>
+			</div>
+		{:else if results.length === 0}
 			<div class="flex justify-center p-4">
 				<h2 class="text-2xl font-semibold">No results found</h2>
 			</div>

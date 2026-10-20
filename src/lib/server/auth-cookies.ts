@@ -47,6 +47,10 @@ export function setAuthCookies(
 	cookies.set(PERSISTENT_COOKIE, persistent ? '1' : '0', cookieOptions(persistent, true));
 }
 
+export function setUsernameCookie(cookies: Cookies, username: string) {
+	cookies.set('username', username, cookieOptions(isPersistentLogin(cookies), false));
+}
+
 export function clearAuthCookies(cookies: Cookies) {
 	for (const name of ['accessToken', 'refreshToken', 'username', PERSISTENT_COOKIE]) {
 		cookies.delete(name, { path: '/' });

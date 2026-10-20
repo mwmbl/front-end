@@ -1,7 +1,7 @@
 import type { Actions, PageServerLoad } from './$types';
 import { redirect } from '@sveltejs/kit';
 import { API_BASE as API } from '$lib/api';
-import { clearAuthCookies, setAuthCookies } from '$lib/server/auth-cookies';
+import { clearAuthCookies, setAuthCookies, setUsernameCookie } from '$lib/server/auth-cookies';
 
 type Agreement = {
 	agreement_type: string;
@@ -21,6 +21,11 @@ type MarketingConsent = {
 	source: 'GUI' | 'API';
 	opted_in: boolean;
 	timestamp: string;
+};
+
+type UserProfile = {
+	email: string;
+	pending_email: string | null;
 };
 
 type Device = {
@@ -167,6 +172,39 @@ export const actions: Actions = {
 		}
 		return { success: true };
 	},
+	changeUsername: async ({ request, cookies }) => {
+		const data = await request.formData();
+		const res = await fetch(`${API}/api/v1/platform/user/username`, {
+			method: 'PUT',
+			headers: {
+				Authorization: 'Bearer ' + cookies.get('accessToken'),
+				'Content-Type': 'application/json'
+			},
+			body: JSON.stringify({ username: data.get('username') })
+		});
+		const json = await res.json();
+		if (!res.ok) {
+			return { success: false, error: json.message ?? 'Failed to change your username.' };
+		}
+		setUsernameCookie(cookies, json.username);
+		return { success: true, message: `Your username is now ${json.username}.` };
+	},
+	changeEmail: async ({ request, cookies }) => {
+		const data = await request.formData();
+		const res = await fetch(`${API}/api/v1/platform/user/email`, {
+			method: 'POST',
+			headers: {
+				Authorization: 'Bearer ' + cookies.get('accessToken'),
+				'Content-Type': 'application/json'
+			},
+			body: JSON.stringify({ email: data.get('email'), password: data.get('password') })
+		});
+		const json = await res.json();
+		if (!res.ok) {
+			return { success: false, error: json.message ?? 'Failed to change your email address.' };
+		}
+		return { success: true, message: json.message as string };
+	},
 	updateDevice: async ({ request, cookies }) => {
 		const data = await request.formData();
 		const deviceId = data.get('deviceId');
@@ -213,31 +251,37 @@ export const load: PageServerLoad = async ({ cookies, locals }) => {
 			hasAgreedToTerms: false,
 			apiKeys: [] as ApiKey[],
 			devices: [] as Device[],
-			marketingOptIn: false
+			marketingOptIn: false,
+			profile: null as UserProfile | null
 		};
 	} else {
-		const [votesRes, agreementsRes, keysRes, consentRes, devicesRes] = await Promise.all([
-			fetch(`${API}/api/v1/platform/search-results/my-votes?limit=100&offset=0`, {
-				method: 'GET',
-				headers: { Authorization: 'Bearer ' + cookies.get('accessToken') }
-			}),
-			fetch(`${API}/api/v1/platform/agreements/`, {
-				method: 'GET',
-				headers: { Authorization: 'Bearer ' + cookies.get('accessToken') }
-			}),
-			fetch(`${API}/api/v1/platform/api-keys/`, {
-				method: 'GET',
-				headers: { Authorization: 'Bearer ' + cookies.get('accessToken') }
-			}),
-			fetch(`${API}/api/v1/platform/marketing-consent`, {
-				method: 'GET',
-				headers: { Authorization: 'Bearer ' + cookies.get('accessToken') }
-			}),
-			fetch(`${API}/api/v1/platform/devices/`, {
-				method: 'GET',
-				headers: { Authorization: 'Bearer ' + cookies.get('accessToken') }
-			})
-		]);
+		const [votesRes, agreementsRes, keysRes, consentRes, devicesRes, profileRes] =
+			await Promise.all([
+				fetch(`${API}/api/v1/platform/search-results/my-votes?limit=100&offset=0`, {
+					method: 'GET',
+					headers: { Authorization: 'Bearer ' + cookies.get('accessToken') }
+				}),
+				fetch(`${API}/api/v1/platform/agreements/`, {
+					method: 'GET',
+					headers: { Authorization: 'Bearer ' + cookies.get('accessToken') }
+				}),
+				fetch(`${API}/api/v1/platform/api-keys/`, {
+					method: 'GET',
+					headers: { Authorization: 'Bearer ' + cookies.get('accessToken') }
+				}),
+				fetch(`${API}/api/v1/platform/marketing-consent`, {
+					method: 'GET',
+					headers: { Authorization: 'Bearer ' + cookies.get('accessToken') }
+				}),
+				fetch(`${API}/api/v1/platform/devices/`, {
+					method: 'GET',
+					headers: { Authorization: 'Bearer ' + cookies.get('accessToken') }
+				}),
+				fetch(`${API}/api/v1/platform/user`, {
+					method: 'GET',
+					headers: { Authorization: 'Bearer ' + cookies.get('accessToken') }
+				})
+			]);
 
 		const votesJson: {
 			count: number;
@@ -256,6 +300,8 @@ export const load: PageServerLoad = async ({ cookies, locals }) => {
 
 		const devices: Device[] = devicesRes.ok ? await devicesRes.json() : [];
 
+		const profile: UserProfile | null = profileRes.ok ? await profileRes.json() : null;
+
 		const marketingConsent: MarketingConsent[] = consentRes.ok
 			? (await consentRes.json()).consent
 			: [];
@@ -269,7 +315,8 @@ export const load: PageServerLoad = async ({ cookies, locals }) => {
 			hasAgreedToTerms,
 			apiKeys,
 			devices,
-			marketingOptIn
+			marketingOptIn,
+			profile
 		};
 	}
 };

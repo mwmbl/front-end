@@ -200,6 +200,10 @@
 			<Card.Root class="p-4 outline-red-100 outline-solid dark:outline-red-900">
 				{form.error}
 			</Card.Root>
+		{:else if form?.success && form?.message}
+			<Card.Root class="p-4 outline-green-100 outline-solid dark:outline-green-900">
+				{form.message}
+			</Card.Root>
 		{/if}
 
 		<!-- Newly created key banner — shown once after createApiKey action -->
@@ -512,6 +516,53 @@
 			</ul>
 		{:else if data.hasAgreedToTerms}
 			<p class="text-sm">No devices yet.</p>
+		{/if}
+
+		<hr class="my-4" />
+
+		<h3 class="text-xl">Account details</h3>
+		<form method="post" action="?/changeUsername" class="mt-2 flex flex-col gap-2">
+			<Label for="new-username">Username</Label>
+			<Input
+				id="new-username"
+				required
+				type="text"
+				name="username"
+				value={data.username}
+				autocomplete="username"
+			/>
+			<Button class="max-w-48" type="submit">Change username</Button>
+		</form>
+		{#if data.profile}
+			<form method="post" action="?/changeEmail" class="mt-4 flex flex-col gap-2">
+				<Label for="new-email">Email address</Label>
+				<p class="text-sm">
+					Currently {data.profile.email}.
+					{#if data.profile.pending_email}
+						Awaiting confirmation of {data.profile.pending_email}.
+					{/if}
+				</p>
+				<Input
+					id="new-email"
+					required
+					type="email"
+					name="email"
+					placeholder="New email address"
+					autocomplete="email"
+				/>
+				<Input
+					required
+					type="password"
+					name="password"
+					placeholder="Current password"
+					autocomplete="current-password"
+				/>
+				<p class="text-unemphasized-2 text-sm">
+					We'll send a confirmation link to the new address. Your current address stays in use until
+					you confirm it.
+				</p>
+				<Button class="max-w-48" type="submit">Change email</Button>
+			</form>
 		{/if}
 
 		<hr class="my-4" />

@@ -197,11 +197,11 @@
 
 		<!-- Action error banner — shown when any server action returns success: false -->
 		{#if form?.success === false && form?.error}
-			<Card.Root class="p-4 outline-red-100 outline-solid dark:outline-red-900">
+			<Card.Root role="alert" class="p-4 outline-red-100 outline-solid dark:outline-red-900">
 				{form.error}
 			</Card.Root>
 		{:else if form?.success && form?.message}
-			<Card.Root class="p-4 outline-green-100 outline-solid dark:outline-green-900">
+			<Card.Root role="status" class="p-4 outline-green-100 outline-solid dark:outline-green-900">
 				{form.message}
 			</Card.Root>
 		{/if}
@@ -534,6 +534,15 @@
 			<Button class="max-w-48" type="submit">Change username</Button>
 		</form>
 		<form method="post" action="?/changeEmail" class="mt-4 flex flex-col gap-2">
+			<!-- Lets password managers match the saved login; the action ignores it. -->
+			<input
+				type="text"
+				name="username"
+				autocomplete="username"
+				value={data.username}
+				hidden
+				readonly
+			/>
 			<Label for="new-email">Email address</Label>
 			{#if data.profile}
 				<p class="text-sm">
@@ -562,8 +571,12 @@
 				autocomplete="current-password"
 			/>
 			<p id="email-change-note" class="text-unemphasized-2 text-sm">
-				We'll send a confirmation link to the new address. Your current address stays in use until
-				you confirm it.
+				{#if data.awaitingEmailConfirmation}
+					Entered the wrong address? Change it here and we'll send a new confirmation link.
+				{:else}
+					We'll send a confirmation link to the new address. Your current address stays in use until
+					you confirm it.
+				{/if}
 			</p>
 			<Button class="max-w-48" type="submit">Change email</Button>
 		</form>

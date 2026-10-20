@@ -24,6 +24,7 @@ type MarketingConsent = {
 };
 
 type UserProfile = {
+	username: string;
 	email: string;
 	pending_email: string | null;
 };
@@ -182,9 +183,14 @@ export const actions: Actions = {
 			},
 			body: JSON.stringify({ username: data.get('username') })
 		});
-		const json = await res.json();
+		// Error pages from a proxy or a crash are not JSON.
+		const json = await res.json().catch(() => ({}));
 		if (!res.ok) {
-			return { success: false, error: json.message ?? 'Failed to change your username.' };
+			return {
+				success: false,
+				error: json.message ?? 'Failed to change your username.',
+				username: data.get('username') as string
+			};
 		}
 		setUsernameCookie(cookies, json.username);
 		return { success: true, message: `Your username is now ${json.username}.` };
@@ -199,9 +205,13 @@ export const actions: Actions = {
 			},
 			body: JSON.stringify({ email: data.get('email'), password: data.get('password') })
 		});
-		const json = await res.json();
+		const json = await res.json().catch(() => ({}));
 		if (!res.ok) {
-			return { success: false, error: json.message ?? 'Failed to change your email address.' };
+			return {
+				success: false,
+				error: json.message ?? 'Failed to change your email address.',
+				email: data.get('email') as string
+			};
 		}
 		return { success: true, message: json.message as string };
 	},
@@ -301,6 +311,10 @@ export const load: PageServerLoad = async ({ cookies, locals }) => {
 		const devices: Device[] = devicesRes.ok ? await devicesRes.json() : [];
 
 		const profile: UserProfile | null = profileRes.ok ? await profileRes.json() : null;
+		// The username may have been changed from another device since this one logged in.
+		if (profile && profile.username !== cookies.get('username')) {
+			setUsernameCookie(cookies, profile.username);
+		}
 
 		const marketingConsent: MarketingConsent[] = consentRes.ok
 			? (await consentRes.json()).consent

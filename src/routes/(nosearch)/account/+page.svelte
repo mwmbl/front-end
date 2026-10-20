@@ -545,12 +545,7 @@
 			/>
 			<Label for="new-email">Email address</Label>
 			{#if data.profile}
-				<p class="text-sm">
-					Currently {data.profile.email}.
-					{#if data.profile.pending_email}
-						Awaiting confirmation of {data.profile.pending_email}.
-					{/if}
-				</p>
+				<p class="text-sm">Currently {data.profile.email}.</p>
 			{/if}
 			<Input
 				id="new-email"

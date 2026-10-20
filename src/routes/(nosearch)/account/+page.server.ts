@@ -26,7 +26,6 @@ type MarketingConsent = {
 type UserProfile = {
 	username: string;
 	email: string;
-	pending_email: string | null;
 };
 
 type Device = {

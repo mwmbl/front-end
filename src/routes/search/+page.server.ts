@@ -12,6 +12,8 @@ import {
 // uncomment to use wasm ranker
 // export const ssr = false;
 
+type Votes = { upvotes: number; downvotes: number; user_vote: null | 'upvote' | 'downvote' };
+
 type Result = {
 	title: Array<{ value: string; is_bold: boolean }>;
 	extract: Array<{ value: string; is_bold: boolean }>;
@@ -20,7 +22,49 @@ type Result = {
 	votes: undefined;
 };
 
-export async function load({ url, cookies, locals }) {
+// The API's error pages are HTML, so a failed search is caught here rather than left to throw
+// on parsing: thrown, it fails the whole page, which is what users see while the API restarts.
+async function fetchStandardResults(query: string): Promise<Result[] | null> {
+	try {
+		const res = await fetch(`${API_BASE}/api/v1/search/?s=${encodeURIComponent(query)}`);
+		if (res.ok) {
+			const json = await res.json();
+			if (Array.isArray(json)) return json;
+			console.log('Search returned a non-array body');
+		} else {
+			console.log('Search failed with status', res.status);
+		}
+	} catch (err) {
+		console.log('Search failed: ', err);
+	}
+	return null;
+}
+
+async function fetchVotes(
+	accessToken: string | undefined,
+	query: string,
+	urls: string[]
+): Promise<{ votes: Record<string, Votes> } | null> {
+	try {
+		const res = await fetch(`${API_BASE}/api/v1/platform/search-results/votes`, {
+			headers: { Authorization: `Bearer ${accessToken}` },
+			method: 'POST',
+			body: JSON.stringify({ query, urls })
+		});
+		if (res.ok) {
+			const json = await res.json();
+			if (json?.votes != null) return json;
+			console.log('Votes response has no votes');
+		} else {
+			console.log('Fetching votes failed with status', res.status);
+		}
+	} catch (err) {
+		console.log('Fetching votes failed: ', err);
+	}
+	return null;
+}
+
+export async function load({ url, cookies, locals, setHeaders }) {
 	// const useWasmRanker = url.searchParams.get('useWasmRanker') === 'true';
 
 	// if (!useWasmRanker) {
@@ -77,47 +121,31 @@ export async function load({ url, cookies, locals }) {
 	const seedQuotaHit =
 		seedFallback === 'quota' || (seedUsage != null && seedUsage.usage >= seedUsage.limit);
 
-	const results: Result[] =
-		seedResults ??
-		(await (await fetch(`${API_BASE}/api/v1/search/?s=${encodeURIComponent(query)}`)).json());
+	const standardResults = seedResults == null ? await fetchStandardResults(query) : null;
+	const searchFailed = seedResults == null && standardResults == null;
+	const results: Result[] = seedResults ?? standardResults ?? [];
+	// Don't let a cache keep serving the error page after the API recovers.
+	if (searchFailed) setHeaders({ 'cache-control': 'no-store' });
 
-	if (locals.loginStatus !== 'assumeLoggedIn') {
-		return {
-			query: url.searchParams.get('q') as string | undefined,
-			results: results,
-			searchMode,
-			seedUsage,
-			seedFallback,
-			seedQuotaHit,
-			pagesIndexed,
-			seedCrawl,
-			seedCrawlAttempt,
-			...seedState
-		};
-	}
-	const votesRes = await fetch(`${API_BASE}/api/v1/platform/search-results/votes`, {
-		headers: {
-			Authorization: `Bearer ${cookies.get('accessToken')}`
-		},
-		method: 'POST',
-		body: JSON.stringify({ query: url.searchParams.get('q'), urls: results.map((r) => r.url) })
-	});
-	const votes = await votesRes.json();
-
-	const resultsWithVotes: Array<{
-		title: Array<{ value: string; is_bold: boolean }>;
-		extract: Array<{ value: string; is_bold: boolean }>;
-		url: string;
-		source: string;
-		votes: { upvotes: number; downvotes: number; user_vote: null | 'upvote' | 'downvote' };
-	}> = results.map((result) => ({
-		...result,
-		votes: votes.votes[result.url]
-	}));
+	const votes =
+		locals.loginStatus === 'assumeLoggedIn' && results.length > 0
+			? await fetchVotes(
+					cookies.get('accessToken'),
+					query,
+					results.map((r) => r.url)
+				)
+			: null;
 
 	return {
 		query: url.searchParams.get('q') as string | undefined,
-		results: resultsWithVotes,
+		// Without votes, results go out as they do to a logged-out user.
+		results: votes
+			? results.map((result) => ({
+					...result,
+					votes: votes.votes[result.url] as Votes | undefined
+				}))
+			: results,
+		searchFailed,
 		searchMode,
 		seedUsage,
 		seedFallback,

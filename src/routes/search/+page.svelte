@@ -88,9 +88,9 @@
 				{#if data.searchMode === 'seed'}
 					Using Seed Search (Mwmbl + EUSP){#if data.seedUsage}
 						· {data.seedUsage.usage} of {data.seedUsage.limit} this month{/if}
-				{:else if data.seedFallback === 'quota'}
+				{:else if data.seedFallback === 'quota' && !data.searchFailed}
 					Seed Search quota used up. Showing standard results.
-				{:else if data.seedFallback === 'error'}
+				{:else if data.seedFallback === 'error' && !data.searchFailed}
 					Seed Search unavailable. Showing standard results.
 				{/if}
 			</p>
@@ -106,7 +106,13 @@
 		{#each results as result}
 			<SearchResult {result} query={data.query} />
 		{/each}
-		{#if results.length === 0}
+		{#if data.searchFailed}
+			<div class="flex justify-center p-4">
+				<h2 class="text-2xl font-semibold">
+					Search is unavailable right now. Try again in a minute.
+				</h2>
+			</div>
+		{:else if results.length === 0}
 			<div class="flex justify-center p-4">
 				<h2 class="text-2xl font-semibold">No results found</h2>
 			</div>

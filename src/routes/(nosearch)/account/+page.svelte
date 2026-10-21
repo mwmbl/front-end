@@ -197,8 +197,12 @@
 
 		<!-- Action error banner — shown when any server action returns success: false -->
 		{#if form?.success === false && form?.error}
-			<Card.Root class="p-4 outline-red-100 outline-solid dark:outline-red-900">
+			<Card.Root role="alert" class="p-4 outline-red-100 outline-solid dark:outline-red-900">
 				{form.error}
+			</Card.Root>
+		{:else if form?.success && form?.message}
+			<Card.Root role="status" class="p-4 outline-green-100 outline-solid dark:outline-green-900">
+				{form.message}
 			</Card.Root>
 		{/if}
 
@@ -513,6 +517,64 @@
 		{:else if data.hasAgreedToTerms}
 			<p class="text-sm">No devices yet.</p>
 		{/if}
+
+		<hr class="my-4" />
+
+		<h3 class="text-xl">Account details</h3>
+		<form method="post" action="?/changeUsername" class="mt-2 flex flex-col gap-2">
+			<Label for="new-username">Username</Label>
+			<Input
+				id="new-username"
+				required
+				type="text"
+				name="username"
+				value={form?.username ?? data.username}
+				autocomplete="username"
+			/>
+			<Button class="max-w-48" type="submit">Change username</Button>
+		</form>
+		<form method="post" action="?/changeEmail" class="mt-4 flex flex-col gap-2">
+			<!-- Lets password managers match the saved login; the action ignores it. -->
+			<input
+				type="text"
+				name="username"
+				autocomplete="username"
+				value={data.username}
+				hidden
+				readonly
+			/>
+			<Label for="new-email">Email address</Label>
+			{#if data.profile}
+				<p class="text-sm">Currently {data.profile.email}.</p>
+			{/if}
+			<Input
+				id="new-email"
+				required
+				type="email"
+				name="email"
+				placeholder="New email address"
+				value={form?.email ?? ''}
+				autocomplete="email"
+				aria-describedby="email-change-note"
+			/>
+			<Label for="current-password">Current password</Label>
+			<Input
+				id="current-password"
+				required
+				type="password"
+				name="password"
+				autocomplete="current-password"
+			/>
+			<p id="email-change-note" class="text-unemphasized-2 text-sm">
+				{#if data.awaitingEmailConfirmation}
+					Entered the wrong address? Change it here and we'll send a new confirmation link.
+				{:else}
+					We'll send a confirmation link to the new address. Your current address stays in use until
+					you confirm it.
+				{/if}
+			</p>
+			<Button class="max-w-48" type="submit">Change email</Button>
+		</form>
 
 		<hr class="my-4" />
 

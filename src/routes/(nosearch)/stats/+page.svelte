@@ -26,7 +26,6 @@
 	let datasetQueriesChart: any = null;
 	let datasetResultsChart: any = null;
 	let indexGrowthChart: any = null;
-	let moderationChart: any = null;
 	let registeredWeeklyChart: any = null;
 
 	// Canvas refs
@@ -36,7 +35,6 @@
 	let datasetQueriesCanvas: HTMLCanvasElement;
 	let datasetResultsCanvas: HTMLCanvasElement;
 	let indexGrowthCanvas: HTMLCanvasElement;
-	let moderationCanvas: HTMLCanvasElement;
 	let registeredWeeklyCanvas: HTMLCanvasElement;
 
 	let chartError: string | null = $state(null);
@@ -261,7 +259,7 @@
 						labels: data.chartData.labels,
 						datasets: [
 							{
-								label: 'URLs in Index',
+								label: 'Pages in Index',
 								data: data.chartData.urlsInIndex,
 								borderColor: 'rgb(139, 92, 246)',
 								backgroundColor: 'rgba(139, 92, 246, 0.1)',
@@ -279,7 +277,7 @@
 								tension: 0.3
 							},
 							{
-								label: 'Results in Index',
+								label: 'Index Entries',
 								data: data.chartData.resultsInIndex,
 								borderColor: 'rgb(249, 115, 22)',
 								backgroundColor: 'rgba(249, 115, 22, 0.1)',
@@ -292,26 +290,6 @@
 					options: { ...commonOptions, plugins: { ...commonOptions.plugins, title: { ...commonOptions.plugins.title, text: 'Index Growth (Last 30 Days)' } } }
 				});
 			}
-
-			// Moderation Chart
-			if (moderationCanvas) {
-				moderationChart = new Chart(moderationCanvas, {
-					type: 'line',
-					data: {
-						labels: data.chartData.labels,
-						datasets: [{
-							label: 'Blacklisted Results Removed',
-							data: data.chartData.blacklistedRemoved,
-							borderColor: 'rgb(239, 68, 68)',
-							backgroundColor: 'rgba(239, 68, 68, 0.1)',
-							borderWidth: 2,
-							fill: true,
-							tension: 0.3
-						}]
-					},
-					options: { ...commonOptions, plugins: { ...commonOptions.plugins, title: { ...commonOptions.plugins.title, text: 'Moderation Activity (Last 30 Days)' } } }
-				});
-			}
 		} catch (err) {
 			console.error('Chart initialization failed:', err);
 			chartError = err instanceof Error ? err.message : 'Unknown error';
@@ -319,7 +297,7 @@
 	}
 
 	function destroyCharts() {
-		[resultsIndexedChart, usersCrawledChart, registeredWeeklyChart, topUsersChart, datasetQueriesChart, datasetResultsChart, indexGrowthChart, moderationChart].forEach(chart => {
+		[resultsIndexedChart, usersCrawledChart, registeredWeeklyChart, topUsersChart, datasetQueriesChart, datasetResultsChart, indexGrowthChart].forEach(chart => {
 			if (chart) chart.destroy();
 		});
 	}
@@ -345,7 +323,45 @@
 		Comprehensive statistics about the Mwmbl search engine, crawler network, and index.
 	</p>
 
-	<!-- Summary Cards -->
+	<!-- The index, usable pages first: a page is stored once for every term it is indexed under, so the entries count is much larger than the number of pages -->
+	<div class="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6">
+		<div class="bg-white dark:bg-gray-800 rounded-lg shadow p-6">
+			<h3 class="text-sm font-medium text-gray-500 dark:text-gray-400">Pages in Index</h3>
+			<p class="text-3xl font-bold text-purple-600 mt-1">{formatNumber(data.latest.urlsInIndex)}</p>
+			<p class="text-sm text-gray-500 dark:text-gray-400 mt-1">Unique, searchable pages</p>
+		</div>
+		<div class="bg-white dark:bg-gray-800 rounded-lg shadow p-6">
+			<h3 class="text-sm font-medium text-gray-500 dark:text-gray-400">Domains in Index</h3>
+			<p class="text-3xl font-bold text-pink-600 mt-1">{formatNumber(data.latest.domainsInIndex)}</p>
+			<p class="text-sm text-gray-500 dark:text-gray-400 mt-1">Unique domains</p>
+		</div>
+		<div class="bg-white dark:bg-gray-800 rounded-lg shadow p-6">
+			<h3 class="text-sm font-medium text-gray-500 dark:text-gray-400">Index Entries</h3>
+			<p class="text-3xl font-bold text-orange-600 mt-1">{formatNumber(data.latest.resultsInIndex)}</p>
+			<p class="text-sm text-gray-500 dark:text-gray-400 mt-1">Pages counted once per term they are indexed under</p>
+		</div>
+	</div>
+
+	<!-- Seed Search, all time -->
+	<div class="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6">
+		<div class="bg-white dark:bg-gray-800 rounded-lg shadow p-6">
+			<h3 class="text-sm font-medium text-gray-500 dark:text-gray-400">Seed Searches</h3>
+			<p class="text-3xl font-bold text-emerald-600 mt-1">{formatNumber(data.seed.searches)}</p>
+			<p class="text-sm text-gray-500 dark:text-gray-400 mt-1">Searches made with <a href="/seed-search" class="underline">Seed Search</a> on, all time</p>
+		</div>
+		<div class="bg-white dark:bg-gray-800 rounded-lg shadow p-6">
+			<h3 class="text-sm font-medium text-gray-500 dark:text-gray-400">Seed Pages</h3>
+			<p class="text-3xl font-bold text-emerald-600 mt-1">{formatNumber(data.seed.pagesIndexed)}</p>
+			<p class="text-sm text-gray-500 dark:text-gray-400 mt-1">New pages Seed Searches added to the index, all time</p>
+		</div>
+		<div class="bg-white dark:bg-gray-800 rounded-lg shadow p-6">
+			<h3 class="text-sm font-medium text-gray-500 dark:text-gray-400">New Sites Found</h3>
+			<p class="text-3xl font-bold text-emerald-600 mt-1">{formatNumber(data.seed.sitesDiscovered)}</p>
+			<p class="text-sm text-gray-500 dark:text-gray-400 mt-1">Sites Seed Searches were the first to bring to Mwmbl</p>
+		</div>
+	</div>
+
+	<!-- Crawler and dataset activity -->
 	<div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
 		<div class="bg-white dark:bg-gray-800 rounded-lg shadow p-6">
 			<h3 class="text-sm font-medium text-gray-500 dark:text-gray-400">Active Crawlers (30d)</h3>
@@ -358,25 +374,6 @@
 			<p class="text-sm text-gray-500 dark:text-gray-400 mt-1">Today: {formatNumber(data.latest.resultsIndexed)}</p>
 		</div>
 		<div class="bg-white dark:bg-gray-800 rounded-lg shadow p-6">
-			<h3 class="text-sm font-medium text-gray-500 dark:text-gray-400">URLs in Index</h3>
-			<p class="text-3xl font-bold text-purple-600 mt-1">{formatNumber(data.totals.urlsInIndex)}</p>
-			<p class="text-sm text-gray-500 dark:text-gray-400 mt-1">Current: {formatNumber(data.latest.urlsInIndex)}</p>
-		</div>
-		<div class="bg-white dark:bg-gray-800 rounded-lg shadow p-6">
-			<h3 class="text-sm font-medium text-gray-500 dark:text-gray-400">Domains in Index</h3>
-			<p class="text-3xl font-bold text-pink-600 mt-1">{formatNumber(data.totals.domainsInIndex)}</p>
-			<p class="text-sm text-gray-500 dark:text-gray-400 mt-1">Current: {formatNumber(data.latest.domainsInIndex)}</p>
-		</div>
-	</div>
-
-	<!-- Additional Summary Cards -->
-	<div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
-		<div class="bg-white dark:bg-gray-800 rounded-lg shadow p-6">
-			<h3 class="text-sm font-medium text-gray-500 dark:text-gray-400">Results in Index</h3>
-			<p class="text-3xl font-bold text-orange-600 mt-1">{formatNumber(data.totals.resultsInIndex)}</p>
-			<p class="text-sm text-gray-500 dark:text-gray-400 mt-1">Current: {formatNumber(data.latest.resultsInIndex)}</p>
-		</div>
-		<div class="bg-white dark:bg-gray-800 rounded-lg shadow p-6">
 			<h3 class="text-sm font-medium text-gray-500 dark:text-gray-400">Dataset Queries (30d)</h3>
 			<p class="text-3xl font-bold text-yellow-600 mt-1">{formatNumber(data.totals.datasetQueries)}</p>
 			<p class="text-sm text-gray-500 dark:text-gray-400 mt-1">Today: {formatNumber(data.latest.datasetQueries)}</p>
@@ -385,11 +382,6 @@
 			<h3 class="text-sm font-medium text-gray-500 dark:text-gray-400">Dataset Results (30d)</h3>
 			<p class="text-3xl font-bold text-teal-600 mt-1">{formatNumber(data.totals.datasetResults)}</p>
 			<p class="text-sm text-gray-500 dark:text-gray-400 mt-1">Today: {formatNumber(data.latest.datasetResults)}</p>
-		</div>
-		<div class="bg-white dark:bg-gray-800 rounded-lg shadow p-6">
-			<h3 class="text-sm font-medium text-gray-500 dark:text-gray-400">Blacklisted Removed (30d)</h3>
-			<p class="text-3xl font-bold text-red-600 mt-1">{formatNumber(data.totals.blacklistedRemoved)}</p>
-			<p class="text-sm text-gray-500 dark:text-gray-400 mt-1">Today: {formatNumber(data.latest.blacklistedRemoved)}</p>
 		</div>
 	</div>
 
@@ -464,14 +456,6 @@
 					<canvas bind:this={indexGrowthCanvas} class="w-full h-full"></canvas>
 				</div>
 			</div>
-
-			<!-- Moderation Chart -->
-			<div class="bg-white dark:bg-gray-800 rounded-lg shadow p-6">
-				<h2 class="text-xl font-semibold mb-4">Moderation Activity (Last 30 Days)</h2>
-				<div class="h-80" style="position: relative; height: 320px; width: 100%;">
-					<canvas bind:this={moderationCanvas} class="w-full h-full"></canvas>
-				</div>
-			</div>
 		</TabsContent>
 
 		<!-- Overview Tab -->
@@ -480,9 +464,9 @@
 				<h2 class="text-xl font-semibold mb-4">Index Statistics</h2>
 				<div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
 					<div>
-						<h3 class="font-medium text-gray-700 dark:text-gray-300">URLs in Index</h3>
+						<h3 class="font-medium text-gray-700 dark:text-gray-300">Pages in Index</h3>
 						<p class="text-2xl font-bold text-purple-600">{formatNumber(data.latest.urlsInIndex)}</p>
-						<p class="text-sm text-gray-500 dark:text-gray-400">Total unique URLs indexed</p>
+						<p class="text-sm text-gray-500 dark:text-gray-400">Unique, searchable pages</p>
 					</div>
 					<div>
 						<h3 class="font-medium text-gray-700 dark:text-gray-300">Domains in Index</h3>
@@ -490,18 +474,18 @@
 						<p class="text-sm text-gray-500 dark:text-gray-400">Unique domains represented</p>
 					</div>
 					<div>
-						<h3 class="font-medium text-gray-700 dark:text-gray-300">Results in Index</h3>
+						<h3 class="font-medium text-gray-700 dark:text-gray-300">Index Entries</h3>
 						<p class="text-2xl font-bold text-orange-600">{formatNumber(data.latest.resultsInIndex)}</p>
-						<p class="text-sm text-gray-500 dark:text-gray-400">Total searchable results</p>
+						<p class="text-sm text-gray-500 dark:text-gray-400">Pages counted once per term they are indexed under</p>
 					</div>
 					<div>
-						<h3 class="font-medium text-gray-700 dark:text-gray-300">Avg Results per Domain</h3>
+						<h3 class="font-medium text-gray-700 dark:text-gray-300">Avg Pages per Domain</h3>
 						<p class="text-2xl font-bold text-indigo-600">
 							{data.latest.domainsInIndex > 0
-								? formatNumber(Math.round(data.latest.resultsInIndex / data.latest.domainsInIndex))
+								? formatNumber(Math.round(data.latest.urlsInIndex / data.latest.domainsInIndex))
 								: 0}
 						</p>
-						<p class="text-sm text-gray-500 dark:text-gray-400">Average results per domain</p>
+						<p class="text-sm text-gray-500 dark:text-gray-400">Average unique pages per domain</p>
 					</div>
 				</div>
 			</div>
@@ -541,7 +525,7 @@
 			</div>
 
 			<div class="bg-white dark:bg-gray-800 rounded-lg shadow p-6">
-				<h2 class="text-xl font-semibold mb-4">Dataset & Moderation (Last 30 Days)</h2>
+				<h2 class="text-xl font-semibold mb-4">Dataset (Last 30 Days)</h2>
 				<div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
 					<div>
 						<h3 class="font-medium text-gray-700 dark:text-gray-300">Dataset Queries</h3>
@@ -552,11 +536,6 @@
 						<h3 class="font-medium text-gray-700 dark:text-gray-300">Dataset Results</h3>
 						<p class="text-2xl font-bold text-teal-600">{formatNumber(data.totals.datasetResults)}</p>
 						<p class="text-sm text-gray-500 dark:text-gray-400">Search results from datasets</p>
-					</div>
-					<div>
-						<h3 class="font-medium text-gray-700 dark:text-gray-300">Blacklisted Removed</h3>
-						<p class="text-2xl font-bold text-red-600">{formatNumber(data.totals.blacklistedRemoved)}</p>
-						<p class="text-sm text-gray-500 dark:text-gray-400">Results removed by moderation</p>
 					</div>
 					<div>
 						<h3 class="font-medium text-gray-700 dark:text-gray-300">Success Rate</h3>
@@ -580,8 +559,8 @@
 					<p><strong>Top Contributors:</strong> All-time leaderboard of crawlers by total results submitted.</p>
 					<p><strong>Dataset Queries:</strong> Autocomplete queries collected from the Firefox extension.</p>
 					<p><strong>Dataset Results:</strong> Search results returned for dataset queries.</p>
-					<p><strong>Index Growth:</strong> URLs, domains, and results in the search index over time.</p>
-					<p><strong>Moderation:</strong> Results removed due to blacklisted domains.</p>
+					<p><strong>Index Growth:</strong> Pages, domains, and index entries in the search index over time.</p>
+					<p><strong>Seed Searches:</strong> Searches made with Seed Search on, and the new pages and sites they brought in. Shown as all-time totals; we don't keep these per day.</p>
 					<p><strong>Timezone:</strong> All dates are in UTC.</p>
 				</div>
 			</div>

@@ -13,8 +13,10 @@ export const load: PageServerLoad = async ({ fetch }) => {
 		results_in_index_daily: Record<string, number>;
 		dataset_queries_daily: Record<string, number>;
 		dataset_results_daily: Record<string, number>;
-		blacklisted_results_removed_daily: Record<string, number>;
 		users_registered_weekly: Record<string, number>;
+		seed_searches_total: number;
+		seed_pages_indexed_total: number;
+		seed_sites_discovered_total: number;
 	} = {
 		users_crawled_daily: {},
 		results_indexed_daily: {},
@@ -24,8 +26,10 @@ export const load: PageServerLoad = async ({ fetch }) => {
 		results_in_index_daily: {},
 		dataset_queries_daily: {},
 		dataset_results_daily: {},
-		blacklisted_results_removed_daily: {},
-		users_registered_weekly: {}
+		users_registered_weekly: {},
+		seed_searches_total: 0,
+		seed_pages_indexed_total: 0,
+		seed_sites_discovered_total: 0
 	};
 
 	try {
@@ -72,7 +76,6 @@ export const load: PageServerLoad = async ({ fetch }) => {
 	const resultsInIndexData = [];
 	const datasetQueriesData = [];
 	const datasetResultsData = [];
-	const blacklistedRemovedData = [];
 
 	const today = new Date();
 	for (let i = 29; i >= 0; i--) {
@@ -87,7 +90,6 @@ export const load: PageServerLoad = async ({ fetch }) => {
 		resultsInIndexData.push(stats.results_in_index_daily[dateStr] || 0);
 		datasetQueriesData.push(stats.dataset_queries_daily[dateStr] || 0);
 		datasetResultsData.push(stats.dataset_results_daily[dateStr] || 0);
-		blacklistedRemovedData.push(stats.blacklisted_results_removed_daily[dateStr] || 0);
 	}
 
 	// Weekly registrations, keyed by week start date; fill in any missing weeks with zero
@@ -108,12 +110,10 @@ export const load: PageServerLoad = async ({ fetch }) => {
 	// (not the sum of daily active crawlers which double-counts users active on multiple days)
 	const totalUsersCrawled = stats.users_crawled_30d ?? Object.values(stats.users_crawled_daily).reduce((sum, v) => sum + v, 0);
 	const totalResultsIndexed = Object.values(stats.results_indexed_daily).reduce((sum, v) => sum + v, 0);
-	const totalUrlsInIndex = Object.values(stats.urls_in_index_daily).reduce((sum, v) => sum + v, 0);
-	const totalDomainsInIndex = Object.values(stats.domains_in_index_daily).reduce((sum, v) => sum + v, 0);
-	const totalResultsInIndex = Object.values(stats.results_in_index_daily).reduce((sum, v) => sum + v, 0);
+	// The index counts are snapshots of one size carried across the days, so summing them
+	// would multiply the index by ~30; only the latest value means anything.
 	const totalDatasetQueries = Object.values(stats.dataset_queries_daily).reduce((sum, v) => sum + v, 0);
 	const totalDatasetResults = Object.values(stats.dataset_results_daily).reduce((sum, v) => sum + v, 0);
-	const totalBlacklistedRemoved = Object.values(stats.blacklisted_results_removed_daily).reduce((sum, v) => sum + v, 0);
 
 	// Get latest values
 	const latestDate = labels[labels.length - 1];
@@ -124,7 +124,6 @@ export const load: PageServerLoad = async ({ fetch }) => {
 	const latestResultsInIndex = stats.results_in_index_daily[latestDate] || 0;
 	const latestDatasetQueries = stats.dataset_queries_daily[latestDate] || 0;
 	const latestDatasetResults = stats.dataset_results_daily[latestDate] || 0;
-	const latestBlacklistedRemoved = stats.blacklisted_results_removed_daily[latestDate] || 0;
 
 	// Top users data for horizontal bar chart (from all-time leaderboard)
 	const topUsersLabels = allTimeLeaderboard.map(u => u.username);
@@ -146,8 +145,12 @@ export const load: PageServerLoad = async ({ fetch }) => {
 			domainsInIndex: domainsInIndexData,
 			resultsInIndex: resultsInIndexData,
 			datasetQueries: datasetQueriesData,
-			datasetResults: datasetResultsData,
-			blacklistedRemoved: blacklistedRemovedData
+			datasetResults: datasetResultsData
+		},
+		seed: {
+			searches: stats.seed_searches_total,
+			pagesIndexed: stats.seed_pages_indexed_total,
+			sitesDiscovered: stats.seed_sites_discovered_total
 		},
 		registeredWeekly: {
 			labels: registeredWeeklyLabels,
@@ -156,12 +159,8 @@ export const load: PageServerLoad = async ({ fetch }) => {
 		totals: {
 			usersCrawled: totalUsersCrawled,
 			resultsIndexed: totalResultsIndexed,
-			urlsInIndex: totalUrlsInIndex,
-			domainsInIndex: totalDomainsInIndex,
-			resultsInIndex: totalResultsInIndex,
 			datasetQueries: totalDatasetQueries,
-			datasetResults: totalDatasetResults,
-			blacklistedRemoved: totalBlacklistedRemoved
+			datasetResults: totalDatasetResults
 		},
 		latest: {
 			usersCrawled: latestUsersCrawled,
@@ -170,8 +169,7 @@ export const load: PageServerLoad = async ({ fetch }) => {
 			domainsInIndex: latestDomainsInIndex,
 			resultsInIndex: latestResultsInIndex,
 			datasetQueries: latestDatasetQueries,
-			datasetResults: latestDatasetResults,
-			blacklistedRemoved: latestBlacklistedRemoved
+			datasetResults: latestDatasetResults
 		}
 	};
 };

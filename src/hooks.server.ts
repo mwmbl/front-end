@@ -28,7 +28,13 @@ export const handle: Handle = async ({ event, resolve }) => {
 		}
 	} else {
 		event.locals.loginStatus = 'assumeLoggedOut';
-		clearAuthCookies(event.cookies);
+		// A request with no auth cookies has nothing to clear, and says nothing about whether
+		// the user is logged in: the cookies are SameSite=Strict, so the browser leaves them off
+		// any navigation from another site. Clearing them here deleted the cookies of users
+		// who were logged in, logging out every tab whenever they followed a link to Mwmbl.
+		if (accessToken) {
+			clearAuthCookies(event.cookies);
+		}
 	}
 
 	// intercept requests to `/api/` and handle them with `handleApiProxy`

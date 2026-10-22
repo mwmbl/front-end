@@ -29,9 +29,9 @@ export const handle: Handle = async ({ event, resolve }) => {
 	} else {
 		event.locals.loginStatus = 'assumeLoggedOut';
 		// A request with no auth cookies has nothing to clear, and says nothing about whether
-		// the user is logged in: the cookies are SameSite=Strict, so the browser leaves them off
-		// any navigation from another site. Clearing them here deleted the cookies of users
-		// who were logged in, logging out every tab whenever they followed a link to Mwmbl.
+		// the user is logged in: SameSite keeps the cookies off some requests from other sites,
+		// and they were Strict, so off every link to Mwmbl. Clearing them here deleted the
+		// cookies of users who were logged in, logging out every tab.
 		if (accessToken) {
 			clearAuthCookies(event.cookies);
 		}

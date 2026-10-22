@@ -36,7 +36,12 @@ export const handle: Handle = async ({ event, resolve }) => {
 		return await handleApiProxy({ event, resolve });
 	}
 
-	return await resolve(event);
+	const response = await resolve(event);
+	// SvelteKit lists every preloaded chunk in a Link header, which takes up most of nginx's
+	// 4KB response header buffer. Add the cookies from a token refresh and nginx returns a
+	// 502 instead of the page. The page head carries the same preloads (see svelte.config.js).
+	response.headers.delete('link');
+	return response;
 };
 
 // Proxies request through SvelteKit server to MWMBL API, with authentication

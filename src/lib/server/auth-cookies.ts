@@ -17,7 +17,10 @@ function cookieOptions(persistent: boolean, httpOnly: boolean): CookieOptions {
 	return {
 		path: '/',
 		httpOnly,
-		sameSite: 'strict',
+		// Lax rather than Strict, so a logged-in user following a link to Mwmbl from another
+		// site arrives logged in. Cross-site POSTs still carry no cookies, and SvelteKit's own
+		// origin check refuses cross-site form actions.
+		sameSite: 'lax',
 		secure: !dev,
 		...(persistent ? { maxAge: PERSISTENT_MAX_AGE } : {})
 	};

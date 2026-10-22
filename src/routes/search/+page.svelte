@@ -92,6 +92,8 @@
 					Seed Search quota used up. Showing standard results.
 				{:else if data.seedFallback === 'error' && !data.searchFailed}
 					Seed Search unavailable. Showing standard results.
+				{:else if data.seedFallback === 'cross-site' && !data.searchFailed}
+					Opened from another site, so showing standard results. Search again to use Seed Search.
 				{/if}
 			</p>
 			<SeedSearchToggle

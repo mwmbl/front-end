@@ -28,7 +28,13 @@ export const handle: Handle = async ({ event, resolve }) => {
 		}
 	} else {
 		event.locals.loginStatus = 'assumeLoggedOut';
-		clearAuthCookies(event.cookies);
+		// A request with no auth cookies has nothing to clear, and says nothing about whether
+		// the user is logged in: SameSite keeps the cookies off some requests from other sites,
+		// and they were Strict, so off every link to Mwmbl. Clearing them here deleted the
+		// cookies of users who were logged in, logging out every tab.
+		if (accessToken) {
+			clearAuthCookies(event.cookies);
+		}
 	}
 
 	// intercept requests to `/api/` and handle them with `handleApiProxy`
@@ -46,7 +52,12 @@ const handleApiProxy: Handle = async ({ event }) => {
 	const urlPath = `${MWMBL_API_BASE_URL}${event.url.pathname}${event.url.search}`;
 	const apiURL = new URL(urlPath);
 
-	event.request.headers.set('Authorization', `Bearer ${event.cookies.get('accessToken')}`);
+	// Not for a request from another site. The auth cookies are SameSite=Lax, so a top-level
+	// GET navigation from elsewhere carries them, and some API GETs spend the user's quota -
+	// combined-search with crawl=true starts a crawl. The browser's own requests are same-origin.
+	if (event.request.headers.get('sec-fetch-site') !== 'cross-site') {
+		event.request.headers.set('Authorization', `Bearer ${event.cookies.get('accessToken')}`);
+	}
 
 	const apiResponse = await fetch(apiURL.toString(), {
 		// propagate the request method and body

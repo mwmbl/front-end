@@ -75,7 +75,7 @@ export async function load({ url, cookies, locals, setHeaders, request }) {
 	let seedResults: Result[] | null = null;
 	let searchMode: 'standard' | 'seed' = 'standard';
 	let seedUsage: { usage: number; limit: number } | null = null;
-	let seedFallback: 'quota' | 'error' | null = null;
+	let seedFallback: 'quota' | 'error' | 'cross-site' | null = null;
 	let pagesIndexed: number | null = null;
 	let seedCrawl: SeedCrawl | null = null;
 	let seedCrawlAttempt: SeedCrawlAttempt | null = null;
@@ -86,7 +86,9 @@ export async function load({ url, cookies, locals, setHeaders, request }) {
 	// could otherwise load search after search as the user, spending their quota on crawls of its
 	// choosing. A link from elsewhere gets a standard search; the next search here is a Seed Search.
 	const crossSite = request.headers.get('sec-fetch-site') === 'cross-site';
-	if (seedState.seedSearchEnabled && !crossSite) {
+	if (seedState.seedSearchEnabled && crossSite) {
+		seedFallback = 'cross-site';
+	} else if (seedState.seedSearchEnabled) {
 		try {
 			const res = await fetch(
 				`${API_BASE}/api/v2/combined-search/?q=${encodeURIComponent(query)}&crawl=true`,

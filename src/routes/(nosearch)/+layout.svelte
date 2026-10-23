@@ -40,6 +40,7 @@
 			<img src="/mwmbl-text.svg" alt="" class="h-6 dark:invert" />
 		</a>
 		<div class="hidden md:contents">
+			<Button variant="link" href="/images" class="px-2">Images</Button>
 			<Button variant="link" href="/membership" class="px-2">Membership</Button>
 			<Button variant="link" href="/stats" class="px-2">Statistics</Button>
 			<SignInButton loginStatus={data.loginStatus} />

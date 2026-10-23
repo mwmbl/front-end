@@ -4,6 +4,7 @@
 
 	import RiEqualizer2Line from '~icons/ri/equalizer-2-line';
 	import RiLinksLine from '~icons/ri/links-line';
+	import RiImageLine from '~icons/ri/image-line';
 	import Search from '@/components/custom/search/SearchBar.svelte';
 	import SearchResult from '@/components/custom/search/SearchResult.svelte';
 	import Options from '@/components/custom/menu/Options.svelte';
@@ -54,6 +55,14 @@
 				<RiLinksLine class="min-h-5 min-w-5 text-black dark:text-white" />
 				Submit URL
 			</Button> -->
+			<Button
+				href={`/images?q=${encodeURIComponent(data.query ?? '')}`}
+				variant="secondary"
+				class="dark:bg-muted flex flex-row items-center gap-2"
+			>
+				<RiImageLine class="min-h-5 min-w-5 text-black dark:text-white" />
+				Images
+			</Button>
 			<Button
 				href="/domain-submissions"
 				variant="secondary"

@@ -25,7 +25,7 @@
 	let topUsersChart: any = null;
 	let datasetQueriesChart: any = null;
 	let datasetResultsChart: any = null;
-	let indexGrowthChart: any = null;
+	let indexGrowthCharts: any[] = [];
 	let registeredWeeklyChart: any = null;
 
 	// Canvas refs
@@ -34,7 +34,15 @@
 	let topUsersCanvas: HTMLCanvasElement;
 	let datasetQueriesCanvas: HTMLCanvasElement;
 	let datasetResultsCanvas: HTMLCanvasElement;
-	let indexGrowthCanvas: HTMLCanvasElement;
+	let indexGrowthCanvases: HTMLCanvasElement[] = [];
+
+	// The index is re-measured about weekly, so each point is one scan. Each metric gets its own
+	// chart with a y-axis fitted to its range: on a shared axis the weekly change is invisible.
+	const indexGrowthMetrics = [
+		{ title: 'Pages in Index', values: 'urls', change: 'urlsChange', color: '139, 92, 246' },
+		{ title: 'Domains in Index', values: 'domains', change: 'domainsChange', color: '236, 72, 153' },
+		{ title: 'Index Entries', values: 'results', change: 'resultsChange', color: '249, 115, 22' }
+	] as const;
 	let registeredWeeklyCanvas: HTMLCanvasElement;
 
 	let chartError: string | null = $state(null);
@@ -251,45 +259,68 @@
 				});
 			}
 
-			// Index Growth Chart (URLs, Domains, Results)
-			if (indexGrowthCanvas) {
-				indexGrowthChart = new Chart(indexGrowthCanvas, {
-					type: 'line',
+			// Index Growth Charts: the size at each scan as a line, the change since the previous scan as bars
+			const indexHistory = data.indexHistory;
+			const formatScanDate = (index: number) => formatDate(indexHistory.labels[index]);
+			indexGrowthMetrics.forEach((metric, i) => {
+				const canvas = indexGrowthCanvases[i];
+				if (!canvas) return;
+				indexGrowthCharts[i] = new Chart(canvas, {
 					data: {
-						labels: data.chartData.labels,
+						labels: indexHistory.labels,
 						datasets: [
 							{
-								label: 'Pages in Index',
-								data: data.chartData.urlsInIndex,
-								borderColor: 'rgb(139, 92, 246)',
-								backgroundColor: 'rgba(139, 92, 246, 0.1)',
-								borderWidth: 2,
-								fill: true,
-								tension: 0.3
+								type: 'bar',
+								label: 'Change since previous scan',
+								data: indexHistory[metric.change],
+								yAxisID: 'change',
+								backgroundColor: `rgba(${metric.color}, 0.35)`,
+								order: 2
 							},
 							{
-								label: 'Domains in Index',
-								data: data.chartData.domainsInIndex,
-								borderColor: 'rgb(236, 72, 153)',
-								backgroundColor: 'rgba(236, 72, 153, 0.1)',
+								type: 'line',
+								label: metric.title,
+								data: indexHistory[metric.values],
+								yAxisID: 'total',
+								borderColor: `rgb(${metric.color})`,
+								backgroundColor: `rgba(${metric.color}, 0.1)`,
 								borderWidth: 2,
-								fill: true,
-								tension: 0.3
-							},
-							{
-								label: 'Index Entries',
-								data: data.chartData.resultsInIndex,
-								borderColor: 'rgb(249, 115, 22)',
-								backgroundColor: 'rgba(249, 115, 22, 0.1)',
-								borderWidth: 2,
-								fill: true,
-								tension: 0.3
+								pointRadius: 4,
+								tension: 0.2,
+								order: 1
 							}
 						]
 					},
-					options: { ...commonOptions, plugins: { ...commonOptions.plugins, title: { ...commonOptions.plugins.title, text: 'Index Growth (Last 30 Days)' } } }
+					options: {
+						...commonOptions,
+						plugins: {
+							...commonOptions.plugins,
+							title: { ...commonOptions.plugins.title, text: `${metric.title} (one point per scan, about weekly)` }
+						},
+						scales: {
+							x: {
+								ticks: { color: textColor, callback: (_value: string | number, index: number) => formatScanDate(index) },
+								grid: { color: gridColor }
+							},
+							total: {
+								type: 'linear' as const,
+								position: 'left' as const,
+								beginAtZero: false,
+								title: { display: true, text: 'Total', color: textColor },
+								ticks: { color: textColor, callback: (value: string | number) => formatNumber(Number(value)) },
+								grid: { color: gridColor }
+							},
+							change: {
+								type: 'linear' as const,
+								position: 'right' as const,
+								title: { display: true, text: 'Change per scan', color: textColor },
+								ticks: { color: textColor, callback: (value: string | number) => formatNumber(Number(value)) },
+								grid: { drawOnChartArea: false }
+							}
+						}
+					}
 				});
-			}
+			});
 		} catch (err) {
 			console.error('Chart initialization failed:', err);
 			chartError = err instanceof Error ? err.message : 'Unknown error';
@@ -297,7 +328,7 @@
 	}
 
 	function destroyCharts() {
-		[resultsIndexedChart, usersCrawledChart, registeredWeeklyChart, topUsersChart, datasetQueriesChart, datasetResultsChart, indexGrowthChart].forEach(chart => {
+		[resultsIndexedChart, usersCrawledChart, registeredWeeklyChart, topUsersChart, datasetQueriesChart, datasetResultsChart, ...indexGrowthCharts].forEach(chart => {
 			if (chart) chart.destroy();
 		});
 	}
@@ -449,12 +480,23 @@
 				</div>
 			</div>
 
-			<!-- Index Growth Chart -->
+			<!-- Index Growth Charts -->
 			<div class="bg-white dark:bg-gray-800 rounded-lg shadow p-6">
-				<h2 class="text-xl font-semibold mb-4">Index Growth (Last 30 Days)</h2>
-				<div class="h-96" style="position: relative; height: 400px; width: 100%;">
-					<canvas bind:this={indexGrowthCanvas} class="w-full h-full"></canvas>
-				</div>
+				<h2 class="text-xl font-semibold mb-1">Index Growth</h2>
+				<p class="text-sm text-gray-500 dark:text-gray-400 mb-4">
+					The index is re-measured about once a week. Lines show the size at each scan and bars the change since the previous one.
+				</p>
+				{#if data.indexHistory.labels.length === 0}
+					<p class="text-center text-gray-500 py-8">No completed index scans yet.</p>
+				{:else}
+					<div class="grid grid-cols-1 gap-6">
+						{#each indexGrowthMetrics as metric, i}
+							<div style="position: relative; height: 320px; width: 100%;">
+								<canvas bind:this={indexGrowthCanvases[i]} class="w-full h-full"></canvas>
+							</div>
+						{/each}
+					</div>
+				{/if}
 			</div>
 		</TabsContent>
 

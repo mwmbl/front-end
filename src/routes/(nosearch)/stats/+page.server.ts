@@ -1,6 +1,10 @@
 import { API_BASE } from '$lib/api';
 import type { PageServerLoad } from './$types';
 
+function indexChanges(values: number[]): number[] {
+	return values.map((value, i) => (i === 0 ? 0 : value - values[i - 1]));
+}
+
 export const load: PageServerLoad = async ({ fetch }) => {
 	// Fetch comprehensive stats from the API
 	let stats: {
@@ -17,6 +21,7 @@ export const load: PageServerLoad = async ({ fetch }) => {
 		seed_searches_total: number;
 		seed_pages_indexed_total: number;
 		seed_sites_discovered_total: number;
+		index_history: Array<{ date: string; urls: number; domains: number; results: number }>;
 	} = {
 		users_crawled_daily: {},
 		results_indexed_daily: {},
@@ -29,13 +34,15 @@ export const load: PageServerLoad = async ({ fetch }) => {
 		users_registered_weekly: {},
 		seed_searches_total: 0,
 		seed_pages_indexed_total: 0,
-		seed_sites_discovered_total: 0
+		seed_sites_discovered_total: 0,
+		index_history: []
 	};
 
 	try {
 		const statsRes = await fetch(`${API_BASE}/api/v1/crawler/stats`);
 		if (statsRes.ok) {
-			stats = await statsRes.json();
+			// Over the defaults, so a backend that predates a field still renders the page.
+			stats = { ...stats, ...(await statsRes.json()) };
 		} else {
 			console.error(`Failed to fetch stats: ${statsRes.status}`);
 		}
@@ -71,9 +78,6 @@ export const load: PageServerLoad = async ({ fetch }) => {
 	const labels = [];
 	const usersCrawledData = [];
 	const resultsIndexedData = [];
-	const urlsInIndexData = [];
-	const domainsInIndexData = [];
-	const resultsInIndexData = [];
 	const datasetQueriesData = [];
 	const datasetResultsData = [];
 
@@ -85,9 +89,6 @@ export const load: PageServerLoad = async ({ fetch }) => {
 		labels.push(dateStr);
 		usersCrawledData.push(stats.users_crawled_daily[dateStr] || 0);
 		resultsIndexedData.push(stats.results_indexed_daily[dateStr] || 0);
-		urlsInIndexData.push(stats.urls_in_index_daily[dateStr] || 0);
-		domainsInIndexData.push(stats.domains_in_index_daily[dateStr] || 0);
-		resultsInIndexData.push(stats.results_in_index_daily[dateStr] || 0);
 		datasetQueriesData.push(stats.dataset_queries_daily[dateStr] || 0);
 		datasetResultsData.push(stats.dataset_results_daily[dateStr] || 0);
 	}
@@ -141,11 +142,18 @@ export const load: PageServerLoad = async ({ fetch }) => {
 			labels,
 			usersCrawled: usersCrawledData,
 			resultsIndexed: resultsIndexedData,
-			urlsInIndex: urlsInIndexData,
-			domainsInIndex: domainsInIndexData,
-			resultsInIndex: resultsInIndexData,
 			datasetQueries: datasetQueriesData,
 			datasetResults: datasetResultsData
+		},
+		indexHistory: {
+			labels: stats.index_history.map((m) => m.date),
+			urls: stats.index_history.map((m) => m.urls),
+			domains: stats.index_history.map((m) => m.domains),
+			results: stats.index_history.map((m) => m.results),
+			// Change since the previous scan; the first scan has nothing to compare with.
+			urlsChange: indexChanges(stats.index_history.map((m) => m.urls)),
+			domainsChange: indexChanges(stats.index_history.map((m) => m.domains)),
+			resultsChange: indexChanges(stats.index_history.map((m) => m.results))
 		},
 		seed: {
 			searches: stats.seed_searches_total,

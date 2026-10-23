@@ -7,7 +7,7 @@
 </script>
 
 <div class="min-h-screen">
-	<header class="bg-white shadow-md dark:bg-gray-800">
+	<header class="shadow-md">
 		<div class="mx-auto max-w-7xl px-4 py-6 sm:px-6 lg:px-8">
 			<h1 class="text-3xl font-bold">{data.username}'s stats</h1>
 		</div>
@@ -15,22 +15,22 @@
 
 	<main class="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
 		<div class="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-			<div class="rounded-lg bg-white p-6 shadow dark:bg-gray-800">
+			<div class="bg-card rounded-lg p-6 shadow">
 				<h2 class="mb-2 text-lg font-medium text-gray-500 dark:text-gray-400">Member Since</h2>
 				<p class="text-3xl font-bold">{new Date(data.dateJoined).getFullYear()}</p>
 			</div>
-			<div class="rounded-lg bg-white p-6 shadow dark:bg-gray-800">
+			<div class="bg-card rounded-lg p-6 shadow">
 				<h2 class="mb-2 text-lg font-medium text-gray-500 dark:text-gray-400">
 					Total Results Indexed
 				</h2>
 				<p class="text-3xl font-bold">{data.totalIndexed.toLocaleString()}</p>
 			</div>
-			<div class="rounded-lg bg-white p-6 shadow dark:bg-gray-800">
+			<div class="bg-card rounded-lg p-6 shadow">
 				<h2 class="mb-2 text-lg font-medium text-gray-500 dark:text-gray-400">Indexed Today</h2>
 				<p class="text-3xl font-bold">{data.myIndexedToday.toLocaleString()}</p>
 			</div>
 			<div class="bg-brand-gradient rounded-lg p-[3px] shadow">
-				<div class="h-full rounded-[5px] bg-white p-6 dark:bg-gray-800">
+				<div class="bg-card h-full rounded-[5px] p-6">
 					<h2 class="mb-2 text-lg font-medium text-gray-500 dark:text-gray-400">Seed Searches</h2>
 					<p class="text-3xl font-bold">{data.seedSearches.toLocaleString()}</p>
 					<p class="mt-1 text-sm text-gray-500 dark:text-gray-400">
@@ -39,7 +39,7 @@
 				</div>
 			</div>
 			<div class="bg-brand-gradient rounded-lg p-[3px] shadow">
-				<div class="h-full rounded-[5px] bg-white p-6 dark:bg-gray-800">
+				<div class="bg-card h-full rounded-[5px] p-6">
 					<h2 class="mb-2 text-lg font-medium text-gray-500 dark:text-gray-400">Seed Pages</h2>
 					<p class="text-3xl font-bold">{data.seedCrawlPagesIndexed.toLocaleString()}</p>
 					<p class="mt-1 text-sm text-gray-500 dark:text-gray-400">
@@ -48,7 +48,7 @@
 				</div>
 			</div>
 			<div class="bg-brand-gradient rounded-lg p-[3px] shadow">
-				<div class="h-full rounded-[5px] bg-white p-6 dark:bg-gray-800">
+				<div class="bg-card h-full rounded-[5px] p-6">
 					<h2 class="mb-2 text-lg font-medium text-gray-500 dark:text-gray-400">New Sites Found</h2>
 					<p class="text-3xl font-bold">{data.seedSitesDiscovered.toLocaleString()}</p>
 					<p class="mt-1 text-sm text-gray-500 dark:text-gray-400">
@@ -58,7 +58,7 @@
 			</div>
 		</div>
 
-		<div class="mt-8 rounded-lg bg-white p-6 shadow dark:bg-gray-800">
+		<div class="bg-card mt-8 rounded-lg p-6 shadow">
 			<h2 class="mb-4 text-lg font-medium text-gray-500 dark:text-gray-400">
 				Results Indexed Per Day (Last 30 Days)
 			</h2>

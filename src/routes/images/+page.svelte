@@ -66,9 +66,8 @@
 				Image search is an early experiment
 			</p>
 			<p class="text-unemphasized-2 text-sm">
-				Unlike web search, images do not come from the Mwmbl index. They are fetched from Brave
-				Search with strict safe search on, and your query is sent to Brave to get them. Results may
-				be limited, and things may change or break.
+				Please note that queries are sent to Brave. Results may
+				be limited, and things may change or break at any time.
 			</p>
 		</Card.Root>
 

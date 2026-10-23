@@ -8,7 +8,7 @@
 	import PhArrowSquareOutFill from '~icons/ph/arrow-square-out-fill';
 	import MaterialSymbolsCloseRounded from '~icons/material-symbols/close-rounded';
 
-	let { query }: { query?: string } = $props();
+	let { query, action = '/search' }: { query?: string; action?: string } = $props();
 
 	let input: HTMLInputElement | null = $state(null);
 
@@ -49,7 +49,7 @@
 
 <form
 	class="relative flex w-full max-w-184 flex-row items-center"
-	action="/search"
+	{action}
 	method="get"
 	onsubmit={resetCompletions}
 >

@@ -59,6 +59,7 @@
 			</div>
 			<hr class="my-2" />
 			<div class="mb-4 flex flex-col gap-2">
+				<Button variant="link" href="/images" class="px-0 text-left">Images</Button>
 				<Button variant="link" href="/stats" class="px-0 text-left">Statistics</Button>
 			</div>
 			<Options />

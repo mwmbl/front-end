@@ -6,6 +6,7 @@
 	import RiArrowDropRightLine from '~icons/ri/arrow-drop-right-line';
 	import RiLinksLine from '~icons/ri/links-line';
 	import RiLoader2Line from '~icons/ri/loader-2-line';
+	import RiShieldUserLine from '~icons/ri/shield-user-line';
 
 	import type { SubmissionsResult } from './+page.server.js';
 	import { API_BASE } from '$lib/api';
@@ -83,7 +84,20 @@
 {/snippet}
 
 <main class="flex w-full max-w-4xl flex-col gap-2 self-center px-6">
-	<h2 class="-mx-2 text-3xl">Domain submissions</h2>
+	<div class="flex flex-wrap items-baseline gap-3">
+		<h2 class="-mx-2 text-3xl">Domain submissions</h2>
+		<div class="flex-1"></div>
+		{#if data.moderatorPending !== null}
+			<Button
+				href="/domain-submissions/moderate"
+				variant="secondary"
+				class="h-9 gap-2 px-4 text-sm"
+			>
+				<RiShieldUserLine class="size-4" />
+				Moderate submissions — {data.moderatorPending} pending
+			</Button>
+		{/if}
+	</div>
 	<hr class="my-2" />
 	{#if data.status === 'domainSubmissionError'}
 		<Card.Root class="p-4 outline-red-100 outline-solid dark:outline-red-900">

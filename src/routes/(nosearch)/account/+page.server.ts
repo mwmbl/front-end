@@ -1,7 +1,7 @@
 import type { Actions, PageServerLoad } from './$types';
-import { dev } from '$app/environment';
 import { redirect } from '@sveltejs/kit';
 import { API_BASE as API } from '$lib/api';
+import { clearAuthCookies, setAuthCookies, setUsernameCookie } from '$lib/server/auth-cookies';
 
 type Agreement = {
 	agreement_type: string;
@@ -13,6 +13,7 @@ type ApiKey = {
 	id: number;
 	name: string;
 	created_on: string;
+	last_used: string | null;
 	scopes: string[];
 };
 
@@ -22,11 +23,25 @@ type MarketingConsent = {
 	timestamp: string;
 };
 
+type UserProfile = {
+	username: string;
+	email: string;
+};
+
+type Device = {
+	id: number;
+	hostname: string;
+	friendly_name: string;
+	first_seen: string;
+	last_seen: string;
+};
+
 export const actions: Actions = {
 	login: async ({ request, cookies, locals }) => {
 		const data = await request.formData();
 		const res = await fetch(`${API}/api/v1/platform/token/pair`, {
 			method: 'POST',
+			headers: { 'Content-Type': 'application/json' },
 			body: JSON.stringify({
 				username: data.get('username'),
 				password: data.get('password')
@@ -34,27 +49,7 @@ export const actions: Actions = {
 		});
 		const json = await res.json();
 		if (res.ok) {
-			cookies.set('refreshToken', json.refresh, {
-				path: '/',
-				httpOnly: true,
-				sameSite: 'strict',
-				secure: !dev,
-				maxAge: 60 * 60 * 24 * 30 // 30 days
-			});
-			cookies.set('accessToken', json.access, {
-				path: '/',
-				httpOnly: true,
-				sameSite: 'strict',
-				secure: !dev,
-				maxAge: 60 * 60 * 24 // 1 day
-			});
-			cookies.set('username', json.username, {
-				path: '/',
-				httpOnly: false,
-				sameSite: 'strict',
-				secure: !dev,
-				maxAge: 60 * 60 * 24 * 30 // 30 days
-			});
+			setAuthCookies(cookies, json, data.get('keepLoggedIn') === 'on');
 
 			locals.loginStatus = 'assumeLoggedIn';
 			const next = data.get('next') as string | null;
@@ -88,8 +83,7 @@ export const actions: Actions = {
 		}
 	},
 	logout: async ({ cookies, locals }) => {
-		cookies.delete('refreshToken', { path: '/' });
-		cookies.delete('accessToken', { path: '/' });
+		clearAuthCookies(cookies);
 		locals.loginStatus = 'assumeLoggedOut';
 		locals.accountMessage = 'Logged out.';
 	},
@@ -101,8 +95,7 @@ export const actions: Actions = {
 			}
 		});
 		if (res.ok) {
-			cookies.delete('refreshToken', { path: '/' });
-			cookies.delete('accessToken', { path: '/' });
+			clearAuthCookies(cookies);
 
 			locals.loginStatus = 'accountDeleted';
 			locals.accountMessage = 'Your account has been deleted.';
@@ -178,6 +171,72 @@ export const actions: Actions = {
 			};
 		}
 		return { success: true };
+	},
+	changeUsername: async ({ request, cookies }) => {
+		const data = await request.formData();
+		const res = await fetch(`${API}/api/v1/platform/user/username`, {
+			method: 'PUT',
+			headers: {
+				Authorization: 'Bearer ' + cookies.get('accessToken'),
+				'Content-Type': 'application/json'
+			},
+			body: JSON.stringify({ username: data.get('username') })
+		});
+		// Error pages from a proxy or a crash are not JSON.
+		const json = await res.json().catch(() => ({}));
+		if (!res.ok) {
+			return {
+				success: false,
+				error: json.message ?? 'Failed to change your username.',
+				username: data.get('username') as string
+			};
+		}
+		setUsernameCookie(cookies, json.username);
+		return { success: true, message: `Your username is now ${json.username}.` };
+	},
+	changeEmail: async ({ request, cookies }) => {
+		const data = await request.formData();
+		const res = await fetch(`${API}/api/v1/platform/user/email`, {
+			method: 'POST',
+			headers: {
+				Authorization: 'Bearer ' + cookies.get('accessToken'),
+				'Content-Type': 'application/json'
+			},
+			body: JSON.stringify({ email: data.get('email'), password: data.get('password') })
+		});
+		const json = await res.json().catch(() => ({}));
+		if (!res.ok) {
+			return {
+				success: false,
+				error: json.message ?? 'Failed to change your email address.',
+				email: data.get('email') as string
+			};
+		}
+		return { success: true, message: json.message as string };
+	},
+	updateDevice: async ({ request, cookies }) => {
+		const data = await request.formData();
+		const deviceId = data.get('deviceId');
+		const deviceName = (data.get('deviceName') as string | null)?.trim();
+		
+		if (!deviceId || !deviceName) {
+			return { success: false, error: 'Device ID and name are required.' };
+		}
+		
+		const res = await fetch(`${API}/api/v1/platform/devices/${deviceId}`, {
+			method: 'PATCH',
+			headers: {
+				Authorization: 'Bearer ' + cookies.get('accessToken'),
+				'Content-Type': 'application/json'
+			},
+			body: JSON.stringify({ friendly_name: deviceName })
+		});
+		
+		if (!res.ok) {
+			return { success: false, error: 'Failed to update device name.' };
+		}
+		
+		return { success: true };
 	}
 };
 
@@ -200,27 +259,38 @@ export const load: PageServerLoad = async ({ cookies, locals }) => {
 			votes: undefined,
 			hasAgreedToTerms: false,
 			apiKeys: [] as ApiKey[],
-			marketingOptIn: false
+			devices: [] as Device[],
+			marketingOptIn: false,
+			profile: null as UserProfile | null
 		};
 	} else {
-		const [votesRes, agreementsRes, keysRes, consentRes] = await Promise.all([
-			fetch(`${API}/api/v1/platform/search-results/my-votes?limit=100&offset=0`, {
-				method: 'GET',
-				headers: { Authorization: 'Bearer ' + cookies.get('accessToken') }
-			}),
-			fetch(`${API}/api/v1/platform/agreements/`, {
-				method: 'GET',
-				headers: { Authorization: 'Bearer ' + cookies.get('accessToken') }
-			}),
-			fetch(`${API}/api/v1/platform/api-keys/`, {
-				method: 'GET',
-				headers: { Authorization: 'Bearer ' + cookies.get('accessToken') }
-			}),
-			fetch(`${API}/api/v1/platform/marketing-consent`, {
-				method: 'GET',
-				headers: { Authorization: 'Bearer ' + cookies.get('accessToken') }
-			})
-		]);
+		const [votesRes, agreementsRes, keysRes, consentRes, devicesRes, profileRes] =
+			await Promise.all([
+				fetch(`${API}/api/v1/platform/search-results/my-votes?limit=100&offset=0`, {
+					method: 'GET',
+					headers: { Authorization: 'Bearer ' + cookies.get('accessToken') }
+				}),
+				fetch(`${API}/api/v1/platform/agreements/`, {
+					method: 'GET',
+					headers: { Authorization: 'Bearer ' + cookies.get('accessToken') }
+				}),
+				fetch(`${API}/api/v1/platform/api-keys/`, {
+					method: 'GET',
+					headers: { Authorization: 'Bearer ' + cookies.get('accessToken') }
+				}),
+				fetch(`${API}/api/v1/platform/marketing-consent`, {
+					method: 'GET',
+					headers: { Authorization: 'Bearer ' + cookies.get('accessToken') }
+				}),
+				fetch(`${API}/api/v1/platform/devices/`, {
+					method: 'GET',
+					headers: { Authorization: 'Bearer ' + cookies.get('accessToken') }
+				}),
+				fetch(`${API}/api/v1/platform/user`, {
+					method: 'GET',
+					headers: { Authorization: 'Bearer ' + cookies.get('accessToken') }
+				})
+			]);
 
 		const votesJson: {
 			count: number;
@@ -237,6 +307,14 @@ export const load: PageServerLoad = async ({ cookies, locals }) => {
 
 		const apiKeys: ApiKey[] = keysRes.ok ? await keysRes.json() : [];
 
+		const devices: Device[] = devicesRes.ok ? await devicesRes.json() : [];
+
+		const profile: UserProfile | null = profileRes.ok ? await profileRes.json() : null;
+		// The username may have been changed from another device since this one logged in.
+		if (profile && profile.username !== cookies.get('username')) {
+			setUsernameCookie(cookies, profile.username);
+		}
+
 		const marketingConsent: MarketingConsent[] = consentRes.ok
 			? (await consentRes.json()).consent
 			: [];
@@ -249,7 +327,9 @@ export const load: PageServerLoad = async ({ cookies, locals }) => {
 			votes: votesJson,
 			hasAgreedToTerms,
 			apiKeys,
-			marketingOptIn
+			devices,
+			marketingOptIn,
+			profile
 		};
 	}
 };

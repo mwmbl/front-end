@@ -13,3 +13,9 @@ export type WithoutChildrenOrChild<T> = WithoutChildren<WithoutChild<T>>;
 export type WithElementRef<T, U extends HTMLElement = HTMLElement> = T & {
 	ref?: U | null;
 };
+
+// Favicons are fetched from DDG to preserve privacy.
+// Making our own Favicon API would be possible too if we want that in the future.
+export function faviconUrl(hostname: string) {
+	return `https://icons.duckduckgo.com/ip2/${hostname}.ico`;
+}

@@ -1,15 +1,18 @@
-<script>
+<script lang="ts">
 	import Search from '@/components/custom/search/SearchBar.svelte';
 	import BottomLinks from '@/components/custom/brand/BottomLinks.svelte';
+	import SeedSearchToggle from '@/components/custom/search/SeedSearchToggle.svelte';
 	import EmojioneMagnifyingGlassTiltedRight from '~icons/emojione/magnifying-glass-tilted-right';
+
+	let { data } = $props();
 </script>
 
 <main class="flex min-h-[75svh] flex-col items-center justify-center gap-9 px-8">
 	<h2
-		class="justify-self-center px-8 text-center text-4xl font-semibold leading-snug! md:text-5xl lg:text-6xl"
+		class="justify-self-center px-8 text-center text-4xl leading-snug! font-semibold md:text-5xl lg:text-6xl"
 	>
 		The
-		<strong class="rounded-2xl bg-brand-gradient px-5 py-0 text-black">truly</strong>
+		<strong class="bg-brand-gradient rounded-2xl px-5 py-0 text-black">truly</strong>
 		open&nbsp;source<br />
 		search
 		<span class="whitespace-nowrap"
@@ -17,10 +20,18 @@
 		>
 	</h2>
 	<p class="mb-8 max-w-full px-6 text-center text-sm sm:text-base md:max-w-184">
-		Mwmbl (pronounced "mumble") is a search engine that's completely independent, open
-		source, and non-profit.
+		Mwmbl (pronounced "mumble") is a search engine that's completely independent, open source, and
+		non-profit.
 	</p>
 	<Search />
+	<SeedSearchToggle
+		loginStatus={data.loginStatus}
+		enabled={data.seedSearchEnabled}
+		quotaExhausted={data.seedSearchQuotaExhausted}
+		showDescription
+	/>
+	<a href="/seed-search" class="text-unemphasized-2 -mt-6 text-sm underline">What is Seed Search?</a
+	>
 </main>
 
 <footer class="mt-auto flex justify-center px-8 pb-8">

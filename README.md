@@ -8,7 +8,7 @@ Make sure to have all the necessary dependencies installed (`node`, and `pnpm`).
 
 ```bash
 pnpm install
-
+pnpm approve-builds
 pnpm dev
 
 pnpm format # run before commit

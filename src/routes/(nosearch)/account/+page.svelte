@@ -109,6 +109,18 @@
 						placeholder="Password"
 						autocomplete="current-password"
 					/>
+					<div class="flex items-center gap-2">
+						<input
+							id="keep-logged-in"
+							type="checkbox"
+							name="keepLoggedIn"
+							checked
+							class="h-4 w-4"
+						/>
+						<Label for="keep-logged-in" class="text-sm font-normal">
+							Keep me logged in (untick on a shared computer)
+						</Label>
+					</div>
 					<Button class="max-w-32" type="submit">Log in</Button>
 				</form>
 			</Tabs.Content>
@@ -185,8 +197,12 @@
 
 		<!-- Action error banner — shown when any server action returns success: false -->
 		{#if form?.success === false && form?.error}
-			<Card.Root class="p-4 outline-red-100 outline-solid dark:outline-red-900">
+			<Card.Root role="alert" class="p-4 outline-red-100 outline-solid dark:outline-red-900">
 				{form.error}
+			</Card.Root>
+		{:else if form?.success && form?.message}
+			<Card.Root role="status" class="p-4 outline-green-100 outline-solid dark:outline-green-900">
+				{form.message}
 			</Card.Root>
 		{/if}
 
@@ -279,6 +295,13 @@
 							<span class="font-medium">{key.name || '(unnamed)'}</span>
 							<span class="text-xs">
 								Created {new Date(key.created_on).toLocaleDateString()}
+							</span>
+							<span class="text-xs">
+								{#if key.last_used}
+									Last used {new Date(key.last_used).toLocaleString()}
+								{:else}
+									Never used
+								{/if}
 							</span>
 						</div>
 						<AlertDialog.Root>
@@ -418,6 +441,144 @@
 		{:else}
 			<p>No votes yet.</p>
 		{/if}
+
+		<hr class="my-4" />
+
+		<h3 class="text-xl">Devices</h3>
+
+		{#if data.devices.length > 0}
+			<ul class="mt-4 flex flex-col gap-2">
+				{#each data.devices as device}
+					<li class="bg-muted flex flex-row items-center gap-2 p-4">
+						<div class="flex flex-1 flex-col gap-1">
+							<span class="font-medium">
+								{#if device.friendly_name}
+									{device.friendly_name}
+								{:else}
+									{device.hostname} (click to rename)
+								{/if}
+							</span>
+							<span class="text-xs">Hostname: {device.hostname}</span>
+							<span class="text-xs">
+								First seen: {new Date(device.first_seen).toLocaleString()}
+							</span>
+							<span class="text-xs">
+								Last seen: {new Date(device.last_seen).toLocaleString()}
+							</span>
+						</div>
+						{#if device.friendly_name !== device.hostname}
+							<AlertDialog.Root>
+								<AlertDialog.Trigger>
+									{#snippet child({ props })}
+										<Button
+											{...props}
+											variant="ghost"
+											size="icon"
+											class="ml-auto size-9"
+										>
+											<!-- Edit icon -->
+											<svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+												<path d="M13.586 3.586a2 2 0 112.828 2.828l-.793.793-2.828-2.828.793-.793zM11.379 5.793L3 14.172V17h2.828l8.38-8.379-2.83-2.828z" />
+											</svg>
+										</Button>
+									{/snippet}
+								</AlertDialog.Trigger>
+								<AlertDialog.Content>
+									<form method="post" action="?/updateDevice">
+										<input type="hidden" name="deviceId" value={device.id} />
+										<AlertDialog.Header>
+											<AlertDialog.Title>Rename Device</AlertDialog.Title>
+											<AlertDialog.Description>
+												Give this device a friendly name (e.g., "My Laptop", "Work PC")
+											</AlertDialog.Description>
+										</AlertDialog.Header>
+										<AlertDialog.Footer>
+											<AlertDialog.Cancel>Cancel</AlertDialog.Cancel>
+											<div class="px-6 pb-2">
+												<Label for={`device-name-${device.id}`}>Device name</Label>
+												<Input
+													id={`device-name-${device.id}`}
+													name="deviceName"
+													type="text"
+													placeholder="e.g. My Laptop"
+													defaultValue={device.friendly_name}
+													class="mt-1"
+												/>
+											</div>
+											<AlertDialog.Action type="submit">Save name</AlertDialog.Action>
+										</AlertDialog.Footer>
+									</form>
+								</AlertDialog.Content>
+							</AlertDialog.Root>
+						{/if}
+					</li>
+				{/each}
+			</ul>
+		{:else if data.hasAgreedToTerms}
+			<p class="text-sm">No devices yet.</p>
+		{/if}
+
+		<hr class="my-4" />
+
+		<h3 class="text-xl">Account details</h3>
+		<form method="post" action="?/changeUsername" class="mt-2 flex flex-col gap-2">
+			<Label for="new-username">Username</Label>
+			<Input
+				id="new-username"
+				required
+				type="text"
+				name="username"
+				value={form?.username ?? data.username}
+				autocomplete="username"
+			/>
+			<Button class="max-w-48" type="submit">Change username</Button>
+		</form>
+		<form method="post" action="?/changeEmail" class="mt-4 flex flex-col gap-2">
+			<!-- Lets password managers match the saved login; the action ignores it. -->
+			<input
+				type="text"
+				name="username"
+				autocomplete="username"
+				value={data.username}
+				hidden
+				readonly
+			/>
+			<Label for="new-email">Email address</Label>
+			{#if data.profile}
+				<p class="text-sm">Currently {data.profile.email}.</p>
+			{/if}
+			<Input
+				id="new-email"
+				required
+				type="email"
+				name="email"
+				placeholder="New email address"
+				value={form?.email ?? ''}
+				autocomplete="email"
+				aria-describedby="email-change-note"
+			/>
+			<Label for="current-password">Current password</Label>
+			<Input
+				id="current-password"
+				required
+				type="password"
+				name="password"
+				autocomplete="current-password"
+			/>
+			<p id="email-change-note" class="text-unemphasized-2 text-sm">
+				{#if data.awaitingEmailConfirmation}
+					Entered the wrong address? Change it here and we'll send a new confirmation link.
+				{:else}
+					We'll send a confirmation link to the new address. Your current address stays in use until
+					you confirm it.
+				{/if}
+			</p>
+			<Button class="max-w-48" type="submit">Change email</Button>
+		</form>
+
+		<hr class="my-4" />
+
+		<h3 class="text-xl text-blue-600 hover:underline"><a href="/account/stats">My Stats</a></h3>
 
 		<hr class="my-4" />
 

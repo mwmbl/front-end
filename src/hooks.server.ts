@@ -1,64 +1,40 @@
-import { dev } from '$app/environment';
 import type { Handle } from '@sveltejs/kit';
-import { error } from '@sveltejs/kit';
 import { API_BASE } from '$lib/api';
+import { clearAuthCookies, isPersistentLogin, setAuthCookies } from '$lib/server/auth-cookies';
+import { isExpired, refreshTokens } from '$lib/server/auth-tokens';
 
 const MWMBL_API_BASE_URL = API_BASE;
 const PROXY_PATH = '/api';
 
 export const handle: Handle = async ({ event, resolve }) => {
 	const accessToken = event.cookies.get('accessToken');
+	const refreshToken = event.cookies.get('refreshToken');
 
-	if (accessToken) {
-		// Parse access token to see if it's expired
-		const parsedJWT = JSON.parse(
-			atob(accessToken.split('.')[1].replace(/-/g, '+').replace(/_/g, '/'))
-		);
-
-		if (parsedJWT.exp < Date.now() / 1000) {
-			// Access token is expired, let's do a refresh
-			const refreshToken = event.cookies.get('refreshToken');
-			if (refreshToken) {
-				const res = await fetch(`${API_BASE}/api/v1/platform/token/refresh`, {
-					method: 'POST',
-					body: JSON.stringify({
-						refresh: refreshToken
-					})
-				});
-				if (res.ok) {
-					const json = await res.json();
-					event.cookies.set('accessToken', json.access, {
-						path: '/',
-						httpOnly: false,
-						sameSite: 'strict',
-						secure: !dev,
-						maxAge: 60 * 60 * 24 // 1 day
-					});
-					event.cookies.set('refreshToken', json.refresh, {
-						path: '/',
-						httpOnly: true,
-						sameSite: 'strict',
-						secure: !dev,
-						maxAge: 60 * 60 * 24 * 30 // 30 days
-					});
-					event.locals.loginStatus = 'assumeLoggedIn';
-				} else {
-					event.locals.loginStatus = 'assumeLoggedOut';
-				}
-			} else {
-				event.locals.loginStatus = 'assumeLoggedOut';
-			}
-		} else {
+	if (accessToken && !isExpired(accessToken)) {
+		event.locals.loginStatus = 'assumeLoggedIn';
+	} else if (refreshToken) {
+		// Access token is missing or expired, let's do a refresh
+		const result = await refreshTokens(refreshToken);
+		if (result.status === 'ok') {
+			setAuthCookies(event.cookies, result, isPersistentLogin(event.cookies));
 			event.locals.loginStatus = 'assumeLoggedIn';
+		} else {
+			event.locals.loginStatus = 'assumeLoggedOut';
+			// Only a rejected refresh token ends the login. After a temporary failure,
+			// keep the cookies so the next request can try again.
+			if (result.status === 'invalid') {
+				clearAuthCookies(event.cookies);
+			}
 		}
 	} else {
 		event.locals.loginStatus = 'assumeLoggedOut';
-	}
-
-	// Delete cookies if logged out
-	if (event.locals.loginStatus === 'assumeLoggedOut') {
-		event.cookies.delete('refreshToken', { path: '/' });
-		event.cookies.delete('accessToken', { path: '/' });
+		// A request with no auth cookies has nothing to clear, and says nothing about whether
+		// the user is logged in: SameSite keeps the cookies off some requests from other sites,
+		// and they were Strict, so off every link to Mwmbl. Clearing them here deleted the
+		// cookies of users who were logged in, logging out every tab.
+		if (accessToken) {
+			clearAuthCookies(event.cookies);
+		}
 	}
 
 	// intercept requests to `/api/` and handle them with `handleApiProxy`
@@ -76,9 +52,14 @@ const handleApiProxy: Handle = async ({ event }) => {
 	const urlPath = `${MWMBL_API_BASE_URL}${event.url.pathname}${event.url.search}`;
 	const apiURL = new URL(urlPath);
 
-	event.request.headers.set('Authorization', `Bearer ${event.cookies.get('accessToken')}`);
+	// Not for a request from another site. The auth cookies are SameSite=Lax, so a top-level
+	// GET navigation from elsewhere carries them, and some API GETs spend the user's quota -
+	// combined-search with crawl=true starts a crawl. The browser's own requests are same-origin.
+	if (event.request.headers.get('sec-fetch-site') !== 'cross-site') {
+		event.request.headers.set('Authorization', `Bearer ${event.cookies.get('accessToken')}`);
+	}
 
-	return fetch(apiURL.toString(), {
+	const apiResponse = await fetch(apiURL.toString(), {
 		// propagate the request method and body
 		body: event.request.body,
 		method: event.request.method,
@@ -88,5 +69,17 @@ const handleApiProxy: Handle = async ({ event }) => {
 	}).catch((err) => {
 		console.log('Could not proxy API request: ', err);
 		throw err;
+	});
+
+	// fetch has already decompressed the body, so these headers no longer describe it.
+	// Passing them on tells the client the plain body is gzipped.
+	const headers = new Headers(apiResponse.headers);
+	headers.delete('content-encoding');
+	headers.delete('content-length');
+
+	return new Response(apiResponse.body, {
+		status: apiResponse.status,
+		statusText: apiResponse.statusText,
+		headers
 	});
 };

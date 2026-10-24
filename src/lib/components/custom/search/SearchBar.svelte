@@ -97,8 +97,10 @@
 			{#if completionsExist}
 				{#each searchCompletions as completion}
 					{#if !completion.match(/^.*: /)}
-						<Button variant="link" onclick={resetCompletions} href="/search?q={completion}"
-							>{completion}</Button
+						<Button
+							variant="link"
+							onclick={resetCompletions}
+							href="/search?q={encodeURIComponent(completion)}">{completion}</Button
 						>
 					{:else if completion.startsWith('search: google.com ')}
 						<Button

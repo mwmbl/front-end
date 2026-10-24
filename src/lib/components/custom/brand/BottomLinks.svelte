@@ -33,6 +33,6 @@
 		{/each}
 	</div>
 	<p class="text-unemphasized-2 flex flex-row text-sm {className}">
-		© Mwmbl 2024, under the AGPL-3.0 license
+		© Mwmbl 2026, under the AGPL-3.0 license
 	</p>
 </section>

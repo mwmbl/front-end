@@ -1,8 +1,8 @@
 import { API_BASE } from '$lib/api';
 import type { PageServerLoad } from './$types';
 
-function indexChanges(values: number[]): number[] {
-	return values.map((value, i) => (i === 0 ? 0 : value - values[i - 1]));
+function indexChanges(values: number[]): (number | null)[] {
+	return values.map((value, i) => (i === 0 ? null : value - values[i - 1]));
 }
 
 export const load: PageServerLoad = async ({ fetch }) => {

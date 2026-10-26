@@ -1,6 +1,10 @@
 import { API_BASE } from '$lib/api';
 import type { PageServerLoad } from './$types';
 
+function indexChanges(values: number[]): (number | null)[] {
+	return values.map((value, i) => (i === 0 ? null : value - values[i - 1]));
+}
+
 export const load: PageServerLoad = async ({ fetch }) => {
 	// Fetch comprehensive stats from the API
 	let stats: {
@@ -13,8 +17,11 @@ export const load: PageServerLoad = async ({ fetch }) => {
 		results_in_index_daily: Record<string, number>;
 		dataset_queries_daily: Record<string, number>;
 		dataset_results_daily: Record<string, number>;
-		blacklisted_results_removed_daily: Record<string, number>;
 		users_registered_weekly: Record<string, number>;
+		seed_searches_total: number;
+		seed_pages_indexed_total: number;
+		seed_sites_discovered_total: number;
+		index_history: Array<{ date: string; urls: number; domains: number; results: number }>;
 	} = {
 		users_crawled_daily: {},
 		results_indexed_daily: {},
@@ -24,14 +31,18 @@ export const load: PageServerLoad = async ({ fetch }) => {
 		results_in_index_daily: {},
 		dataset_queries_daily: {},
 		dataset_results_daily: {},
-		blacklisted_results_removed_daily: {},
-		users_registered_weekly: {}
+		users_registered_weekly: {},
+		seed_searches_total: 0,
+		seed_pages_indexed_total: 0,
+		seed_sites_discovered_total: 0,
+		index_history: []
 	};
 
 	try {
 		const statsRes = await fetch(`${API_BASE}/api/v1/crawler/stats`);
 		if (statsRes.ok) {
-			stats = await statsRes.json();
+			// Over the defaults, so a backend that predates a field still renders the page.
+			stats = { ...stats, ...(await statsRes.json()) };
 		} else {
 			console.error(`Failed to fetch stats: ${statsRes.status}`);
 		}
@@ -67,12 +78,8 @@ export const load: PageServerLoad = async ({ fetch }) => {
 	const labels = [];
 	const usersCrawledData = [];
 	const resultsIndexedData = [];
-	const urlsInIndexData = [];
-	const domainsInIndexData = [];
-	const resultsInIndexData = [];
 	const datasetQueriesData = [];
 	const datasetResultsData = [];
-	const blacklistedRemovedData = [];
 
 	const today = new Date();
 	for (let i = 29; i >= 0; i--) {
@@ -82,12 +89,8 @@ export const load: PageServerLoad = async ({ fetch }) => {
 		labels.push(dateStr);
 		usersCrawledData.push(stats.users_crawled_daily[dateStr] || 0);
 		resultsIndexedData.push(stats.results_indexed_daily[dateStr] || 0);
-		urlsInIndexData.push(stats.urls_in_index_daily[dateStr] || 0);
-		domainsInIndexData.push(stats.domains_in_index_daily[dateStr] || 0);
-		resultsInIndexData.push(stats.results_in_index_daily[dateStr] || 0);
 		datasetQueriesData.push(stats.dataset_queries_daily[dateStr] || 0);
 		datasetResultsData.push(stats.dataset_results_daily[dateStr] || 0);
-		blacklistedRemovedData.push(stats.blacklisted_results_removed_daily[dateStr] || 0);
 	}
 
 	// Weekly registrations, keyed by week start date; fill in any missing weeks with zero
@@ -108,12 +111,10 @@ export const load: PageServerLoad = async ({ fetch }) => {
 	// (not the sum of daily active crawlers which double-counts users active on multiple days)
 	const totalUsersCrawled = stats.users_crawled_30d ?? Object.values(stats.users_crawled_daily).reduce((sum, v) => sum + v, 0);
 	const totalResultsIndexed = Object.values(stats.results_indexed_daily).reduce((sum, v) => sum + v, 0);
-	const totalUrlsInIndex = Object.values(stats.urls_in_index_daily).reduce((sum, v) => sum + v, 0);
-	const totalDomainsInIndex = Object.values(stats.domains_in_index_daily).reduce((sum, v) => sum + v, 0);
-	const totalResultsInIndex = Object.values(stats.results_in_index_daily).reduce((sum, v) => sum + v, 0);
+	// The index counts are snapshots of one size carried across the days, so summing them
+	// would multiply the index by ~30; only the latest value means anything.
 	const totalDatasetQueries = Object.values(stats.dataset_queries_daily).reduce((sum, v) => sum + v, 0);
 	const totalDatasetResults = Object.values(stats.dataset_results_daily).reduce((sum, v) => sum + v, 0);
-	const totalBlacklistedRemoved = Object.values(stats.blacklisted_results_removed_daily).reduce((sum, v) => sum + v, 0);
 
 	// Get latest values
 	const latestDate = labels[labels.length - 1];
@@ -124,7 +125,6 @@ export const load: PageServerLoad = async ({ fetch }) => {
 	const latestResultsInIndex = stats.results_in_index_daily[latestDate] || 0;
 	const latestDatasetQueries = stats.dataset_queries_daily[latestDate] || 0;
 	const latestDatasetResults = stats.dataset_results_daily[latestDate] || 0;
-	const latestBlacklistedRemoved = stats.blacklisted_results_removed_daily[latestDate] || 0;
 
 	// Top users data for horizontal bar chart (from all-time leaderboard)
 	const topUsersLabels = allTimeLeaderboard.map(u => u.username);
@@ -142,12 +142,23 @@ export const load: PageServerLoad = async ({ fetch }) => {
 			labels,
 			usersCrawled: usersCrawledData,
 			resultsIndexed: resultsIndexedData,
-			urlsInIndex: urlsInIndexData,
-			domainsInIndex: domainsInIndexData,
-			resultsInIndex: resultsInIndexData,
 			datasetQueries: datasetQueriesData,
-			datasetResults: datasetResultsData,
-			blacklistedRemoved: blacklistedRemovedData
+			datasetResults: datasetResultsData
+		},
+		indexHistory: {
+			labels: stats.index_history.map((m) => m.date),
+			urls: stats.index_history.map((m) => m.urls),
+			domains: stats.index_history.map((m) => m.domains),
+			results: stats.index_history.map((m) => m.results),
+			// Change since the previous scan; the first scan has nothing to compare with.
+			urlsChange: indexChanges(stats.index_history.map((m) => m.urls)),
+			domainsChange: indexChanges(stats.index_history.map((m) => m.domains)),
+			resultsChange: indexChanges(stats.index_history.map((m) => m.results))
+		},
+		seed: {
+			searches: stats.seed_searches_total,
+			pagesIndexed: stats.seed_pages_indexed_total,
+			sitesDiscovered: stats.seed_sites_discovered_total
 		},
 		registeredWeekly: {
 			labels: registeredWeeklyLabels,
@@ -156,12 +167,8 @@ export const load: PageServerLoad = async ({ fetch }) => {
 		totals: {
 			usersCrawled: totalUsersCrawled,
 			resultsIndexed: totalResultsIndexed,
-			urlsInIndex: totalUrlsInIndex,
-			domainsInIndex: totalDomainsInIndex,
-			resultsInIndex: totalResultsInIndex,
 			datasetQueries: totalDatasetQueries,
-			datasetResults: totalDatasetResults,
-			blacklistedRemoved: totalBlacklistedRemoved
+			datasetResults: totalDatasetResults
 		},
 		latest: {
 			usersCrawled: latestUsersCrawled,
@@ -170,8 +177,7 @@ export const load: PageServerLoad = async ({ fetch }) => {
 			domainsInIndex: latestDomainsInIndex,
 			resultsInIndex: latestResultsInIndex,
 			datasetQueries: latestDatasetQueries,
-			datasetResults: latestDatasetResults,
-			blacklistedRemoved: latestBlacklistedRemoved
+			datasetResults: latestDatasetResults
 		}
 	};
 };

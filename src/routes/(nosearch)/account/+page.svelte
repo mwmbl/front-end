@@ -383,6 +383,14 @@
 
 		<hr class="my-4" />
 
+		<h2 class="text-xl">My stats</h2>
+		<p class="text-sm">
+			Check out <a href="/account/stats" class="text-accent-text underline">your stats here</a> -- how
+			many pages you've helped index and how your Seed Searches are doing.
+		</p>
+
+		<hr class="my-4" />
+
 		<h3 class="text-xl">My votes</h3>
 		{#if data.votes}
 			<ul class="mt-4 flex flex-col gap-4">
@@ -575,10 +583,6 @@
 			</p>
 			<Button class="max-w-48" type="submit">Change email</Button>
 		</form>
-
-		<hr class="my-4" />
-
-		<h3 class="text-xl text-blue-600 hover:underline"><a href="/account/stats">My Stats</a></h3>
 
 		<hr class="my-4" />
 

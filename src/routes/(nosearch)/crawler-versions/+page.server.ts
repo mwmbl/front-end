@@ -1,6 +1,6 @@
 import type { PageServerLoad } from './$types';
 import { API_BASE } from '$lib/api';
-import type { CrawlerVersionSpread } from '$lib/crawler-versions';
+import { accessFromStatus, type CrawlerVersionSpread } from '$lib/crawler-versions';
 
 // Gated like the moderation page: the endpoint 403s for anyone who isn't staff.
 export const load: PageServerLoad = async ({ cookies, locals }) => {
@@ -12,10 +12,11 @@ export const load: PageServerLoad = async ({ cookies, locals }) => {
 		headers: { Authorization: 'Bearer ' + cookies.get('accessToken') }
 	});
 
-	if (res.status === 403) {
-		return { access: 'denied' as const };
+	const access = accessFromStatus(res.status);
+	if (access === 'denied') {
+		return { access };
 	}
-	if (!res.ok) {
+	if (access === 'error') {
 		return {
 			access: 'error' as const,
 			message: `Could not load the crawler versions (${res.status}).`

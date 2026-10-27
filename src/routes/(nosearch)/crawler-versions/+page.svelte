@@ -1,9 +1,14 @@
 <script lang="ts">
-	import { onDestroy, onMount } from 'svelte';
-	import { browser } from '$app/environment';
+	import { onMount } from 'svelte';
 	import Button from '@/components/ui/button/button.svelte';
 	import * as Card from '@/components/ui/card';
-	import { buildLegend, trend } from '$lib/crawler-versions';
+	import {
+		buildDatasets,
+		buildLegend,
+		describeSpread,
+		resultsFor,
+		trend
+	} from '$lib/crawler-versions';
 
 	let { data } = $props();
 
@@ -18,71 +23,85 @@
 	const spread = $derived(data.access === 'ok' ? data.spread : null);
 
 	const legend = $derived(spread ? buildLegend(spread) : []);
+	const summary = $derived(spread ? describeSpread(spread, legend) : '');
 
 	let canvas: HTMLCanvasElement | undefined = $state();
-	let chart: { destroy: () => void } | null = null;
+	let isDark = $state(false);
 
-	onMount(async () => {
-		if (!browser || !spread || !canvas) return;
-
-		const { default: Chart } = await import('chart.js/auto');
-		const isDark = document.documentElement.classList.contains('dark');
-		const textColor = isDark ? '#e5e7eb' : '#374151';
-		const gridColor = isDark ? '#374151' : '#e5e7eb';
-		Chart.defaults.font.size = 12;
-		Chart.defaults.color = textColor;
-
-		// Stacked bottom to top, so reversed to put the newest version on top.
-		const rows = [...spread.rows].reverse();
-		const colors = new Map(legend.map((entry) => [entry.version, entry.color]));
-		const resultsByVersion = new Map(
-			rows.map((row) => [row.version, row.days.map((cell) => cell.results)])
-		);
-
-		chart = new Chart(canvas, {
-			type: 'bar',
-			data: {
-				labels: spread.dates.map((day) => dayFormat.format(new Date(day))),
-				datasets: rows.map((row) => ({
-					label: row.version,
-					data: row.days.map((cell) => cell.crawlers),
-					backgroundColor: colors.get(row.version),
-					borderWidth: 0
-				}))
-			},
-			options: {
-				responsive: true,
-				maintainAspectRatio: false,
-				interaction: { mode: 'index', intersect: false },
-				plugins: {
-					legend: { display: false },
-					tooltip: {
-						itemSort: (a, b) => b.datasetIndex - a.datasetIndex,
-						callbacks: {
-							label: (item) => {
-								const results =
-									resultsByVersion.get(item.dataset.label ?? '')?.[item.dataIndex] ?? 0;
-								return `${item.dataset.label}: ${item.parsed.y} crawlers, ${numberFormat.format(results)} results`;
-							},
-							footer: (items) => `Total: ${spread.total_crawlers[items[0].dataIndex]} crawlers`
-						}
-					}
-				},
-				scales: {
-					x: { stacked: true, grid: { display: false }, ticks: { color: textColor } },
-					y: {
-						stacked: true,
-						beginAtZero: true,
-						ticks: { color: textColor, precision: 0 },
-						grid: { color: gridColor },
-						title: { display: true, text: 'Crawlers', color: textColor }
-					}
-				}
-			}
-		});
+	// Chart.js takes its colours as options, so a theme change means rebuilding the chart.
+	onMount(() => {
+		const root = document.documentElement;
+		const sync = () => (isDark = root.classList.contains('dark'));
+		sync();
+		const observer = new MutationObserver(sync);
+		observer.observe(root, { attributes: true, attributeFilter: ['class'] });
+		return () => observer.disconnect();
 	});
 
-	onDestroy(() => chart?.destroy());
+	$effect(() => {
+		if (!spread || !canvas) return;
+
+		const currentSpread = spread;
+		const currentLegend = legend;
+		const target = canvas;
+		const textColor = isDark ? '#e5e7eb' : '#374151';
+		const gridColor = isDark ? '#374151' : '#e5e7eb';
+
+		let chart: { destroy: () => void } | undefined;
+		// The import is async, so the effect can be torn down before it resolves.
+		let cancelled = false;
+
+		(async () => {
+			const { default: Chart } = await import('chart.js/auto');
+			if (cancelled) return;
+
+			Chart.defaults.font.size = 12;
+			Chart.defaults.color = textColor;
+
+			chart = new Chart(target, {
+				type: 'bar',
+				data: {
+					labels: currentSpread.dates.map((day) => dayFormat.format(new Date(day))),
+					datasets: buildDatasets(currentSpread, currentLegend)
+				},
+				options: {
+					responsive: true,
+					maintainAspectRatio: false,
+					interaction: { mode: 'index', intersect: false },
+					plugins: {
+						legend: { display: false },
+						tooltip: {
+							itemSort: (a, b) => b.datasetIndex - a.datasetIndex,
+							callbacks: {
+								label: (item) => {
+									const version = item.dataset.label ?? '';
+									const results = resultsFor(currentSpread, version, item.dataIndex);
+									return `${version}: ${item.parsed.y} crawlers, ${numberFormat.format(results)} results`;
+								},
+								footer: (items) =>
+									`Total: ${currentSpread.total_crawlers[items[0].dataIndex]} crawlers`
+							}
+						}
+					},
+					scales: {
+						x: { stacked: true, grid: { display: false }, ticks: { color: textColor } },
+						y: {
+							stacked: true,
+							beginAtZero: true,
+							ticks: { color: textColor, precision: 0 },
+							grid: { color: gridColor },
+							title: { display: true, text: 'Crawlers', color: textColor }
+						}
+					}
+				}
+			});
+		})();
+
+		return () => {
+			cancelled = true;
+			chart?.destroy();
+		};
+	});
 </script>
 
 <svelte:head>
@@ -108,7 +127,7 @@
 		<Card.Root class="p-4">No crawler has submitted results in the last seven days.</Card.Root>
 	{:else}
 		<div class="flex flex-col gap-6 md:flex-row">
-			<div class="h-96 min-w-0 flex-1">
+			<div class="h-96 min-w-0 flex-1" role="img" aria-label={summary}>
 				<canvas bind:this={canvas} class="h-full w-full"></canvas>
 			</div>
 

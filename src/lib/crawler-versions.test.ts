@@ -3,7 +3,11 @@ import { describe, expect, it } from 'vitest';
 import {
 	PALETTE,
 	UNKNOWN_COLOR,
+	accessFromStatus,
+	buildDatasets,
 	buildLegend,
+	describeSpread,
+	resultsFor,
 	trend,
 	type CrawlerVersionSpread
 } from './crawler-versions';
@@ -44,9 +48,33 @@ describe('the legend', () => {
 
 	it('gives each version its own colour and keeps unknown grey', () => {
 		const legend = buildLegend(spread);
+		const colors = legend.slice(0, 3).map((entry) => entry.color);
 
-		expect(legend.slice(0, 3).map((entry) => entry.color)).toEqual(PALETTE.slice(0, 3));
+		expect(new Set(colors).size).toBe(3);
+		expect(colors.every((color) => PALETTE.includes(color))).toBe(true);
 		expect(legend[3].color).toBe(UNKNOWN_COLOR);
+	});
+
+	it('does not recolour a version when a newer one ships', () => {
+		const before = buildLegend(spread);
+		const after = buildLegend({
+			...spread,
+			rows: [{ version: '0.4.0', days: [day(0), day(1)] }, ...spread.rows]
+		});
+
+		for (const entry of before) {
+			expect(after.find((other) => other.version === entry.version)?.color).toBe(entry.color);
+		}
+	});
+
+	it('shows no change for a spread of a single day', () => {
+		const [only] = buildLegend({
+			dates: ['2026-10-26'],
+			rows: [{ version: '0.3.0', days: [day(4)] }],
+			total_crawlers: [4]
+		});
+
+		expect([only.today, only.change]).toEqual([4, 0]);
 	});
 
 	it('reuses the palette rather than running out of colours', () => {
@@ -61,7 +89,7 @@ describe('the legend', () => {
 
 		const legend = buildLegend(many);
 
-		expect(legend[PALETTE.length].color).toBe(PALETTE[0]);
+		expect(legend.every((entry) => PALETTE.includes(entry.color))).toBe(true);
 	});
 
 	it('is empty when no crawler reported', () => {
@@ -74,5 +102,41 @@ describe('the trend', () => {
 		expect(trend(3)).toBe('▲ 3');
 		expect(trend(-2)).toBe('▼ 2');
 		expect(trend(0)).toBe('–');
+	});
+});
+
+describe('the chart data', () => {
+	it('stacks the newest version last, so it is drawn on top', () => {
+		const datasets = buildDatasets(spread, buildLegend(spread));
+
+		expect(datasets.map((dataset) => dataset.label)).toEqual([
+			'unknown',
+			'0.1.0',
+			'0.2.0',
+			'0.3.0'
+		]);
+		expect(datasets[3].data).toEqual([1, 4]);
+		expect(datasets[0].backgroundColor).toBe(UNKNOWN_COLOR);
+	});
+
+	it('finds the results behind a bar', () => {
+		expect(resultsFor(spread, '0.3.0', 1)).toBe(400);
+		expect(resultsFor(spread, '0.3.0', 7)).toBe(0);
+		expect(resultsFor(spread, '9.9.9', 0)).toBe(0);
+	});
+
+	it('describes the chart in words', () => {
+		expect(describeSpread(spread, buildLegend(spread))).toBe(
+			'Stacked bar chart of crawlers per version over the last 2 days. Today 8 crawlers (0.3.0: 4, 0.2.0: 2, 0.1.0: 2, unknown: 0).'
+		);
+	});
+});
+
+describe('access', () => {
+	it('tells staff, other users and failures apart', () => {
+		expect(accessFromStatus(200)).toBe('ok');
+		expect(accessFromStatus(403)).toBe('denied');
+		expect(accessFromStatus(401)).toBe('error');
+		expect(accessFromStatus(500)).toBe('error');
 	});
 });

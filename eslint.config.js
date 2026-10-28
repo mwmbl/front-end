@@ -25,6 +25,10 @@ export default [
 			parserOptions: {
 				parser: ts.parser
 			}
+		},
+		rules: {
+			// Compiler warnings come from svelte-check; this app builds no custom elements
+			'svelte/valid-compile': ['error', { ignoreWarnings: true }]
 		}
 	},
 	{

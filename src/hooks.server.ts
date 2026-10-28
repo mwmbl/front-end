@@ -64,7 +64,7 @@ const handleApiProxy: Handle = async ({ event }) => {
 		body: event.request.body,
 		method: event.request.method,
 		headers: event.request.headers,
-		// @ts-ignore this is a real property, and without it requests with bodies do not work
+		// @ts-expect-error this is a real property, and without it requests with bodies do not work
 		duplex: 'half'
 	}).catch((err) => {
 		console.log('Could not proxy API request: ', err);

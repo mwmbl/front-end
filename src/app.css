@@ -8,7 +8,7 @@
 	--foreground: hsl(0 0% 0%);
 
 	--muted: hsl(220 8% 85%);
-	--muted-foreground: hsl(0 0% 0%);
+	--muted-foreground: hsl(0 0% 40%);
 
 	--popover: hsl(0 0% 100%);
 	--popover-foreground: hsl(0 0% 0%);

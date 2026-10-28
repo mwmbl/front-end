@@ -415,7 +415,7 @@
 </script>
 
 <svelte:head>
-	<title>Statistics - MWMBL</title>
+	<title>Statistics - Mwmbl</title>
 </svelte:head>
 
 <main class="flex w-full max-w-5xl flex-col gap-6 self-center px-6 py-8">

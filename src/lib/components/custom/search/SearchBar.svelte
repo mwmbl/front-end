@@ -31,17 +31,20 @@
 			return;
 		}
 
+		// A slow response to an earlier keystroke must not overwrite the latest completions
+		abortControllers.forEach((controller) => controller.abort());
+		abortControllers = [];
+
 		completionsOpen = true;
 		completionsLoading = !completionsExist;
 		const controller = new AbortController();
 		const signal = controller.signal;
 		abortControllers.push(controller);
 		fetch(API_BASE + '/api/v1/search/complete?q=' + encodeURIComponent(query), { signal })
-			.then((res) => {
-				res.json().then((json) => {
-					searchCompletions = json[1];
-					completionsLoading = false;
-				});
+			.then((res) => res.json())
+			.then((json) => {
+				searchCompletions = json[1];
+				completionsLoading = false;
 			})
 			.catch((e: Error) => {
 				if (e.name === 'AbortError') {

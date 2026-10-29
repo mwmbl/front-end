@@ -218,11 +218,11 @@ export const actions: Actions = {
 		const data = await request.formData();
 		const deviceId = data.get('deviceId');
 		const deviceName = (data.get('deviceName') as string | null)?.trim();
-		
+
 		if (!deviceId || !deviceName) {
 			return { success: false, error: 'Device ID and name are required.' };
 		}
-		
+
 		const res = await fetch(`${API}/api/v1/platform/devices/${deviceId}`, {
 			method: 'PATCH',
 			headers: {
@@ -231,11 +231,11 @@ export const actions: Actions = {
 			},
 			body: JSON.stringify({ friendly_name: deviceName })
 		});
-		
+
 		if (!res.ok) {
 			return { success: false, error: 'Failed to update device name.' };
 		}
-		
+
 		return { success: true };
 	}
 };

@@ -58,7 +58,10 @@ export const load: PageServerLoad = async ({ fetch }) => {
 		const yesterdayRes = await fetch(`${API_BASE}/api/v1/leaderboard/yesterday/`);
 		if (yesterdayRes.ok) {
 			const data = await yesterdayRes.json();
-			yesterdayLeaderboard = data.map(([username, score]: [string, number]) => ({ username, score }));
+			yesterdayLeaderboard = data.map(([username, score]: [string, number]) => ({
+				username,
+				score
+			}));
 		}
 	} catch (err) {
 		console.error('Error fetching yesterday leaderboard:', err);
@@ -99,7 +102,11 @@ export const load: PageServerLoad = async ({ fetch }) => {
 	const registeredWeeklyData: number[] = [];
 	if (registeredWeeks.length > 0) {
 		const end = new Date(registeredWeeks[registeredWeeks.length - 1]);
-		for (let date = new Date(registeredWeeks[0]); date <= end; date.setUTCDate(date.getUTCDate() + 7)) {
+		for (
+			let date = new Date(registeredWeeks[0]);
+			date <= end;
+			date.setUTCDate(date.getUTCDate() + 7)
+		) {
 			const dateStr = date.toISOString().split('T')[0];
 			registeredWeeklyLabels.push(dateStr);
 			registeredWeeklyData.push(stats.users_registered_weekly[dateStr] || 0);
@@ -109,12 +116,23 @@ export const load: PageServerLoad = async ({ fetch }) => {
 	// Calculate totals
 	// Use the new users_crawled_30d field from the API which gives unique crawlers over 30 days
 	// (not the sum of daily active crawlers which double-counts users active on multiple days)
-	const totalUsersCrawled = stats.users_crawled_30d ?? Object.values(stats.users_crawled_daily).reduce((sum, v) => sum + v, 0);
-	const totalResultsIndexed = Object.values(stats.results_indexed_daily).reduce((sum, v) => sum + v, 0);
+	const totalUsersCrawled =
+		stats.users_crawled_30d ??
+		Object.values(stats.users_crawled_daily).reduce((sum, v) => sum + v, 0);
+	const totalResultsIndexed = Object.values(stats.results_indexed_daily).reduce(
+		(sum, v) => sum + v,
+		0
+	);
 	// The index counts are snapshots of one size carried across the days, so summing them
 	// would multiply the index by ~30; only the latest value means anything.
-	const totalDatasetQueries = Object.values(stats.dataset_queries_daily).reduce((sum, v) => sum + v, 0);
-	const totalDatasetResults = Object.values(stats.dataset_results_daily).reduce((sum, v) => sum + v, 0);
+	const totalDatasetQueries = Object.values(stats.dataset_queries_daily).reduce(
+		(sum, v) => sum + v,
+		0
+	);
+	const totalDatasetResults = Object.values(stats.dataset_results_daily).reduce(
+		(sum, v) => sum + v,
+		0
+	);
 
 	// Get latest values
 	const latestDate = labels[labels.length - 1];
@@ -127,8 +145,8 @@ export const load: PageServerLoad = async ({ fetch }) => {
 	const latestDatasetResults = stats.dataset_results_daily[latestDate] || 0;
 
 	// Top users data for horizontal bar chart (from all-time leaderboard)
-	const topUsersLabels = allTimeLeaderboard.map(u => u.username);
-	const topUsersData = allTimeLeaderboard.map(u => u.score);
+	const topUsersLabels = allTimeLeaderboard.map((u) => u.username);
+	const topUsersData = allTimeLeaderboard.map((u) => u.score);
 
 	return {
 		topUsers: {

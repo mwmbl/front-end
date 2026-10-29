@@ -26,7 +26,7 @@
 </script>
 
 <svelte:head>
-	<title>{data.query} - MWMBL</title>
+	<title>{data.query} - Mwmbl</title>
 </svelte:head>
 
 <div class="header-grid mx-auto w-full max-w-(--breakpoint-xl) justify-center gap-4 p-5">

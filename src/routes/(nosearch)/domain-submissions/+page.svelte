@@ -38,7 +38,7 @@
 
 	// Allow API only to be called once every X ms
 	let debounceTimer = 0;
-	function debounce(callback: Function, ms: number) {
+	function debounce(callback: () => void, ms: number) {
 		clearTimeout(debounceTimer);
 		debounceTimer = setTimeout(callback, ms);
 	}
@@ -194,11 +194,7 @@
 			<RiArrowDropLeftLine class="h-4 w-4" /> Previous
 		</Button>
 		{#each Array.from({ length: data.maxPage + 1 }, (_, i) => i) as page}
-			<Button
-				variant={data.page == page ? 'default' : 'outline-solid'}
-				size="icon"
-				href="?page={page}"
-			>
+			<Button variant={data.page == page ? 'default' : 'outline'} size="icon" href="?page={page}">
 				{page}
 			</Button>
 		{/each}

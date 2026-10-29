@@ -1,10 +1,5 @@
 <script>
 	import { Button } from '@/components/ui/button';
-	import * as Sheet from '@/components/ui/sheet';
-
-	import RiMenu3Fill from '~icons/ri/menu-3-fill';
-	import RiSettings4Fill from '~icons/ri/settings-4-fill';
-	import RiUserLine from '~icons/ri/user-line';
 
 	import MobileMenu from '@/components/custom/menu/MobileMenu.svelte';
 	import SignInButton from '@/components/custom/menu/SignInButton.svelte';
@@ -28,9 +23,7 @@
 			<img src="/palestine.svg" alt="Flag of Palestine" class="hidden h-6 md:block" />
 		</aside>
 	{/if}
-	<div
-		class="mx-auto flex h-16 w-full max-w-7xl flex-row items-center gap-2 px-5 pt-10 pb-8 sm:gap-6 lg:px-8"
-	>
+	<div class="mx-auto flex h-20 w-full max-w-7xl flex-row items-center gap-2 px-5 sm:gap-6 lg:px-8">
 		<a href="/" class="col-start-1 mr-auto flex flex-row items-center gap-4">
 			<img
 				src={page.url.pathname.startsWith('/membership') ? '/logo-green.svg' : '/logo.svg'}

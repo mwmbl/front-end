@@ -1,7 +1,3 @@
-<script>
-	import { onMount } from 'svelte';
-</script>
-
 <svelte:head>
 	<title>Mwmbl - Data Privacy Policy v.1.0</title>
 	<meta
@@ -304,8 +300,7 @@
 		margin-top: 1em;
 	}
 
-	.privacy-content li > ol,
-	.privacy-content li > ul {
+	.privacy-content li > ol {
 		margin-top: 0;
 	}
 

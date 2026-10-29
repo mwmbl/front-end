@@ -69,6 +69,7 @@
 						{wikipediaSummary.description}
 					</p>
 					<Card.Description class="text-unemphasized-2 mt-4">
+						<!-- eslint-disable-next-line svelte/no-at-html-tags -- Wikipedia's own extract HTML, relayed by the Mwmbl API -->
 						{@html wikipediaSummary.extract_html}
 					</Card.Description>
 				</div>

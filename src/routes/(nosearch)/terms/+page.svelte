@@ -1,7 +1,3 @@
-<script>
-	import { onMount } from 'svelte';
-</script>
-
 <svelte:head>
 	<title>Mwmbl - Terms and Conditions</title>
 	<meta
@@ -275,19 +271,9 @@
 		margin: 1em 0;
 	}
 
-	.terms-content ol {
-		padding-left: 1.7em;
-		margin-top: 1em;
-	}
-
 	.terms-content ul {
 		padding-left: 1.7em;
 		margin-top: 1em;
-	}
-
-	.terms-content li > ol,
-	.terms-content li > ul {
-		margin-top: 0;
 	}
 
 	@media (max-width: 600px) {

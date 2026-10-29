@@ -45,7 +45,7 @@ export const handle: Handle = async ({ event, resolve }) => {
 	return await resolve(event);
 };
 
-// Proxies request through SvelteKit server to MWMBL API, with authentication
+// Proxies request through SvelteKit server to Mwmbl API, with authentication
 // Adapted from https://sami.website/blog/sveltekit-api-reverse-proxy
 const handleApiProxy: Handle = async ({ event }) => {
 	// build the new URL path with your API base URL, the path, and the query string
@@ -64,7 +64,7 @@ const handleApiProxy: Handle = async ({ event }) => {
 		body: event.request.body,
 		method: event.request.method,
 		headers: event.request.headers,
-		// @ts-ignore this is a real property, and without it requests with bodies do not work
+		// @ts-expect-error this is a real property, and without it requests with bodies do not work
 		duplex: 'half'
 	}).catch((err) => {
 		console.log('Could not proxy API request: ', err);

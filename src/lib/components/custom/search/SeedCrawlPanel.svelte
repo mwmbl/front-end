@@ -213,8 +213,9 @@
 					This search wasn't crawled because you already have as many crawls queued or running as
 					you can. Search again once one of them is done.
 				{:else if notCrawledOutcome === 'already_running'}
-					This search wasn't crawled because one of your crawls is still running. Search again once
-					it's done.
+					This search wasn't crawled again because your crawl of it is still queued or running.
+				{:else if notCrawledOutcome === 'already_crawled'}
+					You've already crawled this search, so it wasn't crawled again.
 				{:else if notCrawledOutcome === 'already_indexed'}
 					Mwmbl already has every EUSP result for this search, so there was nothing new to crawl.
 				{:else if notCrawledOutcome === 'no_results'}

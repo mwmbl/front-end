@@ -40,8 +40,8 @@ export type SeedCrawl = {
 	pages_indexed: number;
 	// From 0 (queued) to 1 (done or failed).
 	progress: number;
-	// While queued, how many crawls, anyone's, will run before it. Null once it has started, and
-	// absent from APIs that predate several queued crawls per user.
+	// While queued, how many crawls, anyone's, will run before it, including one already running.
+	// Null once it has started, and absent from APIs that predate several queued crawls per user.
 	crawls_ahead?: number | null;
 	// Most new pages first; empty until the crawl starts.
 	domains: SeedCrawlDomain[];
@@ -54,6 +54,7 @@ export type SeedCrawlOutcome =
 	| 'no_results'
 	| 'already_indexed'
 	| 'already_running'
+	| 'already_crawled'
 	| 'too_many_crawls'
 	| 'queue_full';
 

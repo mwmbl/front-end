@@ -101,7 +101,7 @@ export async function load({ url, cookies, locals, setHeaders, request }) {
 					monthly_limit: number | null;
 					pages_indexed?: number | null;
 					crawl_outcome?: SeedCrawlOutcome | null;
-					active_crawl_query?: string | null;
+					active_crawl_queries?: string[] | null;
 				} = await res.json();
 				seedResults = json.results.map(hitToResult);
 				searchMode = 'seed';
@@ -111,7 +111,7 @@ export async function load({ url, cookies, locals, setHeaders, request }) {
 				pagesIndexed = json.pages_indexed ?? null;
 				seedCrawlAttempt = {
 					outcome: json.crawl_outcome ?? null,
-					activeQuery: json.active_crawl_query ?? null
+					activeQueries: json.active_crawl_queries ?? []
 				};
 				seedCrawl = await fetchSeedCrawl(cookies.get('accessToken'), query);
 			} else {

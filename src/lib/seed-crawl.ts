@@ -40,6 +40,9 @@ export type SeedCrawl = {
 	pages_indexed: number;
 	// From 0 (queued) to 1 (done or failed).
 	progress: number;
+	// While queued, how many crawls, anyone's, will run before it. Null once it has started, and
+	// absent from APIs that predate several queued crawls per user.
+	crawls_ahead?: number | null;
 	// Most new pages first; empty until the crawl starts.
 	domains: SeedCrawlDomain[];
 	pages: SeedCrawlPage[];
@@ -51,11 +54,12 @@ export type SeedCrawlOutcome =
 	| 'no_results'
 	| 'already_indexed'
 	| 'already_running'
+	| 'too_many_crawls'
 	| 'queue_full';
 
-// activeQuery is the query of the user's crawl still queued or running, with already_running.
-// outcome is null if the API predates crawl_outcome.
-export type SeedCrawlAttempt = { outcome: SeedCrawlOutcome | null; activeQuery: string | null };
+// activeQueries are the queries of the user's crawls queued or running, oldest first, with
+// too_many_crawls. outcome is null if the API predates crawl_outcome.
+export type SeedCrawlAttempt = { outcome: SeedCrawlOutcome | null; activeQueries: string[] };
 
 // How many of the newest pages to send to the page unless all of them are asked for, since a
 // crawl can add hundreds.

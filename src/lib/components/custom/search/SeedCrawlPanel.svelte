@@ -199,13 +199,19 @@
 
 		{#if !crawl}
 			<p>
-				{#if notCrawledOutcome === 'already_running' && attempt?.activeQuery && attempt.activeQuery !== query}
-					This search wasn't crawled because your crawl for
-					<a
-						href="/search?q={encodeURIComponent(attempt.activeQuery)}"
-						class="text-accent-text font-semibold hover:underline">{attempt.activeQuery}</a
-					>
-					is still running. You can have one crawl at a time, so search again once it's done.
+				{#if notCrawledOutcome === 'too_many_crawls' && attempt && attempt.activeQueries.length > 0}
+					This search wasn't crawled because you already have {plural(
+						attempt.activeQueries.length,
+						'crawl'
+					)} queued or running:
+					{#each attempt.activeQueries as activeQuery, i (activeQuery)}<a
+							href="/search?q={encodeURIComponent(activeQuery)}"
+							class="text-accent-text font-semibold hover:underline">{activeQuery}</a
+						>{i < attempt.activeQueries.length - 1 ? ', ' : ''}{/each}. Search again once one of
+					them is done.
+				{:else if notCrawledOutcome === 'too_many_crawls'}
+					This search wasn't crawled because you already have as many crawls queued or running as
+					you can. Search again once one of them is done.
 				{:else if notCrawledOutcome === 'already_running'}
 					This search wasn't crawled because one of your crawls is still running. Search again once
 					it's done.
@@ -222,6 +228,12 @@
 				Seed Search will explore the sites in these results, looking for ones Mwmbl doesn't have
 				yet, so the next person searching finds them too. It runs on its own, so you can keep
 				searching.
+				{#if crawl.crawls_ahead === 0}
+					It's next in the queue.
+				{:else if crawl.crawls_ahead != null}
+					{plural(crawl.crawls_ahead, 'crawl')}
+					{crawl.crawls_ahead === 1 ? 'is' : 'are'} ahead of it in the queue.
+				{/if}
 			</p>
 			<div class="bg-muted h-2 overflow-hidden rounded-full">
 				<div class="bg-unemphasized-1/40 h-full w-1/3 animate-pulse rounded-full"></div>

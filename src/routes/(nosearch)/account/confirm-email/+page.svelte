@@ -23,6 +23,12 @@
 			<Card.Root role="alert" class="p-4 outline-red-100 outline-solid dark:outline-red-900">
 				{form.error}
 			</Card.Root>
+			<p>
+				If you've already confirmed your address, <a
+					href="/account"
+					class="text-blue-600 hover:underline">log in to your account</a
+				>.
+			</p>
 		{/if}
 		{#if key && email}
 			<form method="post" class="flex flex-col gap-2">

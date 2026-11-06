@@ -153,13 +153,14 @@
 	.header-grid {
 		display: grid;
 		grid-template-columns: minmax(16rem, 46rem);
-		grid-template-rows: repeat(3, 1fr);
+		/* The search bar's row grows to make room for its completions, so rows can't share space equally */
+		grid-template-rows: 3rem minmax(3rem, auto) 3rem;
 	}
 	@media (min-width: 1024px) {
 		.header-grid {
 			display: grid;
 			grid-template-columns: minmax(3rem, 8rem) minmax(32rem, 46rem) 1fr;
-			grid-template-rows: repeat(2, 1fr);
+			grid-template-rows: minmax(3rem, auto) 3rem;
 		}
 	}
 </style>

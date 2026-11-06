@@ -297,7 +297,7 @@
 				</p>
 			{/if}
 
-			{#if crawl.status === 'crawling' && finds.length > 0}
+			{#if finds.length > 0}
 				<div aria-live="polite">
 					<div class="find-in bg-brand-gradient rounded-2xl p-0.5">
 						<div class="bg-card flex items-center gap-4 rounded-[14px] p-4">

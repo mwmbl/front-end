@@ -431,19 +431,19 @@
 	<div class="mb-6 grid grid-cols-1 gap-4 sm:grid-cols-3">
 		<div class="rounded-lg bg-white p-6 shadow dark:bg-gray-800">
 			<h3 class="text-sm font-medium text-gray-500 dark:text-gray-400">Pages in Index</h3>
-			<p class="mt-1 text-3xl font-bold text-purple-600">{formatNumber(data.latest.urlsInIndex)}</p>
+			<p class="text-foreground mt-1 text-3xl font-bold">{formatNumber(data.latest.urlsInIndex)}</p>
 			<p class="mt-1 text-sm text-gray-500 dark:text-gray-400">Unique, searchable pages</p>
 		</div>
 		<div class="rounded-lg bg-white p-6 shadow dark:bg-gray-800">
 			<h3 class="text-sm font-medium text-gray-500 dark:text-gray-400">Domains in Index</h3>
-			<p class="mt-1 text-3xl font-bold text-pink-600">
+			<p class="text-foreground mt-1 text-3xl font-bold">
 				{formatNumber(data.latest.domainsInIndex)}
 			</p>
 			<p class="mt-1 text-sm text-gray-500 dark:text-gray-400">Unique domains</p>
 		</div>
 		<div class="rounded-lg bg-white p-6 shadow dark:bg-gray-800">
 			<h3 class="text-sm font-medium text-gray-500 dark:text-gray-400">Index Entries</h3>
-			<p class="mt-1 text-3xl font-bold text-orange-600">
+			<p class="text-foreground mt-1 text-3xl font-bold">
 				{formatNumber(data.latest.resultsInIndex)}
 			</p>
 			<p class="mt-1 text-sm text-gray-500 dark:text-gray-400">
@@ -456,21 +456,21 @@
 	<div class="mb-6 grid grid-cols-1 gap-4 sm:grid-cols-3">
 		<div class="rounded-lg bg-white p-6 shadow dark:bg-gray-800">
 			<h3 class="text-sm font-medium text-gray-500 dark:text-gray-400">Seed Searches</h3>
-			<p class="mt-1 text-3xl font-bold text-emerald-600">{formatNumber(data.seed.searches)}</p>
+			<p class="text-foreground mt-1 text-3xl font-bold">{formatNumber(data.seed.searches)}</p>
 			<p class="mt-1 text-sm text-gray-500 dark:text-gray-400">
 				Searches made with <a href="/seed-search" class="underline">Seed Search</a> on, all time
 			</p>
 		</div>
 		<div class="rounded-lg bg-white p-6 shadow dark:bg-gray-800">
 			<h3 class="text-sm font-medium text-gray-500 dark:text-gray-400">Seed Pages</h3>
-			<p class="mt-1 text-3xl font-bold text-emerald-600">{formatNumber(data.seed.pagesIndexed)}</p>
+			<p class="text-foreground mt-1 text-3xl font-bold">{formatNumber(data.seed.pagesIndexed)}</p>
 			<p class="mt-1 text-sm text-gray-500 dark:text-gray-400">
 				New pages Seed Searches added to the index, all time
 			</p>
 		</div>
 		<div class="rounded-lg bg-white p-6 shadow dark:bg-gray-800">
 			<h3 class="text-sm font-medium text-gray-500 dark:text-gray-400">New Sites Found</h3>
-			<p class="mt-1 text-3xl font-bold text-emerald-600">
+			<p class="text-foreground mt-1 text-3xl font-bold">
 				{formatNumber(data.seed.sitesDiscovered)}
 			</p>
 			<p class="mt-1 text-sm text-gray-500 dark:text-gray-400">
@@ -483,14 +483,16 @@
 	<div class="mb-6 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
 		<div class="rounded-lg bg-white p-6 shadow dark:bg-gray-800">
 			<h3 class="text-sm font-medium text-gray-500 dark:text-gray-400">Active Crawlers (30d)</h3>
-			<p class="mt-1 text-3xl font-bold text-blue-600">{formatNumber(data.totals.usersCrawled)}</p>
+			<p class="text-foreground mt-1 text-3xl font-bold">
+				{formatNumber(data.totals.usersCrawled)}
+			</p>
 			<p class="mt-1 text-sm text-gray-500 dark:text-gray-400">
 				Today: {formatNumber(data.latest.usersCrawled)}
 			</p>
 		</div>
 		<div class="rounded-lg bg-white p-6 shadow dark:bg-gray-800">
 			<h3 class="text-sm font-medium text-gray-500 dark:text-gray-400">Results Indexed (30d)</h3>
-			<p class="mt-1 text-3xl font-bold text-green-600">
+			<p class="text-foreground mt-1 text-3xl font-bold">
 				{formatNumber(data.totals.resultsIndexed)}
 			</p>
 			<p class="mt-1 text-sm text-gray-500 dark:text-gray-400">
@@ -499,7 +501,7 @@
 		</div>
 		<div class="rounded-lg bg-white p-6 shadow dark:bg-gray-800">
 			<h3 class="text-sm font-medium text-gray-500 dark:text-gray-400">Dataset Queries (30d)</h3>
-			<p class="mt-1 text-3xl font-bold text-yellow-600">
+			<p class="text-foreground mt-1 text-3xl font-bold">
 				{formatNumber(data.totals.datasetQueries)}
 			</p>
 			<p class="mt-1 text-sm text-gray-500 dark:text-gray-400">
@@ -508,7 +510,7 @@
 		</div>
 		<div class="rounded-lg bg-white p-6 shadow dark:bg-gray-800">
 			<h3 class="text-sm font-medium text-gray-500 dark:text-gray-400">Dataset Results (30d)</h3>
-			<p class="mt-1 text-3xl font-bold text-teal-600">
+			<p class="text-foreground mt-1 text-3xl font-bold">
 				{formatNumber(data.totals.datasetResults)}
 			</p>
 			<p class="mt-1 text-sm text-gray-500 dark:text-gray-400">
@@ -607,61 +609,25 @@
 		<!-- Overview Tab -->
 		<TabsContent value="overview" class="space-y-6">
 			<div class="rounded-lg bg-white p-6 shadow dark:bg-gray-800">
-				<h2 class="mb-4 text-xl font-semibold">Index Statistics</h2>
-				<div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
-					<div>
-						<h3 class="font-medium text-gray-700 dark:text-gray-300">Pages in Index</h3>
-						<p class="text-2xl font-bold text-purple-600">
-							{formatNumber(data.latest.urlsInIndex)}
-						</p>
-						<p class="text-sm text-gray-500 dark:text-gray-400">Unique, searchable pages</p>
-					</div>
-					<div>
-						<h3 class="font-medium text-gray-700 dark:text-gray-300">Domains in Index</h3>
-						<p class="text-2xl font-bold text-pink-600">
-							{formatNumber(data.latest.domainsInIndex)}
-						</p>
-						<p class="text-sm text-gray-500 dark:text-gray-400">Unique domains represented</p>
-					</div>
-					<div>
-						<h3 class="font-medium text-gray-700 dark:text-gray-300">Index Entries</h3>
-						<p class="text-2xl font-bold text-orange-600">
-							{formatNumber(data.latest.resultsInIndex)}
-						</p>
-						<p class="text-sm text-gray-500 dark:text-gray-400">
-							Pages counted once per term they are indexed under
-						</p>
-					</div>
-					<div>
-						<h3 class="font-medium text-gray-700 dark:text-gray-300">Avg Pages per Domain</h3>
-						<p class="text-2xl font-bold text-indigo-600">
-							{data.latest.domainsInIndex > 0
-								? formatNumber(Math.round(data.latest.urlsInIndex / data.latest.domainsInIndex))
-								: 0}
-						</p>
-						<p class="text-sm text-gray-500 dark:text-gray-400">Average unique pages per domain</p>
-					</div>
-				</div>
-			</div>
-
-			<div class="rounded-lg bg-white p-6 shadow dark:bg-gray-800">
 				<h2 class="mb-4 text-xl font-semibold">Crawler Network (Last 30 Days)</h2>
 				<div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
 					<div>
 						<h3 class="font-medium text-gray-700 dark:text-gray-300">Total Active Crawlers</h3>
-						<p class="text-2xl font-bold text-blue-600">{formatNumber(data.totals.usersCrawled)}</p>
+						<p class="text-foreground text-2xl font-bold">
+							{formatNumber(data.totals.usersCrawled)}
+						</p>
 						<p class="text-sm text-gray-500 dark:text-gray-400">Unique crawlers in 30 days</p>
 					</div>
 					<div>
 						<h3 class="font-medium text-gray-700 dark:text-gray-300">Total Results Indexed</h3>
-						<p class="text-2xl font-bold text-green-600">
+						<p class="text-foreground text-2xl font-bold">
 							{formatNumber(data.totals.resultsIndexed)}
 						</p>
 						<p class="text-sm text-gray-500 dark:text-gray-400">Results submitted by crawlers</p>
 					</div>
 					<div>
 						<h3 class="font-medium text-gray-700 dark:text-gray-300">Avg Crawlers/Day</h3>
-						<p class="text-2xl font-bold text-blue-600">
+						<p class="text-foreground text-2xl font-bold">
 							{data.chartData.labels.length > 0
 								? formatNumber(Math.round(data.totals.usersCrawled / data.chartData.labels.length))
 								: 0}
@@ -670,7 +636,7 @@
 					</div>
 					<div>
 						<h3 class="font-medium text-gray-700 dark:text-gray-300">Avg Results/Day</h3>
-						<p class="text-2xl font-bold text-green-600">
+						<p class="text-foreground text-2xl font-bold">
 							{data.chartData.labels.length > 0
 								? formatNumber(
 										Math.round(data.totals.resultsIndexed / data.chartData.labels.length)
@@ -687,21 +653,21 @@
 				<div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
 					<div>
 						<h3 class="font-medium text-gray-700 dark:text-gray-300">Dataset Queries</h3>
-						<p class="text-2xl font-bold text-yellow-600">
+						<p class="text-foreground text-2xl font-bold">
 							{formatNumber(data.totals.datasetQueries)}
 						</p>
 						<p class="text-sm text-gray-500 dark:text-gray-400">Autocomplete queries collected</p>
 					</div>
 					<div>
 						<h3 class="font-medium text-gray-700 dark:text-gray-300">Dataset Results</h3>
-						<p class="text-2xl font-bold text-teal-600">
+						<p class="text-foreground text-2xl font-bold">
 							{formatNumber(data.totals.datasetResults)}
 						</p>
 						<p class="text-sm text-gray-500 dark:text-gray-400">Search results from datasets</p>
 					</div>
 					<div>
 						<h3 class="font-medium text-gray-700 dark:text-gray-300">Success Rate</h3>
-						<p class="text-2xl font-bold text-green-600">
+						<p class="text-foreground text-2xl font-bold">
 							{data.totals.datasetQueries > 0
 								? ((data.totals.datasetResults / data.totals.datasetQueries) * 100).toFixed(1) + '%'
 								: '0%'}
@@ -753,16 +719,16 @@
 					<div class="flex space-x-4">
 						<button
 							class={!showAllLeaderboard
-								? 'font-bold text-blue-600'
-								: 'text-blue-600 hover:underline'}
+								? 'text-foreground font-bold'
+								: 'text-muted-foreground hover:underline'}
 							onclick={() => (showAllLeaderboard = false)}
 						>
 							Yesterday
 						</button>
 						<button
 							class={showAllLeaderboard
-								? 'font-bold text-blue-600'
-								: 'text-blue-600 hover:underline'}
+								? 'text-foreground font-bold'
+								: 'text-muted-foreground hover:underline'}
 							onclick={() => (showAllLeaderboard = true)}
 						>
 							All Time

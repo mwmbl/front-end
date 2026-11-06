@@ -13,6 +13,7 @@
 
 	let input: HTMLInputElement | null = $state(null);
 	let form: HTMLFormElement | null = $state(null);
+	let completionsHeight = $state(0);
 
 	let searchCompletions: string[] = $state([]);
 	let completionsOpen = $state(false);
@@ -80,6 +81,7 @@
 	method="get"
 	onsubmit={resetCompletions}
 	bind:this={form}
+	style:margin-bottom={completionsVisible ? completionsHeight + 'px' : undefined}
 >
 	<Input
 		type="search"
@@ -121,55 +123,57 @@
 		</Button>
 	{/if}
 
-	<Card.Root
-		class={'absolute top-12 z-10 flex w-[calc(100%)] rounded-t-none rounded-b-2xl border-none shadow-sm' +
-			(completionsVisible ? ' min-h-16 p-3 pt-4' : ' p-0')}
-	>
-		<ol>
-			{#if completionsVisible && completionsLoading}
-				<div class="text-muted-foreground flex h-10 w-full items-center justify-center text-xl">
-					<RiLoader4Line class="animate-spin" aria-label="Loading completions" />
-				</div>
-			{:else if completionsVisible}
-				{#each searchCompletions as completion}
-					{#if !completion.match(/^.*: /)}
-						<Button
-							variant="link"
-							onclick={resetCompletions}
-							href="/search?q={encodeURIComponent(completion)}">{completion}</Button
-						>
-					{:else if completion.startsWith('search: google.com ')}
-						<Button
-							target="_blank"
-							href="https://google.com/search?q={completion.replace(/^search: google\.com/, '')}"
-						>
-							<span>Search on Google: {completion.replace(/^search: google\.com/, '')}</span>
-							<RiSearchLine class="ml-1 min-h-5 min-w-5 text-black" />
-						</Button>
-					{:else if completion.startsWith('go: ')}
-						<Button
-							variant="secondary"
-							target="_blank"
-							href={'https://' + completion.replace(/^go: /, '')}
-						>
-							<span>Open website: {completion.replace(/^go: /, '')}</span>
-							<PhArrowSquareOutFill class="ml-1 min-h-5 min-w-5 text-black dark:text-white" />
-						</Button>
-					{/if}
-				{/each}
+	<div class="absolute top-12 z-10 w-full" bind:clientHeight={completionsHeight}>
+		<Card.Root
+			class={'flex w-full rounded-t-none rounded-b-2xl border-none shadow-sm' +
+				(completionsVisible ? ' min-h-16 p-3 pt-4' : ' p-0')}
+		>
+			<ol>
+				{#if completionsVisible && completionsLoading}
+					<div class="text-muted-foreground flex h-10 w-full items-center justify-center text-xl">
+						<RiLoader4Line class="animate-spin" aria-label="Loading completions" />
+					</div>
+				{:else if completionsVisible}
+					{#each searchCompletions as completion}
+						{#if !completion.match(/^.*: /)}
+							<Button
+								variant="link"
+								onclick={resetCompletions}
+								href="/search?q={encodeURIComponent(completion)}">{completion}</Button
+							>
+						{:else if completion.startsWith('search: google.com ')}
+							<Button
+								target="_blank"
+								href="https://google.com/search?q={completion.replace(/^search: google\.com/, '')}"
+							>
+								<span>Search on Google: {completion.replace(/^search: google\.com/, '')}</span>
+								<RiSearchLine class="ml-1 min-h-5 min-w-5 text-black" />
+							</Button>
+						{:else if completion.startsWith('go: ')}
+							<Button
+								variant="secondary"
+								target="_blank"
+								href={'https://' + completion.replace(/^go: /, '')}
+							>
+								<span>Open website: {completion.replace(/^go: /, '')}</span>
+								<PhArrowSquareOutFill class="ml-1 min-h-5 min-w-5 text-black dark:text-white" />
+							</Button>
+						{/if}
+					{/each}
+				{/if}
+			</ol>
+			{#if completionsVisible}
+				<Button
+					size="icon"
+					class="absolute right-3 bottom-3 ml-auto h-8 w-8 rounded-full"
+					variant="secondary"
+					onclick={resetCompletions}
+					title="Close search completions"
+					aria-label="Close search completions"
+				>
+					<RiCloseFill class="min-h-5 min-w-5 text-black dark:text-white" />
+				</Button>
 			{/if}
-		</ol>
-		{#if completionsVisible}
-			<Button
-				size="icon"
-				class="absolute right-3 bottom-3 ml-auto h-8 w-8 rounded-full"
-				variant="secondary"
-				onclick={resetCompletions}
-				title="Close search completions"
-				aria-label="Close search completions"
-			>
-				<RiCloseFill class="min-h-5 min-w-5 text-black dark:text-white" />
-			</Button>
-		{/if}
-	</Card.Root>
+		</Card.Root>
+	</div>
 </form>

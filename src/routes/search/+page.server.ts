@@ -1,5 +1,6 @@
 // add the ranker to dependencies to use wasm ranker ("ranker": "file:./pkg/" when testing)
 import { API_BASE } from '$lib/api';
+import { fetchTopImage } from '$lib/image-search';
 import { hitToResult, type SearchHit } from '$lib/highlight';
 import { seedSearchState } from '$lib/seed-search';
 import {
@@ -69,6 +70,9 @@ export async function load({ url, cookies, locals, setHeaders, request }) {
 
 	// if (!useWasmRanker) {
 	const query = url.searchParams.get('q') ?? '';
+	// Started first so it runs alongside the search, and streamed rather than awaited: an uncached
+	// image check takes seconds and must not hold the web results back. fetchTopImage never rejects.
+	const topImage = query.trim() === '' ? Promise.resolve(null) : fetchTopImage(API_BASE, query);
 	// Awaited before searching because the preference decides which search to run.
 	const seedState = await seedSearchState(cookies, locals.loginStatus === 'assumeLoggedIn');
 
@@ -159,6 +163,7 @@ export async function load({ url, cookies, locals, setHeaders, request }) {
 		pagesIndexed,
 		seedCrawl,
 		seedCrawlAttempt,
+		topImage,
 		...seedState
 	};
 	// }

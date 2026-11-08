@@ -15,6 +15,8 @@
 	import WikipediaCard from '@/components/custom/search/WikipediaCard.svelte';
 	import SeedSearchToggle from '@/components/custom/search/SeedSearchToggle.svelte';
 	import SeedCrawlPanel from '@/components/custom/search/SeedCrawlPanel.svelte';
+	import SearchTabs from '@/components/custom/search/SearchTabs.svelte';
+	import TopImage from '@/components/custom/search/TopImage.svelte';
 
 	let { data } = $props();
 
@@ -83,6 +85,7 @@
 	<hr class="absolute top-52 left-0 w-screen lg:top-36" />
 
 	<main class="mt-4 flex w-full flex-col gap-4 lg:col-start-2 lg:col-end-2">
+		<SearchTabs query={data.query} active="web" />
 		<div class="flex flex-row flex-wrap items-center justify-between gap-x-4 gap-y-2">
 			<p class="text-muted-foreground text-xs">
 				{#if data.searchMode === 'seed'}
@@ -105,6 +108,11 @@
 		{#if wikipediaCard}
 			<WikipediaCard result={data.results[0]} query={data.query} />
 		{/if}
+		{#await data.topImage then topImage}
+			{#if topImage}
+				<TopImage image={topImage} query={data.query} />
+			{/if}
+		{/await}
 		{#each results as result}
 			<SearchResult {result} query={data.query} />
 		{/each}

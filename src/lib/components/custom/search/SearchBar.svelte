@@ -9,7 +9,7 @@
 	import RiCloseFill from '~icons/ri/close-fill';
 	import RiLoader4Line from '~icons/ri/loader-4-line';
 
-	let { query }: { query?: string } = $props();
+	let { query, action = '/search' }: { query?: string; action?: '/search' | '/images' } = $props();
 
 	let input: HTMLInputElement | null = $state(null);
 	let form: HTMLFormElement | null = $state(null);
@@ -77,7 +77,7 @@
 
 <form
 	class="relative flex w-full max-w-184 flex-row items-center"
-	action="/search"
+	{action}
 	method="get"
 	onsubmit={resetCompletions}
 	bind:this={form}
@@ -139,7 +139,7 @@
 							<Button
 								variant="link"
 								onclick={resetCompletions}
-								href="/search?q={encodeURIComponent(completion)}">{completion}</Button
+								href="{action}?q={encodeURIComponent(completion)}">{completion}</Button
 							>
 						{:else if completion.startsWith('search: google.com ')}
 							<Button

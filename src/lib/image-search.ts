@@ -34,8 +34,25 @@ export function isWikimediaThumbnail(url: string): boolean {
 	}
 }
 
+function isHttps(url: string): boolean {
+	try {
+		return new URL(url).protocol === 'https:';
+	} catch {
+		return false;
+	}
+}
+
+// Links come from file pages anyone can edit, so only https ones are ever put in an href.
+export function isDisplayable(image: ImageResult): boolean {
+	return (
+		isWikimediaThumbnail(image.thumbnail_url) &&
+		isHttps(image.page_url) &&
+		(image.license_url === '' || isHttps(image.license_url))
+	);
+}
+
 function displayable(images: ImageResult[]): ImageResult[] {
-	return images.filter((image) => isWikimediaThumbnail(image.thumbnail_url));
+	return images.filter(isDisplayable);
 }
 
 // The API's error pages are HTML, and a failed image search must not fail the whole page.
@@ -70,7 +87,7 @@ export async function fetchTopImage(
 		if (!res.ok) return null;
 		const json = await res.json();
 		const image: ImageResult | null = json?.image ?? null;
-		return image && isWikimediaThumbnail(image.thumbnail_url) ? image : null;
+		return image && isDisplayable(image) ? image : null;
 	} catch (err) {
 		console.log('Top image failed: ', err);
 		return null;

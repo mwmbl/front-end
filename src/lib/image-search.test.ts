@@ -4,6 +4,7 @@ import {
 	fetchImages,
 	fetchTopImage,
 	imageCaption,
+	isDisplayable,
 	isWikimediaThumbnail,
 	type ImageResult
 } from './image-search';
@@ -42,6 +43,18 @@ describe('thumbnails', () => {
 		expect(isWikimediaThumbnail('https://evil.example.com/a.jpg')).toBe(false);
 		expect(isWikimediaThumbnail('https://upload.wikimedia.org.evil.example.com/a.jpg')).toBe(false);
 		expect(isWikimediaThumbnail('not a url')).toBe(false);
+	});
+});
+
+describe('displayable images', () => {
+	it('need https links, because file pages are editable by anyone', () => {
+		expect(isDisplayable(image())).toBe(true);
+		expect(isDisplayable(image({ license_url: '' }))).toBe(true);
+		expect(isDisplayable(image({ license_url: 'javascript:alert(1)' }))).toBe(false);
+		expect(isDisplayable(image({ page_url: 'javascript:alert(1)' }))).toBe(false);
+		expect(isDisplayable(image({ page_url: 'http://commons.wikimedia.org/wiki/File:a.jpg' }))).toBe(
+			false
+		);
 	});
 });
 

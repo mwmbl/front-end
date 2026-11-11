@@ -112,14 +112,7 @@
 	<h2 class="-mx-2 text-3xl">Crawler versions</h2>
 	<hr class="my-2" />
 
-	{#if data.access === 'anonymous'}
-		<Card.Root class="flex flex-col items-start gap-4 p-4">
-			<p>Sign in to see the crawler versions.</p>
-			<Button href="/account?next={encodeURIComponent('/crawler-versions')}">Sign in</Button>
-		</Card.Root>
-	{:else if data.access === 'denied'}
-		<Card.Root class="p-4">Only staff can see the crawler versions.</Card.Root>
-	{:else if data.access === 'error'}
+	{#if data.access !== 'ok'}
 		<Card.Root class="p-4 outline-red-100 outline-solid dark:outline-red-900">
 			{data.message}
 		</Card.Root>

@@ -28,7 +28,7 @@ type Result = {
 	votes: undefined;
 };
 
-type SearchResponse = { results: Result[]; images: StripImage[] };
+type SearchResponse = { results: Result[]; images: StripImage[]; imagesDisplayCount: number };
 
 // The API's error pages are HTML, so a failed search is caught here rather than left to throw
 // on parsing: thrown, it fails the whole page, which is what users see while the API restarts.
@@ -40,7 +40,8 @@ async function fetchStandardResults(query: string): Promise<SearchResponse | nul
 			if (Array.isArray(json?.results)) {
 				return {
 					results: (json.results as SearchHit[]).map(hitToResult),
-					images: parseImages(json.images)
+					images: parseImages(json.images),
+					imagesDisplayCount: parseDisplayCount(json.images_display_count)
 				};
 			}
 			console.log('Search returned no results array');
@@ -150,6 +151,7 @@ export async function load({ url, cookies, locals, setHeaders, request }) {
 	const searchFailed = seedResults == null && standardResults == null;
 	const results: Result[] = seedResults ?? standardResults?.results ?? [];
 	const images = seedResults != null ? seedImages : (standardResults?.images ?? []);
+	if (standardResults) imagesDisplayCount = standardResults.imagesDisplayCount;
 	// Don't let a cache keep serving the error page after the API recovers.
 	if (searchFailed) setHeaders({ 'cache-control': 'no-store' });
 

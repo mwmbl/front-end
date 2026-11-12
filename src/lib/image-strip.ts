@@ -22,16 +22,19 @@ function httpsUrl(value: unknown): string | null {
 
 // Keeps only images with https links and a licence to show: an image without its licence or its
 // credit link can't be shown. A licence with no page of its own links to the file page.
+// Repeats of a thumbnail are dropped: the strip keys its tiles by thumbnail URL.
 export function parseImages(raw: unknown): StripImage[] {
 	if (!Array.isArray(raw)) return [];
 	const images: StripImage[] = [];
+	const seen = new Set<string>();
 	for (const entry of raw) {
 		if (entry == null || typeof entry !== 'object') continue;
 		const item = entry as Record<string, unknown>;
 		const pageUrl = httpsUrl(item.page_url);
 		const thumbnailUrl = httpsUrl(item.thumbnail_url);
 		const licenseName = typeof item.license_name === 'string' ? item.license_name.trim() : '';
-		if (!pageUrl || !thumbnailUrl || !licenseName) continue;
+		if (!pageUrl || !thumbnailUrl || !licenseName || seen.has(thumbnailUrl)) continue;
+		seen.add(thumbnailUrl);
 		images.push({
 			title: typeof item.title === 'string' ? item.title : '',
 			pageUrl,

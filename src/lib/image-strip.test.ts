@@ -37,6 +37,10 @@ describe('parseImages', () => {
 		expect(parseImages([null, 'x'])).toEqual([]);
 	});
 
+	it('drops repeats of a thumbnail', () => {
+		expect(parseImages([apiImage, { ...apiImage, title: 'Copy' }])).toHaveLength(1);
+	});
+
 	it('links the file page when the licence URL is unusable', () => {
 		const [image] = parseImages([{ ...apiImage, license_url: 'data:text/html,hi' }]);
 		expect(image.licenseUrl).toBe(apiImage.page_url);

@@ -1,6 +1,12 @@
 // add the ranker to dependencies to use wasm ranker ("ranker": "file:./pkg/" when testing)
 import { API_BASE } from '$lib/api';
 import { hitToResult, type SearchHit } from '$lib/highlight';
+import {
+	DEFAULT_DISPLAY_COUNT,
+	parseDisplayCount,
+	parseImages,
+	type StripImage
+} from '$lib/image-strip';
 import { seedSearchState } from '$lib/seed-search';
 import {
 	fetchSeedCrawl,
@@ -22,15 +28,22 @@ type Result = {
 	votes: undefined;
 };
 
+type SearchResponse = { results: Result[]; images: StripImage[] };
+
 // The API's error pages are HTML, so a failed search is caught here rather than left to throw
 // on parsing: thrown, it fails the whole page, which is what users see while the API restarts.
-async function fetchStandardResults(query: string): Promise<Result[] | null> {
+async function fetchStandardResults(query: string): Promise<SearchResponse | null> {
 	try {
-		const res = await fetch(`${API_BASE}/api/v1/search/?s=${encodeURIComponent(query)}`);
+		const res = await fetch(`${API_BASE}/api/v2/search/?q=${encodeURIComponent(query)}`);
 		if (res.ok) {
 			const json = await res.json();
-			if (Array.isArray(json)) return json;
-			console.log('Search returned a non-array body');
+			if (Array.isArray(json?.results)) {
+				return {
+					results: (json.results as SearchHit[]).map(hitToResult),
+					images: parseImages(json.images)
+				};
+			}
+			console.log('Search returned no results array');
 		} else {
 			console.log('Search failed with status', res.status);
 		}
@@ -73,6 +86,8 @@ export async function load({ url, cookies, locals, setHeaders, request }) {
 	const seedState = await seedSearchState(cookies, locals.loginStatus === 'assumeLoggedIn');
 
 	let seedResults: Result[] | null = null;
+	let seedImages: StripImage[] = [];
+	let imagesDisplayCount = DEFAULT_DISPLAY_COUNT;
 	let searchMode: 'standard' | 'seed' = 'standard';
 	let seedUsage: { usage: number; limit: number } | null = null;
 	let seedFallback: 'quota' | 'error' | 'cross-site' | null = null;
@@ -91,7 +106,7 @@ export async function load({ url, cookies, locals, setHeaders, request }) {
 	} else if (seedState.seedSearchEnabled) {
 		try {
 			const res = await fetch(
-				`${API_BASE}/api/v2/combined-search/?q=${encodeURIComponent(query)}&crawl=true`,
+				`${API_BASE}/api/v2/combined-search/?q=${encodeURIComponent(query)}&crawl=true&images=true`,
 				{ headers: { Authorization: `Bearer ${cookies.get('accessToken')}` } }
 			);
 			if (res.ok) {
@@ -102,8 +117,12 @@ export async function load({ url, cookies, locals, setHeaders, request }) {
 					pages_indexed?: number | null;
 					crawl_outcome?: SeedCrawlOutcome | null;
 					active_crawl_queries?: string[] | null;
+					images?: unknown;
+					images_display_count?: unknown;
 				} = await res.json();
 				seedResults = json.results.map(hitToResult);
+				seedImages = parseImages(json.images);
+				imagesDisplayCount = parseDisplayCount(json.images_display_count);
 				searchMode = 'seed';
 				if (json.monthly_usage != null && json.monthly_limit != null) {
 					seedUsage = { usage: json.monthly_usage, limit: json.monthly_limit };
@@ -129,7 +148,8 @@ export async function load({ url, cookies, locals, setHeaders, request }) {
 
 	const standardResults = seedResults == null ? await fetchStandardResults(query) : null;
 	const searchFailed = seedResults == null && standardResults == null;
-	const results: Result[] = seedResults ?? standardResults ?? [];
+	const results: Result[] = seedResults ?? standardResults?.results ?? [];
+	const images = seedResults != null ? seedImages : (standardResults?.images ?? []);
 	// Don't let a cache keep serving the error page after the API recovers.
 	if (searchFailed) setHeaders({ 'cache-control': 'no-store' });
 
@@ -151,6 +171,8 @@ export async function load({ url, cookies, locals, setHeaders, request }) {
 					votes: votes.votes[result.url] as Votes | undefined
 				}))
 			: results,
+		images,
+		imagesDisplayCount,
 		searchFailed,
 		searchMode,
 		seedUsage,

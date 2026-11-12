@@ -15,6 +15,7 @@
 	import WikipediaCard from '@/components/custom/search/WikipediaCard.svelte';
 	import SeedSearchToggle from '@/components/custom/search/SeedSearchToggle.svelte';
 	import SeedCrawlPanel from '@/components/custom/search/SeedCrawlPanel.svelte';
+	import ImageStrip from '@/components/custom/search/ImageStrip.svelte';
 
 	let { data } = $props();
 
@@ -102,6 +103,14 @@
 				quotaExhausted={data.seedSearchQuotaExhausted || data.seedQuotaHit}
 			/>
 		</div>
+		<!-- Keyed so a new search starts collapsed, with no sizes or failures from the last one. -->
+		{#key data.query}
+			<ImageStrip
+				images={data.images}
+				displayCount={data.imagesDisplayCount}
+				seed={data.searchMode === 'seed'}
+			/>
+		{/key}
 		{#if wikipediaCard}
 			<WikipediaCard result={data.results[0]} query={data.query} />
 		{/if}

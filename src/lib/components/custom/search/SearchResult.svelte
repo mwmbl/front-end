@@ -33,7 +33,8 @@
 		google: 'Mwmbl',
 		user: 'Mwmbl',
 		wikipedia: 'Wikipedia',
-		eusp: 'EUSP'
+		eusp: 'EUSP',
+		commons: 'Wikimedia Commons'
 	};
 	let sourceLabel = $derived(result.source ? (SOURCE_LABELS[result.source] ?? result.source) : '');
 

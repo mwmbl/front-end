@@ -42,15 +42,28 @@
 		}
 	}
 
+	const daysAhead = $derived(forecast ? forecast.days.length : 3);
+
 	// Open-Meteo's data is CC BY 4.0, which asks for the credit to name the licence.
 	const licence = $derived(sourceName === 'Open-Meteo.com' ? 'CC BY 4.0' : '');
 </script>
 
-<Card.Root class="gap-4 border px-6 pt-5 pb-0" aria-label={title} aria-busy={forecast == null}>
+<Card.Root
+	class="gap-4 border px-6 pt-5 pb-0"
+	role="region"
+	aria-label={title}
+	aria-busy={forecast == null}
+>
 	<div>
 		<h2 class="text-accent-text text-lg leading-6 font-medium">{title}</h2>
 		<p class="text-muted-foreground mt-0.5 text-sm">
-			Now and the next {forecast?.days.length || 3} days
+			{#if daysAhead === 0}
+				Now
+			{:else if daysAhead === 1}
+				Now and tomorrow
+			{:else}
+				Now and the next {daysAhead} days
+			{/if}
 		</p>
 	</div>
 
@@ -77,14 +90,16 @@
 				<ul class="grid min-w-0 flex-1 grid-cols-3 gap-2 sm:gap-3">
 					{#each forecast.days as day (day.date)}
 						{@const when = formatDay(day.date)}
-						<li class="bg-secondary/40 flex flex-col gap-1.5 rounded-lg px-3 py-2.5">
+						<li class="bg-secondary/40 flex min-w-0 flex-col gap-1.5 rounded-lg px-3 py-2.5">
 							<div class="flex flex-wrap items-baseline gap-x-1.5">
 								<strong class="text-foreground text-sm font-semibold">{when.weekday}</strong>
 								<span class="text-muted-foreground text-xs">{when.date}</span>
 							</div>
 							<WeatherIcon icon={weatherIcon(day.conditions)} class="-my-1.5 -ml-2 h-12 w-12" />
-							<div class="text-unemphasized-2 min-h-8 text-xs leading-4">{day.conditions}</div>
-							<div class="flex items-baseline gap-2 text-sm tabular-nums">
+							<div class="text-unemphasized-2 min-h-8 text-xs leading-4 wrap-break-word">
+								{day.conditions}
+							</div>
+							<div class="flex flex-wrap items-baseline gap-x-2 text-sm tabular-nums">
 								{#if day.high != null}
 									<strong class="text-foreground font-semibold">
 										<span class="sr-only">High</span>

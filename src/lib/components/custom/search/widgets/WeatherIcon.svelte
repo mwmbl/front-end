@@ -54,6 +54,6 @@
 
 {#key icon}
 	<span class="contents" use:stillIfReducedMotion aria-hidden="true">
-		<Icon class={className} />
+		<Icon class={className} aria-hidden="true" />
 	</span>
 {/key}

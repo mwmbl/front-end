@@ -25,7 +25,7 @@
 	$effect(() => () => clearTimeout(timer));
 </script>
 
-<Card.Root class="gap-3 border px-6 py-5" aria-label="Calculator">
+<Card.Root class="gap-3 border px-6 py-5" role="region" aria-label="Calculator">
 	<div class="text-muted-foreground flex items-center gap-2 text-sm font-medium">
 		<RiCalculatorLine class="h-4 w-4" aria-hidden="true" />
 		Calculator

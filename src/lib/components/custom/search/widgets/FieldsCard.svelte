@@ -17,7 +17,12 @@
 	const rest = $derived(values?.fields.slice(1) ?? []);
 </script>
 
-<Card.Root class="gap-4 border px-6 pt-5 pb-0" aria-label={title} aria-busy={values == null}>
+<Card.Root
+	class="gap-4 border px-6 pt-5 pb-0"
+	role="region"
+	aria-label={title}
+	aria-busy={values == null}
+>
 	<div>
 		<h2 class="text-accent-text text-lg leading-6 font-medium">{title}</h2>
 		<p class="text-muted-foreground mt-0.5 text-sm">Worked out from your search</p>
@@ -25,10 +30,12 @@
 
 	{#if values && head}
 		<div class="flex flex-wrap items-end gap-x-10 gap-y-3">
-			<div>
+			<div class="min-w-0">
 				<div class="text-muted-foreground text-sm">{head.label}</div>
 				<div class="mt-0.5 flex flex-wrap items-baseline gap-x-2">
-					<span class="text-foreground text-4xl font-semibold tracking-tight tabular-nums">
+					<span
+						class="text-foreground min-w-0 text-4xl font-semibold tracking-tight break-all tabular-nums"
+					>
 						{formatValue(head.value)}
 					</span>
 					<span class="text-unemphasized-2">{head.unit}</span>

@@ -25,14 +25,19 @@
 	// Weather stubs are known before their values arrive, so the loading card has the right shape.
 	const looksLikeForecast = $derived(stub.sourceName === 'Open-Meteo.com');
 
+	// A string, so a reload of the same search (with new but equal stub objects) doesn't fetch again.
+	const valuesUrl = $derived(widgetValuesUrl(API_BASE, stub, query));
+
 	// Fetched from the browser rather than in `load`: the endpoint limits requests per caller
 	// address, and every request from this server would share one address.
 	$effect(() => {
 		const controller = new AbortController();
 		widget = { status: 'loading' };
-		fetch(widgetValuesUrl(API_BASE, stub, query), { signal: controller.signal })
+		fetch(valuesUrl, { signal: controller.signal })
 			.then((res) => (res.ok ? res.json() : null))
 			.then((json) => {
+				// A newer search took over after this answer arrived, but before this ran.
+				if (controller.signal.aborted) return;
 				const values = parseWidgetValues(json);
 				const forecast = values?.display === 'forecast' ? parseForecast(values.fields) : null;
 				// Any failure (no widget, provider down, rate limited) just leaves the widget out.

@@ -8,6 +8,7 @@ import {
 	type StripImage
 } from '$lib/image-strip';
 import { seedSearchState } from '$lib/seed-search';
+import { parseWidgets, type Widget } from '$lib/widgets';
 import {
 	fetchSeedCrawl,
 	type SeedCrawl,
@@ -28,7 +29,12 @@ type Result = {
 	votes: undefined;
 };
 
-type SearchResponse = { results: Result[]; images: StripImage[]; imagesDisplayCount: number };
+type SearchResponse = {
+	results: Result[];
+	images: StripImage[];
+	imagesDisplayCount: number;
+	widgets: Widget[];
+};
 
 // The API's error pages are HTML, so a failed search is caught here rather than left to throw
 // on parsing: thrown, it fails the whole page, which is what users see while the API restarts.
@@ -41,7 +47,8 @@ async function fetchStandardResults(query: string): Promise<SearchResponse | nul
 				return {
 					results: (json.results as SearchHit[]).map(hitToResult),
 					images: parseImages(json.images),
-					imagesDisplayCount: parseDisplayCount(json.images_display_count)
+					imagesDisplayCount: parseDisplayCount(json.images_display_count),
+					widgets: parseWidgets(json.widgets)
 				};
 			}
 			console.log('Search returned no results array');
@@ -89,6 +96,7 @@ export async function load({ url, cookies, locals, setHeaders, request }) {
 	let seedResults: Result[] | null = null;
 	let seedImages: StripImage[] = [];
 	let imagesDisplayCount = DEFAULT_DISPLAY_COUNT;
+	let seedWidgets: Widget[] = [];
 	let searchMode: 'standard' | 'seed' = 'standard';
 	let seedUsage: { usage: number; limit: number } | null = null;
 	let seedFallback: 'quota' | 'error' | 'cross-site' | null = null;
@@ -120,10 +128,12 @@ export async function load({ url, cookies, locals, setHeaders, request }) {
 					active_crawl_queries?: string[] | null;
 					images?: unknown;
 					images_display_count?: unknown;
+					widgets?: unknown;
 				} = await res.json();
 				seedResults = json.results.map(hitToResult);
 				seedImages = parseImages(json.images);
 				imagesDisplayCount = parseDisplayCount(json.images_display_count);
+				seedWidgets = parseWidgets(json.widgets);
 				searchMode = 'seed';
 				if (json.monthly_usage != null && json.monthly_limit != null) {
 					seedUsage = { usage: json.monthly_usage, limit: json.monthly_limit };
@@ -152,6 +162,7 @@ export async function load({ url, cookies, locals, setHeaders, request }) {
 	const results: Result[] = seedResults ?? standardResults?.results ?? [];
 	const images = seedResults != null ? seedImages : (standardResults?.images ?? []);
 	if (standardResults) imagesDisplayCount = standardResults.imagesDisplayCount;
+	const widgets = seedResults != null ? seedWidgets : (standardResults?.widgets ?? []);
 	// Don't let a cache keep serving the error page after the API recovers.
 	if (searchFailed) setHeaders({ 'cache-control': 'no-store' });
 
@@ -175,6 +186,7 @@ export async function load({ url, cookies, locals, setHeaders, request }) {
 			: results,
 		images,
 		imagesDisplayCount,
+		widgets,
 		searchFailed,
 		searchMode,
 		seedUsage,

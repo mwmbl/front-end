@@ -16,6 +16,7 @@
 	import SeedSearchToggle from '@/components/custom/search/SeedSearchToggle.svelte';
 	import SeedCrawlPanel from '@/components/custom/search/SeedCrawlPanel.svelte';
 	import ImageStrip from '@/components/custom/search/ImageStrip.svelte';
+	import Widgets from '@/components/custom/search/widgets/Widgets.svelte';
 
 	let { data } = $props();
 
@@ -24,6 +25,9 @@
 	);
 
 	const results = $derived(!wikipediaCard ? data.results : data.results.slice(1));
+
+	// For arithmetic the API searches "calculator" instead, as the query has nothing to search for.
+	const calculation = $derived(data.widgets.some((widget) => widget.type === 'calculation'));
 </script>
 
 <svelte:head>
@@ -103,6 +107,7 @@
 				quotaExhausted={data.seedSearchQuotaExhausted || data.seedQuotaHit}
 			/>
 		</div>
+		<Widgets widgets={data.widgets} query={data.query ?? ''} />
 		<!-- Keyed so a new search starts collapsed, with no sizes or failures from the last one. -->
 		{#key data.query}
 			<ImageStrip
@@ -111,6 +116,9 @@
 				seed={data.searchMode === 'seed'}
 			/>
 		{/key}
+		{#if calculation && data.results.length > 0}
+			<h2 class="text-muted-foreground -mb-2 text-sm font-medium">Calculators on the web</h2>
+		{/if}
 		{#if wikipediaCard}
 			<WikipediaCard result={data.results[0]} query={data.query} />
 		{/if}

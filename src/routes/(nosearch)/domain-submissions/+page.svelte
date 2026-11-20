@@ -44,7 +44,21 @@
 	}
 
 	let filter = $state({
-		status: 'any'
+		status: data.filterStatus ?? 'any'
+	});
+
+	$effect(() => {
+		if (filter.status !== data.filterStatus) {
+			const params = new URLSearchParams();
+
+			params.set('page', '0');
+
+			if (filter.status !== 'any') {
+				params.set('status', filter.status);
+			}
+
+			window.location.href = `?${params.toString()}`;
+		}
 	});
 </script>
 
@@ -167,7 +181,8 @@
 	<form class="mt-3 p-2">
 		<h3 class="text-lg">Filter</h3>
 		<label class="flex flex-row items-center gap-4">
-			By Status <Select.Root type="single" bind:value={filter.status}>
+			By Status
+			<Select.Root type="single" bind:value={filter.status}>
 				<Select.Trigger class="w-[180px]">
 					{filter.status}
 				</Select.Trigger>
@@ -180,28 +195,36 @@
 			</Select.Root>
 		</label>
 	</form>
-	{@render submissions(
-		data.submissions.items.filter((item) =>
-			filter.status !== 'any' ? item.status == filter.status : true
-		)
-	)}
+	{@render submissions(data.submissions.items)}
 	<div class="flex flex-row items-center justify-center gap-4 p-4">
 		<Button
-			href={data.page == 0 ? '' : `?page=${data.page - 1}`}
+			href={data.page === 0
+				? undefined
+				: `?page=${data.page - 1}&status=${filter.status}`}
 			variant="ghost"
-			class={data.page == 0 ? 'cursor-not-allowed opacity-75' : ''}
+			class={data.page === 0 ? 'cursor-not-allowed opacity-75' : ''}
+			disabled={data.page === 0}
 		>
 			<RiArrowDropLeftLine class="h-4 w-4" /> Previous
 		</Button>
+
 		{#each Array.from({ length: data.maxPage + 1 }, (_, i) => i) as page}
-			<Button variant={data.page == page ? 'default' : 'outline'} size="icon" href="?page={page}">
+			<Button
+				variant={data.page === page ? 'default' : 'outline'}
+				size="icon"
+				href={`?page=${page}&status=${filter.status}`}
+			>
 				{page}
 			</Button>
 		{/each}
+
 		<Button
-			href={data.page == data.maxPage ? '' : `?page=${data.page + 1}`}
+			href={data.page >= data.maxPage
+				? undefined
+				: `?page=${data.page + 1}&status=${filter.status}`}
 			variant="ghost"
-			class={data.page == data.maxPage ? 'cursor-not-allowed opacity-75' : ''}
+			class={data.page >= data.maxPage ? 'cursor-not-allowed opacity-75' : ''}
+			disabled={data.page >= data.maxPage}
 		>
 			Next <RiArrowDropRightLine class="h-4 w-4" />
 		</Button>

@@ -7,7 +7,7 @@ import {
 	parseImages,
 	type StripImage
 } from '$lib/image-strip';
-import { seedSearchState } from '$lib/seed-search';
+import { fetchHasMembership, seedSearchState } from '$lib/seed-search';
 import { parseWidgets, type Widget } from '$lib/widgets';
 import {
 	fetchSeedCrawl,
@@ -157,7 +157,13 @@ export async function load({ url, cookies, locals, setHeaders, request }) {
 	const seedQuotaHit =
 		seedFallback === 'quota' || (seedUsage != null && seedUsage.usage >= seedUsage.limit);
 
-	const standardResults = seedResults == null ? await fetchStandardResults(query) : null;
+	// Only asked once the quota is used up, as that's the only time the answer is shown.
+	const [standardResults, hasMembership] = await Promise.all([
+		seedResults == null ? fetchStandardResults(query) : Promise.resolve(null),
+		seedState.seedSearchQuotaExhausted || seedQuotaHit
+			? fetchHasMembership(cookies)
+			: Promise.resolve(true)
+	]);
 	const searchFailed = seedResults == null && standardResults == null;
 	const results: Result[] = seedResults ?? standardResults?.results ?? [];
 	const images = seedResults != null ? seedImages : (standardResults?.images ?? []);
@@ -192,6 +198,7 @@ export async function load({ url, cookies, locals, setHeaders, request }) {
 		seedUsage,
 		seedFallback,
 		seedQuotaHit,
+		hasMembership,
 		pagesIndexed,
 		seedCrawl,
 		seedCrawlAttempt,

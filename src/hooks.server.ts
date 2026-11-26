@@ -59,11 +59,17 @@ const handleApiProxy: Handle = async ({ event }) => {
 		event.request.headers.set('Authorization', `Bearer ${event.cookies.get('accessToken')}`);
 	}
 
+	// The incoming Host is mwmbl.org. Bun's fetch sends a Host header it is given (Node's
+	// drops it), and mwmbl.org and api.mwmbl.org share an nginx, so forwarding it routes the
+	// request back to this app, which proxies it again, in a loop.
+	const upstreamHeaders = new Headers(event.request.headers);
+	upstreamHeaders.delete('host');
+
 	const apiResponse = await fetch(apiURL.toString(), {
 		// propagate the request method and body
 		body: event.request.body,
 		method: event.request.method,
-		headers: event.request.headers,
+		headers: upstreamHeaders,
 		// @ts-expect-error this is a real property, and without it requests with bodies do not work
 		duplex: 'half'
 	}).catch((err) => {

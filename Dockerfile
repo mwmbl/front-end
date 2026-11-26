@@ -1,20 +1,14 @@
-# Adapted from https://pnpm.io/docker#example-1-build-a-bundle-in-a-docker-container
+FROM oven/bun:1.4.5-slim as base
 
-FROM node:22.16.0-slim as base
-
-ENV PNPM_HOME="/pnpm"
-ENV PATH="$PNPM_HOME:$PATH"
-
-RUN corepack enable
 COPY . /app
 WORKDIR /app
 
 FROM base AS prod-deps
-RUN --mount=type=cache,id=pnpm,target=/pnpm/store pnpm install --prod --frozen-lockfile
+RUN --mount=type=cache,id=bun,target=/root/.bun/install/cache bun install --production --frozen-lockfile
 
 FROM base AS build
-RUN --mount=type=cache,id=pnpm,target=/pnpm/store pnpm install --frozen-lockfile
-RUN pnpm run build
+RUN --mount=type=cache,id=bun,target=/root/.bun/install/cache bun install --frozen-lockfile
+RUN bun run build
 
 FROM base
 
@@ -23,4 +17,4 @@ COPY --from=build /app/build /app/build
 
 EXPOSE 3000
 
-CMD [ "pnpm", "start" ]
+CMD [ "bun", "start" ]

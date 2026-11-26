@@ -64,9 +64,13 @@
 
 {#snippet submissions(items: SubmissionsResult['items'])}
 	{#if items.length > 0}
-		<ul class="grid w-fit grid-cols-[16rem_1fr_1fr] gap-2 pr-16">
+		<ul
+			class="flex w-full flex-col gap-4 sm:grid sm:w-fit sm:grid-cols-[16rem_1fr_1fr] sm:gap-2 sm:pr-16"
+		>
 			{#each items as item}
-				<li class="contents">
+				<li
+					class="flex flex-col gap-2 border-b pb-4 sm:contents sm:gap-0 sm:border-none sm:pb-0"
+				>
 					<div class="grid grid-cols-[7rem_1fr] gap-x-2">
 						<div
 							class={`col-span-2 flex flex-col justify-center rounded-2xl p-2 px-4 text-black ${item.status == 'APPROVED' ? ' bg-green-300' : item.status == 'REJECTED' ? ' col-span-1! bg-red-300' : ' bg-gray-300'}`}
@@ -83,7 +87,7 @@
 						{/if}
 					</div>
 					<div class="flex flex-row items-center gap-2 pr-4">
-						<span>{item.name}</span>
+						<span class="break-all">{item.name}</span>
 					</div>
 					<div class="flex flex-row items-center gap-2">
 						{new Date(item.submitted_on).toISOString().slice(0, 10)},

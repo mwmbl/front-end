@@ -59,3 +59,19 @@ export async function seedSearchState(cookies: Cookies, loggedIn: boolean) {
 	]);
 	return { seedSearchEnabled, seedSearchQuotaExhausted };
 }
+
+// Paid or volunteer: either kind gives the user a Seed Search allowance of their own. If it can't
+// be told, the user is taken to have one, so a failure doesn't ask a member to become one.
+export async function fetchHasMembership(cookies: Cookies) {
+	try {
+		const res = await fetch(`${API_BASE}/api/v2/membership/`, {
+			headers: { Authorization: `Bearer ${cookies.get('accessToken')}` }
+		});
+		if (!res.ok) return true;
+		const json: { paid: unknown; volunteer: unknown } = await res.json();
+		return json.paid != null || json.volunteer != null;
+	} catch (err) {
+		console.log('Membership check failed: ', err);
+		return true;
+	}
+}

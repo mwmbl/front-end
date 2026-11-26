@@ -21,6 +21,9 @@
 		children: Snippet;
 		after?: Snippet;
 	} = $props();
+
+	// Links within Mwmbl open in the same tab.
+	const external = $derived(href != null && /^https?:/.test(href));
 </script>
 
 <!-- Always an <a> or <button>, which the a11y check can't see through. -->
@@ -28,8 +31,8 @@
 <svelte:element
 	this={href ? 'a' : 'button'}
 	{href}
-	target={href ? '_blank' : undefined}
-	rel={href ? 'noopener' : undefined}
+	target={external ? '_blank' : undefined}
+	rel={external ? 'noopener' : undefined}
 	type={href ? undefined : 'button'}
 	disabled={href ? undefined : disabled}
 	{onclick}

@@ -11,6 +11,7 @@
 	import SignInButton from '@/components/custom/menu/SignInButton.svelte';
 	import Cta from '@/components/custom/brand/CTA.svelte';
 	import SeedSearchCta from '@/components/custom/brand/SeedSearchCTA.svelte';
+	import MembershipCta from '@/components/custom/brand/MembershipCTA.svelte';
 	import BottomLinks from '@/components/custom/brand/BottomLinks.svelte';
 	import WikipediaCard from '@/components/custom/search/WikipediaCard.svelte';
 	import SeedSearchToggle from '@/components/custom/search/SeedSearchToggle.svelte';
@@ -157,7 +158,9 @@
 				attempt={data.seedCrawlAttempt}
 			/>
 		{/if}
-		{#if data.seedSearchEnabled || data.seedSearchQuotaExhausted || data.seedQuotaHit}
+		{#if (data.seedSearchQuotaExhausted || data.seedQuotaHit) && !data.hasMembership}
+			<MembershipCta />
+		{:else if data.seedSearchEnabled || data.seedSearchQuotaExhausted || data.seedQuotaHit}
 			<Cta />
 		{:else}
 			<SeedSearchCta loginStatus={data.loginStatus} />

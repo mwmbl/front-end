@@ -2,7 +2,8 @@
 	import Button from '@/components/ui/button/button.svelte';
 
 	import RiArrowUpSLine from '~icons/ri/arrow-up-s-line';
-	import RiArrowDownSLine from '~icons/ri/arrow-down-s-line';
+	import RiArrowDownSLine from '~icons/ri/arrow-down-s-line';	
+	import RiErrorWarningLine from '~icons/ri/error-warning-line';
 
 	let {
 		url,
@@ -57,6 +58,23 @@
 		}
 	}
 
+	async function broken() {
+		const res = await fetch('/api/v1/platform/search-results/broken', {
+				method: 'POST',
+				body: JSON.stringify({
+					url,
+					query
+				})
+			});
+
+			// TODO: replace with a proper notification component instead of alert
+			if (res.ok) {
+				alert('Page reported as broken.');
+			} else {
+				alert('Failed to report broken search result');
+			}
+	}
+
 	import { localStorageOptions } from '@/localStorageOptions.svelte';
 	let { options } = localStorageOptions;
 </script>
@@ -68,6 +86,7 @@
 		<Button
 			size="icon"
 			variant="outline"
+			title="Useful"
 			class={currentVote === 'upvote'
 				? 'text-accent-text hover:text-gray-500'
 				: ' hover:text-accent-text'}
@@ -81,6 +100,7 @@
 		<Button
 			size="icon"
 			variant="outline"
+			title="Not useful"
 			class={currentVote === 'downvote'
 				? 'text-accent-text hover:text-gray-500'
 				: ' hover:text-accent-text'}
@@ -90,6 +110,18 @@
 			}}
 		>
 			<RiArrowDownSLine class="size-8" />
+		</Button>
+		<Button
+			size="icon"
+			variant="outline"
+			title="Report an issue"
+			class='text-accent-text hover:text-gray-500'
+			onclick={(e) => {
+				e.preventDefault();
+				broken();
+			}}
+		>
+			<RiErrorWarningLine class="size-8" />
 		</Button>
 	</div>
 {/if}
